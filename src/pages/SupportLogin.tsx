@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Shield, AlertCircle } from 'lucide-react';
 import { useSupportAuth } from '../contexts/SupportAuthContext';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export function SupportLogin() {
   const { signIn } = useSupportAuth();
@@ -29,6 +30,10 @@ export function SupportLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 dark:bg-linear-bg light:bg-linear-light-bg">
+      <div className="absolute top-6 right-6">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-linear bg-linear-error text-white mb-4">

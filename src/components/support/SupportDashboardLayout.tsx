@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { LogOut, Users, Search, FileText, Settings, Shield, MessageSquare } from 'lucide-react';
 import { useSupportAuth } from '../../contexts/SupportAuthContext';
+import { ThemeToggle } from '../ThemeToggle';
 
 interface SupportDashboardLayoutProps {
   currentView: 'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings';
@@ -103,6 +104,10 @@ export function SupportDashboardLayout({ currentView, onViewChange, children }: 
           </nav>
 
           <div className="p-4 border-t space-y-1 dark:border-linear-border light:border-linear-light-border">
+            <div className="flex items-center justify-between mb-2 px-3">
+              <span className="text-xs font-medium dark:text-text-tertiary light:text-text-light-tertiary">Theme</span>
+              <ThemeToggle />
+            </div>
             <button
               onClick={() => signOut()}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition dark:text-text-secondary light:text-text-light-secondary dark:hover:text-text-primary light:hover:text-text-light-primary dark:hover:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle"
