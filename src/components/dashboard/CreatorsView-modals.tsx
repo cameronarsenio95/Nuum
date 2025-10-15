@@ -1,4 +1,4 @@
-import { X, Plus, Link2, Edit2, ExternalLink, Instagram, Video, Camera } from 'lucide-react';
+import { X, Plus, Link2, Edit2 } from 'lucide-react';
 import type { Database } from '../../lib/database.types';
 
 type Creator = Database['public']['Tables']['creators']['Row'];
@@ -12,7 +12,7 @@ interface CreatorFormProps {
     phone: string;
     instagram_handle: string;
     tiktok_handle: string;
-    snapchat_handle: string;
+    youtube_handle: string;
     notes: string;
     status: 'active' | 'inactive' | 'blacklisted';
     tags: string[];
@@ -128,13 +128,13 @@ export function CreatorFormModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Snapchat</label>
+              <label className="block text-sm font-medium mb-2">YouTube</label>
               <input
                 type="text"
-                value={newCreator.snapchat_handle}
-                onChange={(e) => setNewCreator({ ...newCreator, snapchat_handle: e.target.value })}
+                value={newCreator.youtube_handle}
+                onChange={(e) => setNewCreator({ ...newCreator, youtube_handle: e.target.value })}
                 className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                placeholder="username"
+                placeholder="@channel"
               />
             </div>
           </div>
@@ -292,40 +292,22 @@ export function CreatorDetailModal({
             <h4 className="text-sm font-medium dark:text-text-tertiary light:text-text-light-tertiary mb-3">Social Media</h4>
             <div className="grid md:grid-cols-3 gap-4">
               {creator.instagram_handle && (
-                <a
-                  href={`https://instagram.com/${creator.instagram_handle.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition group"
-                >
-                  <Instagram className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
-                  <span className="text-sm">@{creator.instagram_handle.replace('@', '')}</span>
-                  <ExternalLink className="w-3 h-3 dark:text-text-tertiary light:text-text-light-tertiary opacity-0 group-hover:opacity-100 linear-transition ml-auto" />
-                </a>
+                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                  <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                  <span className="text-sm">@{creator.instagram_handle}</span>
+                </div>
               )}
               {creator.tiktok_handle && (
-                <a
-                  href={`https://tiktok.com/@${creator.tiktok_handle.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition group"
-                >
-                  <Video className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
-                  <span className="text-sm">@{creator.tiktok_handle.replace('@', '')}</span>
-                  <ExternalLink className="w-3 h-3 dark:text-text-tertiary light:text-text-light-tertiary opacity-0 group-hover:opacity-100 linear-transition ml-auto" />
-                </a>
+                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                  <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                  <span className="text-sm">@{creator.tiktok_handle}</span>
+                </div>
               )}
-              {creator.snapchat_handle && (
-                <a
-                  href={`https://snapchat.com/add/${creator.snapchat_handle.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition group"
-                >
-                  <Camera className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
-                  <span className="text-sm">@{creator.snapchat_handle.replace('@', '')}</span>
-                  <ExternalLink className="w-3 h-3 dark:text-text-tertiary light:text-text-light-tertiary opacity-0 group-hover:opacity-100 linear-transition ml-auto" />
-                </a>
+              {creator.youtube_handle && (
+                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                  <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                  <span className="text-sm">@{creator.youtube_handle}</span>
+                </div>
               )}
             </div>
           </div>
