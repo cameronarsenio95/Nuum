@@ -64,11 +64,11 @@ export function DashboardShowcase() {
   };
 
   return (
-    <section id="dashboard-showcase" className="py-12 md:py-20 px-4 md:px-6 dark:bg-linear-bg light:bg-linear-light-bg-subtle relative">
+    <section id="dashboard-showcase" className="py-12 md:py-20 px-4 md:px-6 bg-linear-bg relative">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-3 md:mb-4 tracking-tight">Your complete creator workspace</h2>
-          <p className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed dark:text-text-secondary light:text-text-light-secondary">
+          <p className="text-base md:text-lg text-text-secondary max-w-2xl mx-auto leading-relaxed">
             Everything you need to manage creators, campaigns, and content in one organized system.
           </p>
         </div>
@@ -80,15 +80,15 @@ export function DashboardShowcase() {
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className="group flex flex-col items-center gap-2 md:gap-3 p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg hover:border-linear-border-hover hover:bg-linear-bg-hover linear-transition touch-manipulation active:scale-98"
+                className="group flex flex-col items-center gap-2 md:gap-3 p-4 md:p-6 bg-linear-bg-secondary border border-linear-border-subtle rounded-lg hover:border-linear-border-hover hover:bg-linear-bg-hover linear-transition touch-manipulation active:scale-98"
               >
                 <div className="w-9 h-9 md:w-10 md:h-10 bg-linear-bg-hover rounded-md flex items-center justify-center group-hover:bg-linear-bg linear-transition">
-                  <Icon className="w-4 h-4 md:w-5 md:h-5 dark:text-text-secondary light:text-text-light-secondary" />
+                  <Icon className="w-4 h-4 md:w-5 md:h-5 text-text-secondary" />
                 </div>
                 <div className="text-center">
-                  <div className="text-xs md:text-sm font-semibold dark:text-text-primary light:text-text-light-primary mb-0.5">{section.label}</div>
+                  <div className="text-xs md:text-sm font-semibold text-text-primary mb-0.5">{section.label}</div>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 dark:text-text-tertiary light:text-text-light-tertiary opacity-0 group-hover:opacity-100 linear-transition" />
+                <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 text-text-tertiary opacity-0 group-hover:opacity-100 linear-transition" />
               </button>
             );
           })}
@@ -103,26 +103,26 @@ export function DashboardShowcase() {
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-1">
                 <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Every creator, one clear view</h3>
-                <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
+                <p className="text-text-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   See all your creator relationships in one organized database. Track contact info, social stats,
                   content history, and performance metrics. No more scattered spreadsheets.
                 </p>
                 <ul className="space-y-2.5">
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Contact details and social profiles
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Performance history and analytics
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Notes and collaboration tags
                   </li>
                 </ul>
               </div>
-              <div className="order-2 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg p-4 md:p-6 lg:p-8 overflow-hidden">
+              <div className="order-2 bg-linear-bg-secondary border border-linear-border-subtle rounded-lg p-4 md:p-6 lg:p-8 overflow-hidden">
                 <div className="space-y-2">
                   {[
                     { name: 'Sarah Johnson', handle: '@sarahjohnson', followers: '125K', engagement: '4.2%' },
@@ -130,13 +130,13 @@ export function DashboardShowcase() {
                     { name: 'Lisa Chen', handle: '@lisachen', followers: '210K', engagement: '3.8%' },
                     { name: 'Maya Rodriguez', handle: '@mayarodriguez', followers: '156K', engagement: '4.5%' },
                   ].map((creator, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md hover:border-linear-border-hover linear-transition">
+                    <div key={i} className="flex items-center gap-3 p-3 bg-linear-bg border border-linear-border-subtle rounded-md hover:border-linear-border-hover linear-transition">
                       <div className="w-10 h-10 bg-linear-bg-hover rounded-full flex items-center justify-center">
-                        <Users className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                        <Users className="w-4 h-4 text-text-secondary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm mb-0.5">{creator.name}</div>
-                        <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">{creator.handle} • {creator.followers} followers • {creator.engagement} engagement</div>
+                        <div className="text-xs text-text-tertiary">{creator.handle} • {creator.followers} followers • {creator.engagement} engagement</div>
                       </div>
                       <div className="flex gap-2">
                         <div className="px-2 py-0.5 bg-linear-success-subtle rounded text-xs text-linear-success">Active</div>
@@ -156,57 +156,57 @@ export function DashboardShowcase() {
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-2">
                 <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Track every campaign, measure real impact</h3>
-                <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
+                <p className="text-text-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   Monitor campaign performance in real-time. See which creators drive conversions, track budgets,
                   and measure ROI across all your influencer partnerships.
                 </p>
                 <ul className="space-y-2.5">
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Real-time engagement tracking
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     ROI and conversion analytics
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Budget and timeline management
                   </li>
                 </ul>
               </div>
-              <div className="order-1 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg p-4 md:p-6">
+              <div className="order-1 bg-linear-bg-secondary border border-linear-border-subtle rounded-lg p-4 md:p-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md">
+                  <div className="flex items-center justify-between p-4 bg-linear-bg border border-linear-border-subtle rounded-md">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-linear-bg-hover rounded-md flex items-center justify-center">
-                        <FolderKanban className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                        <FolderKanban className="w-4 h-4 text-text-secondary" />
                       </div>
                       <div>
                         <div className="font-medium text-sm mb-0.5">Summer Collection Launch</div>
-                        <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active • 30 creators • Ends in 12 days</div>
+                        <div className="text-xs text-text-tertiary">Active • 30 creators • Ends in 12 days</div>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-base font-medium">€12,450</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</div>
+                      <div className="text-xs text-text-tertiary">ROI</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md text-center">
-                      <TrendingUp className="w-4 h-4 mx-auto mb-2 dark:text-text-secondary light:text-text-light-secondary" />
+                    <div className="p-4 bg-linear-bg border border-linear-border-subtle rounded-md text-center">
+                      <TrendingUp className="w-4 h-4 mx-auto mb-2 text-text-secondary" />
                       <div className="text-xl font-medium mb-0.5">2.3x</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Conversion</div>
+                      <div className="text-xs text-text-tertiary">Conversion</div>
                     </div>
-                    <div className="p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md text-center">
-                      <Users className="w-4 h-4 mx-auto mb-2 dark:text-text-secondary light:text-text-light-secondary" />
+                    <div className="p-4 bg-linear-bg border border-linear-border-subtle rounded-md text-center">
+                      <Users className="w-4 h-4 mx-auto mb-2 text-text-secondary" />
                       <div className="text-xl font-medium mb-0.5">45</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Creators</div>
+                      <div className="text-xs text-text-tertiary">Creators</div>
                     </div>
-                    <div className="p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md text-center">
-                      <Calendar className="w-4 h-4 mx-auto mb-2 dark:text-text-secondary light:text-text-light-secondary" />
+                    <div className="p-4 bg-linear-bg border border-linear-border-subtle rounded-md text-center">
+                      <Calendar className="w-4 h-4 mx-auto mb-2 text-text-secondary" />
                       <div className="text-xl font-medium mb-0.5">12</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Days left</div>
+                      <div className="text-xs text-text-tertiary">Days left</div>
                     </div>
                   </div>
                 </div>
@@ -222,28 +222,28 @@ export function DashboardShowcase() {
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-1">
                 <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Organize all your UGC content</h3>
-                <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
+                <p className="text-text-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   Auto-collect and organize creator content. Track usage rights, download assets, and reuse UGC across channels.
                   Everything tagged and searchable.
                 </p>
                 <ul className="space-y-2.5">
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Automatic content collection
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Rights and licensing tracking
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Smart tagging and search
                   </li>
                 </ul>
               </div>
-              <div className="order-2 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg p-4 md:p-6">
+              <div className="order-2 bg-linear-bg-secondary border border-linear-border-subtle rounded-lg p-4 md:p-6">
                 <div className="mb-4">
-                  <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary font-medium uppercase tracking-wide mb-3">UGC Library</div>
+                  <div className="text-xs text-text-tertiary font-medium uppercase tracking-wide mb-3">UGC Library</div>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { type: 'video', color: 'from-gray-700 to-gray-600' },
@@ -253,7 +253,7 @@ export function DashboardShowcase() {
                       { type: 'video', color: 'from-gray-700 to-gray-600' },
                       { type: 'image', color: 'from-gray-600 to-gray-500' },
                     ].map((item, i) => (
-                      <div key={i} className="aspect-square dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md relative overflow-hidden group cursor-pointer hover:border-linear-border-hover linear-transition">
+                      <div key={i} className="aspect-square bg-linear-bg border border-linear-border-subtle rounded-md relative overflow-hidden group cursor-pointer hover:border-linear-border-hover linear-transition">
                         <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-10 group-hover:opacity-20 linear-transition`} />
                         <div className="absolute inset-0 flex items-center justify-center">
                           {item.type === 'video' ? (
@@ -265,7 +265,7 @@ export function DashboardShowcase() {
                           )}
                         </div>
                         <div className="absolute top-2 right-2">
-                          <div className="px-1.5 py-0.5 bg-linear-bg/80 rounded text-[10px] dark:text-text-tertiary light:text-text-light-tertiary">
+                          <div className="px-1.5 py-0.5 bg-linear-bg/80 rounded text-[10px] text-text-tertiary">
                             {item.type === 'video' ? '0:15' : 'JPG'}
                           </div>
                         </div>
@@ -278,13 +278,13 @@ export function DashboardShowcase() {
                 </div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex gap-2">
-                    <div className="px-2 py-1 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded text-xs dark:text-text-secondary light:text-text-light-secondary hover:border-linear-border-hover linear-transition cursor-pointer">#Fashion</div>
-                    <div className="px-2 py-1 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded text-xs dark:text-text-secondary light:text-text-light-secondary hover:border-linear-border-hover linear-transition cursor-pointer">#Summer2024</div>
-                    <div className="px-2 py-1 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded text-xs dark:text-text-secondary light:text-text-light-secondary hover:border-linear-border-hover linear-transition cursor-pointer">+12</div>
+                    <div className="px-2 py-1 bg-linear-bg border border-linear-border-subtle rounded text-xs text-text-secondary hover:border-linear-border-hover linear-transition cursor-pointer">#Fashion</div>
+                    <div className="px-2 py-1 bg-linear-bg border border-linear-border-subtle rounded text-xs text-text-secondary hover:border-linear-border-hover linear-transition cursor-pointer">#Summer2024</div>
+                    <div className="px-2 py-1 bg-linear-bg border border-linear-border-subtle rounded text-xs text-text-secondary hover:border-linear-border-hover linear-transition cursor-pointer">+12</div>
                   </div>
-                  <button className="text-xs dark:text-text-tertiary light:text-text-light-tertiary hover:dark:text-text-secondary hover:light:text-text-light-secondary linear-transition">View All →</button>
+                  <button className="text-xs text-text-tertiary hover:text-text-secondary linear-transition">View All →</button>
                 </div>
-                <div className="flex items-center gap-3 text-xs dark:text-text-tertiary light:text-text-light-tertiary">
+                <div className="flex items-center gap-3 text-xs text-text-tertiary">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-linear-success rounded-full" />
                     <span>124 approved</span>
@@ -302,20 +302,20 @@ export function DashboardShowcase() {
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-2">
                 <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Clear insights, shareable reports</h3>
-                <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
+                <p className="text-text-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   See what's working at a glance. Export professional reports for stakeholders.
                   Turn creator data into actionable insights.
                 </p>
                 <ul className="space-y-2.5">
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Real-time performance dashboards
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Exportable reports and analytics
                   </li>
-                  <li className="flex items-start gap-3 dark:text-text-secondary light:text-text-light-secondary text-sm">
+                  <li className="flex items-start gap-3 text-text-secondary text-sm">
                     <div className="w-px h-4 bg-linear-border mt-0.5" />
                     Team collaboration and sharing
                   </li>
@@ -323,66 +323,66 @@ export function DashboardShowcase() {
               </div>
               <div className="order-1 space-y-3 md:space-y-4">
                 <div className="grid grid-cols-2 gap-2.5 md:gap-3">
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
+                  <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
-                        <Target className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
+                        <Target className="w-3.5 h-3.5 text-text-secondary" />
                       </div>
-                      <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
+                      <span className="text-xs text-text-tertiary">Campaigns</span>
                     </div>
                     <div className="space-y-0.5">
                       <div className="text-lg font-medium">12</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">5 active</div>
+                      <div className="text-xs text-text-tertiary">5 active</div>
                     </div>
                   </div>
 
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
+                  <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
-                        <Users className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
+                        <Users className="w-3.5 h-3.5 text-text-secondary" />
                       </div>
-                      <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Creators</span>
+                      <span className="text-xs text-text-tertiary">Creators</span>
                     </div>
                     <div className="space-y-0.5">
                       <div className="text-lg font-medium">48</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total creators</div>
+                      <div className="text-xs text-text-tertiary">Total creators</div>
                     </div>
                   </div>
 
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
+                  <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
-                        <CheckSquare className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
+                        <CheckSquare className="w-3.5 h-3.5 text-text-secondary" />
                       </div>
-                      <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Tasks</span>
+                      <span className="text-xs text-text-tertiary">Tasks</span>
                     </div>
                     <div className="space-y-0.5">
                       <div className="text-lg font-medium">34</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">12 completed, 22 pending</div>
+                      <div className="text-xs text-text-tertiary">12 completed, 22 pending</div>
                     </div>
                   </div>
 
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
+                  <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
-                        <DollarSign className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
+                        <DollarSign className="w-3.5 h-3.5 text-text-secondary" />
                       </div>
-                      <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
+                      <span className="text-xs text-text-tertiary">Revenue</span>
                     </div>
                     <div className="space-y-0.5">
                       <div className="text-lg font-medium">€87,450</div>
-                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">All campaigns</div>
+                      <div className="text-xs text-text-tertiary">All campaigns</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
+                <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-md p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-medium flex items-center gap-2 dark:text-text-tertiary light:text-text-light-tertiary">
+                    <h3 className="text-xs font-medium flex items-center gap-2 text-text-tertiary">
                       <Target className="w-3.5 h-3.5" />
                       Recent Campaigns
                     </h3>
-                    <select className="text-xs dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded px-2 py-1 dark:text-text-secondary light:text-text-light-secondary cursor-pointer">
+                    <select className="text-xs bg-linear-bg border border-linear-border-subtle rounded px-2 py-1 text-text-secondary cursor-pointer">
                       <option>Last 30 days</option>
                     </select>
                   </div>
@@ -398,7 +398,7 @@ export function DashboardShowcase() {
                       >
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-xs truncate">{campaign.name}</div>
-                          <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">{campaign.date}</div>
+                          <div className="text-xs text-text-tertiary">{campaign.date}</div>
                         </div>
                         <span className={`text-xs px-1.5 py-0.5 rounded border whitespace-nowrap ${
                           campaign.status === 'active' ? 'text-linear-success bg-linear-success-subtle border-linear-success-border' :
