@@ -39,6 +39,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
     revenue: '',
     spend: '',
     ad_creative_url: '',
+    spark_code: '',
   });
 
   useEffect(() => {
@@ -104,6 +105,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
       spend: newAdSet.spend ? parseFloat(newAdSet.spend) : 0,
       ad_creative_url: newAdSet.ad_creative_url || null,
+      spark_code: newAdSet.spark_code || null,
     });
 
     if (error) {
@@ -131,6 +133,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
         spend: newAdSet.spend ? parseFloat(newAdSet.spend) : 0,
         ad_creative_url: newAdSet.ad_creative_url || null,
+        spark_code: newAdSet.spark_code || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAdSet.id);
@@ -174,6 +177,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       revenue: adSet.revenue?.toString() || '',
       spend: adSet.spend?.toString() || '',
       ad_creative_url: adSet.ad_creative_url || '',
+      spark_code: adSet.spark_code || '',
     });
     setShowEditModal(true);
   };
@@ -192,6 +196,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       revenue: '',
       spend: '',
       ad_creative_url: '',
+      spark_code: '',
     });
   };
 
@@ -426,16 +431,32 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               </div>
 
               {adSet.ad_creative_url && (
-                <a
-                  href={adSet.ad_creative_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 mt-4 text-sm text-linear-info hover:text-blue-300 linear-transition"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  View Creative
-                </a>
+                <div className="mt-4">
+                  <div className="flex items-center gap-3">
+                    <a
+                      href={adSet.ad_creative_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-linear-info hover:text-blue-300 linear-transition"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View Creative
+                    </a>
+                    {adSet.spark_code && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(adSet.spark_code!);
+                        }}
+                        className="text-sm text-linear-accent hover:text-linear-accent/80 linear-transition"
+                        title="Copy Spark Code"
+                      >
+                        Spark Code
+                      </button>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           ))}
@@ -515,6 +536,16 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                   onChange={(e) => setNewAdSet({ ...newAdSet, ad_creative_url: e.target.value })}
                   className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                   placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Spark Code</label>
+                <input
+                  type="text"
+                  value={newAdSet.spark_code}
+                  onChange={(e) => setNewAdSet({ ...newAdSet, spark_code: e.target.value })}
+                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  placeholder="Enter Spark Code"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -634,6 +665,16 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                   onChange={(e) => setNewAdSet({ ...newAdSet, ad_creative_url: e.target.value })}
                   className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                   placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Spark Code</label>
+                <input
+                  type="text"
+                  value={newAdSet.spark_code}
+                  onChange={(e) => setNewAdSet({ ...newAdSet, spark_code: e.target.value })}
+                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  placeholder="Enter Spark Code"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
