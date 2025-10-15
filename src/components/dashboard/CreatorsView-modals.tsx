@@ -1,4 +1,4 @@
-import { X, Plus, Link2, Edit2, ExternalLink, Instagram, Video, Camera } from 'lucide-react';
+import { X, Plus, Link2, Edit2 } from 'lucide-react';
 import type { Database } from '../../lib/database.types';
 
 type Creator = Database['public']['Tables']['creators']['Row'];
@@ -12,7 +12,7 @@ interface CreatorFormProps {
     phone: string;
     instagram_handle: string;
     tiktok_handle: string;
-    snapchat_handle: string;
+    youtube_handle: string;
     notes: string;
     status: 'active' | 'inactive' | 'blacklisted';
     tags: string[];
@@ -44,7 +44,7 @@ export function CreatorFormModal({
 }: CreatorFormProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onCancel}>
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium">{title}</h3>
           <button onClick={onCancel} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
@@ -128,13 +128,13 @@ export function CreatorFormModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Snapchat</label>
+              <label className="block text-sm font-medium mb-2">YouTube</label>
               <input
                 type="text"
-                value={newCreator.snapchat_handle}
-                onChange={(e) => setNewCreator({ ...newCreator, snapchat_handle: e.target.value })}
+                value={newCreator.youtube_handle}
+                onChange={(e) => setNewCreator({ ...newCreator, youtube_handle: e.target.value })}
                 className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                placeholder="username"
+                placeholder="@channel"
               />
             </div>
           </div>
@@ -233,7 +233,7 @@ export function CreatorDetailModal({
 }: DetailModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onClose}>
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between mb-6">
           <div>
             <h3 className="text-2xl font-medium mb-2">{creator.name}</h3>
@@ -259,7 +259,7 @@ export function CreatorDetailModal({
         </div>
 
         <div className="space-y-6">
-          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-4">
+          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
             <div className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-2">Total Revenue Generated</div>
             <div className="text-3xl font-medium dark:text-linear-success light:text-linear-light-success">
               ${adSets.reduce((sum, adSet) => sum + (Number(adSet.revenue) || 0), 0).toLocaleString()}
@@ -292,40 +292,22 @@ export function CreatorDetailModal({
             <h4 className="text-sm font-medium dark:text-text-tertiary light:text-text-light-tertiary mb-3">Social Media</h4>
             <div className="grid md:grid-cols-3 gap-4">
               {creator.instagram_handle && (
-                <a
-                  href={`https://instagram.com/${creator.instagram_handle.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition group"
-                >
-                  <Instagram className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
-                  <span className="text-sm">@{creator.instagram_handle.replace('@', '')}</span>
-                  <ExternalLink className="w-3 h-3 dark:text-text-tertiary light:text-text-light-tertiary opacity-0 group-hover:opacity-100 linear-transition ml-auto" />
-                </a>
+                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                  <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                  <span className="text-sm">@{creator.instagram_handle}</span>
+                </div>
               )}
               {creator.tiktok_handle && (
-                <a
-                  href={`https://tiktok.com/@${creator.tiktok_handle.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition group"
-                >
-                  <Video className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
-                  <span className="text-sm">@{creator.tiktok_handle.replace('@', '')}</span>
-                  <ExternalLink className="w-3 h-3 dark:text-text-tertiary light:text-text-light-tertiary opacity-0 group-hover:opacity-100 linear-transition ml-auto" />
-                </a>
+                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                  <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                  <span className="text-sm">@{creator.tiktok_handle}</span>
+                </div>
               )}
-              {creator.snapchat_handle && (
-                <a
-                  href={`https://snapchat.com/add/${creator.snapchat_handle.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition group"
-                >
-                  <Camera className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
-                  <span className="text-sm">@{creator.snapchat_handle.replace('@', '')}</span>
-                  <ExternalLink className="w-3 h-3 dark:text-text-tertiary light:text-text-light-tertiary opacity-0 group-hover:opacity-100 linear-transition ml-auto" />
-                </a>
+              {creator.youtube_handle && (
+                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                  <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
+                  <span className="text-sm">@{creator.youtube_handle}</span>
+                </div>
               )}
             </div>
           </div>
@@ -408,7 +390,7 @@ interface CampaignModalProps {
 export function AddToCampaignModal({ campaigns, onSelect, onClose }: CampaignModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onClose}>
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium">Add to Campaign</h3>
           <button onClick={onClose} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">

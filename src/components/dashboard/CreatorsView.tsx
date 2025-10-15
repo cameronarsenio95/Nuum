@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Instagram, Camera, Mail, Phone, Tag, Edit2, Trash2, X, Link2, User, Lock, Video } from 'lucide-react';
+import { Plus, Instagram, Youtube, Mail, Phone, Tag, Edit2, Trash2, X, Link2, User, Lock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
@@ -38,7 +38,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
     phone: '',
     instagram_handle: '',
     tiktok_handle: '',
-    snapchat_handle: '',
+    youtube_handle: '',
     notes: '',
     status: 'active' as 'active' | 'inactive' | 'blacklisted',
     tags: [] as string[],
@@ -137,7 +137,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       phone: newCreator.phone || null,
       instagram_handle: newCreator.instagram_handle || null,
       tiktok_handle: newCreator.tiktok_handle || null,
-      snapchat_handle: newCreator.snapchat_handle || null,
+      youtube_handle: newCreator.youtube_handle || null,
       notes: newCreator.notes || null,
       created_by: user.id,
       status: newCreator.status,
@@ -165,7 +165,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         phone: newCreator.phone || null,
         instagram_handle: newCreator.instagram_handle || null,
         tiktok_handle: newCreator.tiktok_handle || null,
-        snapchat_handle: newCreator.snapchat_handle || null,
+        youtube_handle: newCreator.youtube_handle || null,
         notes: newCreator.notes || null,
         status: newCreator.status,
         tags: newCreator.tags.length > 0 ? newCreator.tags : null,
@@ -242,7 +242,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       phone: creator.phone || '',
       instagram_handle: creator.instagram_handle || '',
       tiktok_handle: creator.tiktok_handle || '',
-      snapchat_handle: creator.snapchat_handle || '',
+      youtube_handle: creator.youtube_handle || '',
       notes: creator.notes || '',
       status: creator.status as 'active' | 'inactive' | 'blacklisted',
       tags: creator.tags || [],
@@ -273,7 +273,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       phone: '',
       instagram_handle: '',
       tiktok_handle: '',
-      snapchat_handle: '',
+      youtube_handle: '',
       notes: '',
       status: 'active',
       tags: [],
@@ -362,7 +362,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       </div>
 
       {creators.length === 0 ? (
-        <div className="text-center py-20 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg">
+        <div className="text-center py-20 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
           <UsersIcon className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No creators yet</h3>
           <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">Add your first creator to start building your database</p>
@@ -378,7 +378,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
           {creators.map((creator) => (
             <div
               key={creator.id}
-              className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group"
+              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group"
               onClick={() => openDetailModal(creator)}
             >
               <div className="flex items-start justify-between mb-4">
@@ -418,37 +418,22 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
 
               <div className="flex flex-wrap gap-2">
                 {creator.instagram_handle && (
-                  <a
-                    href={`https://instagram.com/${creator.instagram_handle.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-2 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear text-xs dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition"
-                  >
+                  <div className="flex items-center gap-1 px-2 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear text-xs dark:text-text-secondary light:text-text-light-secondary">
                     <Instagram className="w-3 h-3" />
-                    <span>@{creator.instagram_handle.replace('@', '')}</span>
-                  </a>
+                    <span>@{creator.instagram_handle}</span>
+                  </div>
                 )}
                 {creator.tiktok_handle && (
-                  <a
-                    href={`https://tiktok.com/@${creator.tiktok_handle.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-2 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear text-xs dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition"
-                  >
-                    <Video className="w-3 h-3" />
-                    <span>@{creator.tiktok_handle.replace('@', '')}</span>
-                  </a>
+                  <div className="flex items-center gap-1 px-2 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear text-xs dark:text-text-secondary light:text-text-light-secondary">
+                    <Tag className="w-3 h-3" />
+                    <span>@{creator.tiktok_handle}</span>
+                  </div>
                 )}
-                {creator.snapchat_handle && (
-                  <a
-                    href={`https://snapchat.com/add/${creator.snapchat_handle.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-2 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear text-xs dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition"
-                  >
-                    <Camera className="w-3 h-3" />
-                    <span>@{creator.snapchat_handle.replace('@', '')}</span>
-                  </a>
+                {creator.youtube_handle && (
+                  <div className="flex items-center gap-1 px-2 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear text-xs dark:text-text-secondary light:text-text-light-secondary">
+                    <Youtube className="w-3 h-3" />
+                    <span>@{creator.youtube_handle}</span>
+                  </div>
                 )}
               </div>
 
@@ -468,7 +453,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
               )}
 
               {creatorRevenues[creator.id] > 0 && (
-                <div className="mt-3 pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border">
+                <div className="mt-3 pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                   <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-1">Total Revenue</div>
                   <div className="text-lg font-medium dark:text-linear-success light:text-linear-light-success">
                     ${creatorRevenues[creator.id].toLocaleString()}
@@ -541,7 +526,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
 
       {showDeleteConfirm && creatorToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-medium mb-4">Delete Creator</h3>
             <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">
               Are you sure you want to delete <span className="font-medium dark:text-text-primary light:text-text-light-primary">{creatorToDelete.name}</span>? This action cannot be undone.

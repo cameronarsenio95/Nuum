@@ -39,7 +39,6 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
     revenue: '',
     spend: '',
     ad_creative_url: '',
-    spark_code: '',
   });
 
   useEffect(() => {
@@ -105,7 +104,6 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
       spend: newAdSet.spend ? parseFloat(newAdSet.spend) : 0,
       ad_creative_url: newAdSet.ad_creative_url || null,
-      spark_code: newAdSet.spark_code || null,
     });
 
     if (error) {
@@ -133,7 +131,6 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
         spend: newAdSet.spend ? parseFloat(newAdSet.spend) : 0,
         ad_creative_url: newAdSet.ad_creative_url || null,
-        spark_code: newAdSet.spark_code || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAdSet.id);
@@ -177,7 +174,6 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       revenue: adSet.revenue?.toString() || '',
       spend: adSet.spend?.toString() || '',
       ad_creative_url: adSet.ad_creative_url || '',
-      spark_code: (adSet as any).spark_code || '',
     });
     setShowEditModal(true);
   };
@@ -196,7 +192,6 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       revenue: '',
       spend: '',
       ad_creative_url: '',
-      spark_code: '',
     });
   };
 
@@ -250,7 +245,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         Back to Campaigns
       </button>
 
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 mb-8">
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 mb-8">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-2xl font-medium mb-2">{currentCampaign.name}</h2>
@@ -276,7 +271,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-4">
+          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Ad Sets</span>
@@ -284,7 +279,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
             <p className="text-2xl font-medium">{currentCampaign.total_ad_sets || 0}</p>
           </div>
 
-          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-4">
+          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Spend</span>
@@ -292,7 +287,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
             <p className="text-2xl font-medium">${(currentCampaign.total_spend || 0).toLocaleString()}</p>
           </div>
 
-          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-4">
+          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
@@ -300,7 +295,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
             <p className="text-2xl font-medium">${(currentCampaign.total_revenue || 0).toLocaleString()}</p>
           </div>
 
-          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-4">
+          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
             <div className="flex items-center gap-2 mb-2">
               <MousePointer className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
@@ -317,12 +312,12 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
             placeholder="Search ad sets..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+            className="px-4 py-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
           />
           <select
             value={filterPlatform}
             onChange={(e) => setFilterPlatform(e.target.value)}
-            className="px-4 py-2 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+            className="px-4 py-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
           >
             <option value="all">All Platforms</option>
             <option value="META">META</option>
@@ -334,7 +329,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+            className="px-4 py-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -349,7 +344,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       </div>
 
       {filteredAdSets.length === 0 ? (
-        <div className="text-center py-20 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg">
+        <div className="text-center py-20 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
           <Target className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No ad sets yet</h3>
           <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">Create your first ad set to get started</p>
@@ -365,7 +360,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
           {filteredAdSets.map((adSet) => (
             <div
               key={adSet.id}
-              className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition group"
+              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition group"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -449,7 +444,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50 overflow-y-auto" onClick={() => setShowCreateModal(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-medium">Create New Ad Set</h3>
               <button onClick={() => setShowCreateModal(false)} className="p-1 hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle rounded-linear">
@@ -522,16 +517,6 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                   placeholder="https://..."
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Spark Code</label>
-                <input
-                  type="text"
-                  value={newAdSet.spark_code}
-                  onChange={(e) => setNewAdSet({ ...newAdSet, spark_code: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                  placeholder="Enter Spark Ad code..."
-                />
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Spend</label>
@@ -578,7 +563,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
       {showEditModal && selectedAdSet && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50 overflow-y-auto" onClick={() => setShowEditModal(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl my-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-medium">Edit Ad Set</h3>
               <button onClick={() => setShowEditModal(false)} className="p-1 hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle rounded-linear">
@@ -651,16 +636,6 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                   placeholder="https://..."
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Spark Code</label>
-                <input
-                  type="text"
-                  value={newAdSet.spark_code}
-                  onChange={(e) => setNewAdSet({ ...newAdSet, spark_code: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                  placeholder="Enter Spark Ad code..."
-                />
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Spend</label>
@@ -715,7 +690,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
       {showDeleteConfirm && adSetToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-medium mb-4">Delete Ad Set</h3>
             <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">
               Are you sure you want to delete <span className="font-medium dark:text-text-primary light:text-text-light-primary">{adSetToDelete.name}</span>? This action cannot be undone.

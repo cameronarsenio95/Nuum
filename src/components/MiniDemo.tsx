@@ -51,11 +51,11 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
   }, []);
 
   return (
-    <section id="how-it-works" ref={sectionRef} className="py-24 px-6 relative overflow-hidden dark:bg-linear-bg light:bg-white">
+    <section id="how-it-works" ref={sectionRef} className="py-24 px-6 relative overflow-hidden bg-linear-bg">
       <div className="max-w-7xl mx-auto relative">
         <div className="text-center mb-20">
-          <h2 className="mb-4 dark:text-text-primary light:text-text-light-primary">See how it works</h2>
-          <p className="text-lg dark:text-text-secondary light:text-text-light-secondary">Three steps to organized creator workflows</p>
+          <h2 className="mb-4">See how it works</h2>
+          <p className="text-lg text-text-secondary">Three steps to organized creator workflows</p>
         </div>
 
         <div className="relative max-w-6xl mx-auto">
@@ -86,11 +86,11 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
                       <div className={`w-16 h-16 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
                         isActive
                           ? 'bg-linear-accent border-linear-accent shadow-lg shadow-linear-accent/20'
-                          : 'dark:bg-linear-bg-secondary light:bg-white border-linear-border-subtle group-hover:border-linear-border'
+                          : 'bg-linear-bg-secondary border-linear-border-subtle group-hover:border-linear-border'
                       }`}>
                         <Icon
                           className={`w-7 h-7 transition-colors duration-300 ${
-                            isActive ? 'text-linear-bg' : 'dark:text-text-secondary light:text-text-light-secondary group-hover:dark:text-text-primary light:text-text-light-primary'
+                            isActive ? 'text-linear-bg' : 'text-text-secondary group-hover:text-text-primary'
                           }`}
                           strokeWidth={1.5}
                         />
@@ -98,7 +98,7 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
                       <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${
                         isActive
                           ? 'bg-linear-accent text-linear-bg scale-110'
-                          : 'bg-linear-bg-hover border border-linear-border-subtle dark:text-text-tertiary light:text-text-light-tertiary'
+                          : 'bg-linear-bg-hover border border-linear-border-subtle text-text-tertiary'
                       }`}>
                         {step.step}
                       </div>
@@ -107,11 +107,11 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
                     <div className="w-full">
                       <div className={`p-6 rounded-lg border transition-all duration-300 ${
                         isActive
-                          ? 'dark:bg-linear-bg-secondary light:bg-white border-linear-border shadow-lg hover:shadow-white/5'
-                          : 'dark:bg-linear-bg-secondary light:bg-white border-linear-border-subtle group-hover:border-linear-border-hover hover:shadow-lg hover:shadow-white/5'
+                          ? 'bg-linear-bg-secondary border-linear-border shadow-lg hover:shadow-white/5'
+                          : 'bg-linear-bg-secondary border-linear-border-subtle group-hover:border-linear-border-hover hover:shadow-lg hover:shadow-white/5'
                       }`}>
-                        <h3 className="text-lg font-medium mb-3 text-center dark:text-text-primary light:text-text-light-primary">{step.title}</h3>
-                        <p className="dark:text-text-secondary light:text-text-light-secondary text-sm leading-relaxed text-center">
+                        <h3 className="text-lg font-medium mb-3 text-center">{step.title}</h3>
+                        <p className="text-text-secondary text-sm leading-relaxed text-center">
                           {step.description}
                         </p>
                       </div>
@@ -126,7 +126,7 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
         <div className="text-center mt-16">
           <button
             onClick={onDemoClick}
-            className="group px-6 py-3 dark:bg-linear-bg-secondary light:bg-white hover:dark:bg-linear-bg-hover hover:light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 hover:border-linear-border rounded-lg text-sm font-medium linear-transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl dark:text-text-primary light:text-text-light-primary light:shadow-md light:hover:shadow-lg"
+            className="group px-6 py-3 bg-linear-bg-secondary hover:bg-linear-bg-hover border border-linear-border-subtle hover:border-linear-border rounded-lg text-sm font-medium linear-transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl"
           >
             <Play className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={2} />
             Watch 90s Demo

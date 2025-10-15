@@ -22,7 +22,7 @@ export function ExitIntentModal({ isOpen, onClose, onSignup }: ExitIntentModalPr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="border rounded-linear-lg max-w-md w-full p-8 relative animate-slide-up dark:bg-linear-bg-secondary dark:border-linear-border light:bg-white light:border-linear-light-border">
+      <div className="border rounded-linear-lg max-w-md w-full p-8 relative animate-slide-up dark:bg-linear-bg-secondary dark:border-linear-border light:bg-linear-light-bg-secondary light:border-linear-light-border">
         <button
           onClick={onClose}
           className="absolute top-6 right-6 linear-transition dark:text-text-secondary dark:hover:text-text-primary light:text-text-light-secondary light:hover:text-text-light-primary"
@@ -43,7 +43,7 @@ export function ExitIntentModal({ isOpen, onClose, onSignup }: ExitIntentModalPr
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-linear-light-bg light:border-linear-light-border light:focus:border-linear-light-border light:text-text-light-primary light:placeholder:text-text-light-tertiary"
+              className="w-full px-4 py-3 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-linear-light-bg light:border-linear-light-border-subtle light:focus:border-linear-light-border light:text-text-light-primary light:placeholder:text-text-light-tertiary"
               placeholder="you@company.com"
               required
             />
