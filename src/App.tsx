@@ -4,6 +4,7 @@ import { SupportAuthProvider } from './contexts/SupportAuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { DemoProvider, useDemo } from './contexts/DemoContext';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ProofMetrics } from './components/ProofMetrics';
@@ -20,12 +21,13 @@ import { DemoModal } from './components/modals/DemoModal';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { SupportDashboard } from './pages/SupportDashboard';
+import { DemoPortal } from './pages/DemoPortal';
 import { HowItWorksPage } from './pages/HowItWorksPage';
 import { PricingPage } from './pages/PricingPage';
 import { ResourcesPage } from './pages/ResourcesPage';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
-type Page = 'landing' | 'how-it-works' | 'pricing' | 'resources' | 'login' | 'support' | 'privacy' | 'terms';
+type Page = 'landing' | 'how-it-works' | 'pricing' | 'resources' | 'login' | 'support' | 'privacy' | 'terms' | 'demo';
 
 function LandingPage({
   onLoginClick,
@@ -135,9 +137,14 @@ function LandingPage({
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { isDemoMode, initDemoMode } = useDemo();
   const [currentPage, setCurrentPage] = useState<Page>(() => {
     if (window.location.pathname === '/support') {
       return 'support';
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('demo')) {
+      return 'demo';
     }
     return 'landing';
   });
@@ -149,10 +156,23 @@ function AppContent() {
       if (window.location.pathname === '/support') {
         setCurrentPage('support');
       }
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('demo')) {
+        setCurrentPage('demo');
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const demoToken = urlParams.get('demo');
+    if (demoToken && !isDemoMode) {
+      setCurrentPage('demo');
+      initDemoMode(demoToken);
+    }
   }, []);
 
   const handleSignupClick = () => {
@@ -161,6 +181,10 @@ function AppContent() {
       window.UGC.track('open_signup_modal');
     }
   };
+
+  if (currentPage === 'demo') {
+    return <DemoPortal />;
+  }
 
   if (currentPage === 'support') {
     return (
@@ -273,11 +297,13 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <AppContent />
-          </NotificationProvider>
-        </AuthProvider>
+        <DemoProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
+          </AuthProvider>
+        </DemoProvider>
       </ToastProvider>
     </ThemeProvider>
   );
