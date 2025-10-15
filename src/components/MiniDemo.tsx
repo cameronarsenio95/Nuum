@@ -54,7 +54,7 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
     <section id="how-it-works" ref={sectionRef} className="py-24 px-6 relative overflow-hidden dark:bg-linear-bg light:bg-linear-light-bg">
       <div className="max-w-7xl mx-auto relative">
         <div className="text-center mb-20">
-          <h2 className="mb-4 dark:text-text-primary light:text-text-light-primary">See how it works</h2>
+          <h2 className="mb-4">See how it works</h2>
           <p className="text-lg dark:text-text-secondary light:text-text-light-secondary">Three steps to organized creator workflows</p>
         </div>
 
@@ -110,7 +110,7 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
                           ? 'dark:bg-linear-bg-secondary light:bg-white border-linear-border shadow-lg hover:shadow-white/5'
                           : 'dark:bg-linear-bg-secondary light:bg-white border-linear-border-subtle group-hover:border-linear-border-hover hover:shadow-lg hover:shadow-white/5'
                       }`}>
-                        <h3 className="text-lg font-medium mb-3 text-center dark:text-text-primary light:text-text-light-primary">{step.title}</h3>
+                        <h3 className="text-lg font-medium mb-3 text-center">{step.title}</h3>
                         <p className="dark:text-text-secondary light:text-text-light-secondary text-sm leading-relaxed text-center">
                           {step.description}
                         </p>
@@ -126,7 +126,7 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
         <div className="text-center mt-16">
           <button
             onClick={onDemoClick}
-            className="group px-6 py-3 dark:bg-linear-bg-secondary light:bg-white hover:dark:bg-linear-bg-hover hover:light:bg-gray-50 border border-linear-border-subtle hover:border-linear-border rounded-lg text-sm font-medium linear-transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl dark:text-text-primary light:text-text-light-primary"
+            className="group px-6 py-3 dark:bg-linear-bg-secondary light:bg-white hover:dark:bg-linear-bg-hover hover:light:bg-gray-50 border border-linear-border-subtle hover:border-linear-border rounded-lg text-sm font-medium linear-transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl"
           >
             <Play className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={2} />
             Watch 90s Demo

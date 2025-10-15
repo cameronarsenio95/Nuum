@@ -67,7 +67,7 @@ export function DashboardShowcase() {
     <section id="dashboard-showcase" className="py-12 md:py-20 px-4 md:px-6 dark:bg-linear-bg light:bg-linear-light-bg-subtle relative">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 md:mb-12">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-3 md:mb-4 tracking-tight dark:text-text-primary light:text-text-light-primary">Your complete creator workspace</h2>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-3 md:mb-4 tracking-tight">Your complete creator workspace</h2>
           <p className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed dark:text-text-secondary light:text-text-light-secondary">
             Everything you need to manage creators, campaigns, and content in one organized system.
           </p>
@@ -82,7 +82,7 @@ export function DashboardShowcase() {
                 onClick={() => scrollToSection(section.id)}
                 className="group flex flex-col items-center gap-2 md:gap-3 p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg hover:border-linear-border-hover hover:bg-linear-bg-hover linear-transition touch-manipulation active:scale-98"
               >
-                <div className="w-9 h-9 md:w-10 md:h-10 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center group-hover:bg-linear-bg linear-transition">
+                <div className="w-9 h-9 md:w-10 md:h-10 bg-linear-bg-hover rounded-md flex items-center justify-center group-hover:bg-linear-bg linear-transition">
                   <Icon className="w-4 h-4 md:w-5 md:h-5 dark:text-text-secondary light:text-text-light-secondary" />
                 </div>
                 <div className="text-center">
@@ -102,7 +102,7 @@ export function DashboardShowcase() {
           >
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-1">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight dark:text-text-primary light:text-text-light-primary">Every creator, one clear view</h3>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Every creator, one clear view</h3>
                 <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   See all your creator relationships in one organized database. Track contact info, social stats,
                   content history, and performance metrics. No more scattered spreadsheets.
@@ -131,11 +131,11 @@ export function DashboardShowcase() {
                     { name: 'Maya Rodriguez', handle: '@mayarodriguez', followers: '156K', engagement: '4.5%' },
                   ].map((creator, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md hover:border-linear-border-hover linear-transition">
-                      <div className="w-10 h-10 dark:bg-linear-bg-hover light:bg-gray-100 rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 bg-linear-bg-hover rounded-full flex items-center justify-center">
                         <Users className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm mb-0.5 dark:text-text-primary light:text-text-light-primary">{creator.name}</div>
+                        <div className="font-medium text-sm mb-0.5">{creator.name}</div>
                         <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">{creator.handle} • {creator.followers} followers • {creator.engagement} engagement</div>
                       </div>
                       <div className="flex gap-2">
@@ -155,7 +155,7 @@ export function DashboardShowcase() {
           >
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-2">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight dark:text-text-primary light:text-text-light-primary">Track every campaign, measure real impact</h3>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Track every campaign, measure real impact</h3>
                 <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   Monitor campaign performance in real-time. See which creators drive conversions, track budgets,
                   and measure ROI across all your influencer partnerships.
@@ -179,33 +179,33 @@ export function DashboardShowcase() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
+                      <div className="w-9 h-9 bg-linear-bg-hover rounded-md flex items-center justify-center">
                         <FolderKanban className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
                       </div>
                       <div>
-                        <div className="font-medium text-sm mb-0.5 dark:text-text-primary light:text-text-light-primary">Summer Collection Launch</div>
+                        <div className="font-medium text-sm mb-0.5">Summer Collection Launch</div>
                         <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active • 30 creators • Ends in 12 days</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-base font-medium dark:text-text-primary light:text-text-light-primary">€12,450</div>
+                      <div className="text-base font-medium">€12,450</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md text-center">
                       <TrendingUp className="w-4 h-4 mx-auto mb-2 dark:text-text-secondary light:text-text-light-secondary" />
-                      <div className="text-xl font-medium mb-0.5 dark:text-text-primary light:text-text-light-primary">2.3x</div>
+                      <div className="text-xl font-medium mb-0.5">2.3x</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Conversion</div>
                     </div>
                     <div className="p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md text-center">
                       <Users className="w-4 h-4 mx-auto mb-2 dark:text-text-secondary light:text-text-light-secondary" />
-                      <div className="text-xl font-medium mb-0.5 dark:text-text-primary light:text-text-light-primary">45</div>
+                      <div className="text-xl font-medium mb-0.5">45</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Creators</div>
                     </div>
                     <div className="p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md text-center">
                       <Calendar className="w-4 h-4 mx-auto mb-2 dark:text-text-secondary light:text-text-light-secondary" />
-                      <div className="text-xl font-medium mb-0.5 dark:text-text-primary light:text-text-light-primary">12</div>
+                      <div className="text-xl font-medium mb-0.5">12</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Days left</div>
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export function DashboardShowcase() {
           >
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-1">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight dark:text-text-primary light:text-text-light-primary">Organize all your UGC content</h3>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Organize all your UGC content</h3>
                 <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   Auto-collect and organize creator content. Track usage rights, download assets, and reuse UGC across channels.
                   Everything tagged and searchable.
@@ -301,7 +301,7 @@ export function DashboardShowcase() {
           >
             <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
               <div className="order-2">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight dark:text-text-primary light:text-text-light-primary">Clear insights, shareable reports</h3>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 tracking-tight">Clear insights, shareable reports</h3>
                 <p className="dark:text-text-secondary light:text-text-light-secondary mb-6 md:mb-8 leading-relaxed text-sm md:text-[15px]">
                   See what's working at a glance. Export professional reports for stakeholders.
                   Turn creator data into actionable insights.
@@ -325,52 +325,52 @@ export function DashboardShowcase() {
                 <div className="grid grid-cols-2 gap-2.5 md:gap-3">
                   <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
+                      <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
                         <Target className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
                       </div>
                       <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
                     </div>
                     <div className="space-y-0.5">
-                      <div className="text-lg font-medium dark:text-text-primary light:text-text-light-primary">12</div>
+                      <div className="text-lg font-medium">12</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">5 active</div>
                     </div>
                   </div>
 
                   <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
+                      <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
                         <Users className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
                       </div>
                       <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Creators</span>
                     </div>
                     <div className="space-y-0.5">
-                      <div className="text-lg font-medium dark:text-text-primary light:text-text-light-primary">48</div>
+                      <div className="text-lg font-medium">48</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total creators</div>
                     </div>
                   </div>
 
                   <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
+                      <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
                         <CheckSquare className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
                       </div>
                       <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Tasks</span>
                     </div>
                     <div className="space-y-0.5">
-                      <div className="text-lg font-medium dark:text-text-primary light:text-text-light-primary">34</div>
+                      <div className="text-lg font-medium">34</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">12 completed, 22 pending</div>
                     </div>
                   </div>
 
                   <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
+                      <div className="w-7 h-7 bg-linear-bg-hover rounded-md flex items-center justify-center">
                         <DollarSign className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
                       </div>
                       <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
                     </div>
                     <div className="space-y-0.5">
-                      <div className="text-lg font-medium dark:text-text-primary light:text-text-light-primary">€87,450</div>
+                      <div className="text-lg font-medium">€87,450</div>
                       <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">All campaigns</div>
                     </div>
                   </div>
@@ -394,10 +394,10 @@ export function DashboardShowcase() {
                     ].map((campaign, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-2 dark:bg-linear-bg light:bg-linear-light-bg-subtle rounded-md hover:dark:bg-linear-bg-hover hover:light:bg-gray-50 linear-transition"
+                        className="flex items-center justify-between p-2 bg-linear-bg rounded-md hover:bg-linear-bg-hover linear-transition"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-xs truncate dark:text-text-primary light:text-text-light-primary">{campaign.name}</div>
+                          <div className="font-medium text-xs truncate">{campaign.name}</div>
                           <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">{campaign.date}</div>
                         </div>
                         <span className={`text-xs px-1.5 py-0.5 rounded border whitespace-nowrap ${
