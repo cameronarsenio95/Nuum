@@ -254,13 +254,14 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                       {workspace.subscription_status || 'active'}
                     </span>
                   </div>
-                  {currentPlan.price ? (
+                  {currentPlan.price !== null && currentPlan.price > 0 && (
                     <p className="dark:text-text-secondary light:text-text-light-secondary">
                       €{currentPlan.price} per {currentPlan.period}
                     </p>
-                  ) : (
+                  )}
+                  {currentPlan.price === 0 && (
                     <p className="dark:text-text-secondary light:text-text-light-secondary">
-                      Custom pricing
+                      Free forever
                     </p>
                   )}
                   {workspace.subscription_expires_at && (
@@ -283,7 +284,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
       <div className="mb-8">
         <h3 className="text-lg font-medium mb-4">Available Plans</h3>
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-4 gap-6">
           {plans.map((plan) => {
             const Icon = plan.icon;
             const isCurrent = plan.value === workspace.plan;
