@@ -21,7 +21,7 @@ export function Integrations() {
           {platforms.map((platform, index) => (
             <div
               key={index}
-              className="group px-5 py-3 backdrop-blur-sm rounded-md border linear-transition hover:scale-105 cursor-pointer dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:bg-white light:border-gray-200 light:shadow-sm light:hover:shadow-md light:hover:border-gray-300"
+              className="group px-5 py-3 backdrop-blur-sm rounded-md border linear-transition hover:scale-105 cursor-pointer dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:bg-white light:border-linear-light-border light:hover:border-linear-light-border-hover"
             >
               <div className="text-base font-medium dark:text-text-primary light:text-text-light-primary">
                 {platform.name}

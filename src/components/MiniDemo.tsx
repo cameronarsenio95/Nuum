@@ -51,7 +51,7 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
   }, []);
 
   return (
-    <section id="how-it-works" ref={sectionRef} className="py-24 px-6 relative overflow-hidden dark:bg-linear-bg light:bg-white">
+    <section id="how-it-works" ref={sectionRef} className="py-24 px-6 relative overflow-hidden dark:bg-linear-bg light:bg-linear-light-bg">
       <div className="max-w-7xl mx-auto relative">
         <div className="text-center mb-20">
           <h2 className="mb-4 dark:text-text-primary light:text-text-light-primary">See how it works</h2>
@@ -126,7 +126,7 @@ export function MiniDemo({ onDemoClick }: MiniDemoProps) {
         <div className="text-center mt-16">
           <button
             onClick={onDemoClick}
-            className="group px-6 py-3 dark:bg-linear-bg-secondary light:bg-white hover:dark:bg-linear-bg-hover hover:light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 hover:border-linear-border rounded-lg text-sm font-medium linear-transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl dark:text-text-primary light:text-text-light-primary light:shadow-md light:hover:shadow-lg"
+            className="group px-6 py-3 dark:bg-linear-bg-secondary light:bg-white hover:dark:bg-linear-bg-hover hover:light:bg-gray-50 border border-linear-border-subtle hover:border-linear-border rounded-lg text-sm font-medium linear-transition inline-flex items-center gap-2 shadow-lg hover:shadow-xl dark:text-text-primary light:text-text-light-primary"
           >
             <Play className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={2} />
             Watch 90s Demo

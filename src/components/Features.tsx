@@ -38,7 +38,7 @@ export function Features() {
             return (
               <div
                 key={index}
-                className="group rounded-lg border linear-transition overflow-hidden touch-manipulation active:scale-98 dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border-hover dark:hover:shadow-lg dark:hover:shadow-white/5 light:bg-white light:border-gray-200 light:shadow-sm light:hover:border-gray-300 light:hover:shadow-md"
+                className="group rounded-lg border linear-transition overflow-hidden touch-manipulation active:scale-98 dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border-hover dark:hover:shadow-lg dark:hover:shadow-white/5 light:bg-white light:border-linear-light-border light:hover:border-linear-light-border-hover light:hover:shadow-lg light:hover:shadow-black/5"
               >
                 <div className="p-5 md:p-6">
                   <div className="w-10 h-10 md:w-9 md:h-9 border rounded-md flex items-center justify-center mb-3 md:mb-4 dark:bg-linear-bg-hover dark:border-linear-border-subtle light:bg-linear-light-bg-hover light:border-linear-light-border">

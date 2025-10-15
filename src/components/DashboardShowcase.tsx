@@ -64,7 +64,7 @@ export function DashboardShowcase() {
   };
 
   return (
-    <section id="dashboard-showcase" className="py-12 md:py-20 px-4 md:px-6 dark:bg-linear-bg light:bg-gray-50 relative">
+    <section id="dashboard-showcase" className="py-12 md:py-20 px-4 md:px-6 dark:bg-linear-bg light:bg-linear-light-bg-subtle relative">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-3 md:mb-4 tracking-tight dark:text-text-primary light:text-text-light-primary">Your complete creator workspace</h2>
@@ -80,7 +80,7 @@ export function DashboardShowcase() {
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className="group flex flex-col items-center gap-2 md:gap-3 p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-lg hover:border-gray-300 hover:bg-gray-50 linear-transition touch-manipulation active:scale-98 light:shadow-sm hover:light:shadow-md"
+                className="group flex flex-col items-center gap-2 md:gap-3 p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg hover:border-linear-border-hover hover:bg-linear-bg-hover linear-transition touch-manipulation active:scale-98"
               >
                 <div className="w-9 h-9 md:w-10 md:h-10 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center group-hover:bg-linear-bg linear-transition">
                   <Icon className="w-4 h-4 md:w-5 md:h-5 dark:text-text-secondary light:text-text-light-secondary" />
@@ -122,7 +122,7 @@ export function DashboardShowcase() {
                   </li>
                 </ul>
               </div>
-              <div className="order-2 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-lg p-4 md:p-6 lg:p-8 overflow-hidden light:shadow-lg">
+              <div className="order-2 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg p-4 md:p-6 lg:p-8 overflow-hidden">
                 <div className="space-y-2">
                   {[
                     { name: 'Sarah Johnson', handle: '@sarahjohnson', followers: '125K', engagement: '4.2%' },
@@ -175,7 +175,7 @@ export function DashboardShowcase() {
                   </li>
                 </ul>
               </div>
-              <div className="order-1 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-lg p-4 md:p-6 light:shadow-lg">
+              <div className="order-1 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg p-4 md:p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 dark:bg-linear-bg dark:border-linear-border-subtle light:bg-linear-light-bg-subtle light:border-linear-light-border border rounded-md">
                     <div className="flex items-center gap-3">
@@ -241,7 +241,7 @@ export function DashboardShowcase() {
                   </li>
                 </ul>
               </div>
-              <div className="order-2 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-lg p-4 md:p-6 light:shadow-lg">
+              <div className="order-2 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-lg p-4 md:p-6">
                 <div className="mb-4">
                   <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary font-medium uppercase tracking-wide mb-3">UGC Library</div>
                   <div className="grid grid-cols-3 gap-2">
@@ -323,7 +323,7 @@ export function DashboardShowcase() {
               </div>
               <div className="order-1 space-y-3 md:space-y-4">
                 <div className="grid grid-cols-2 gap-2.5 md:gap-3">
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-md p-4 light:shadow-md">
+                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
                         <Target className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
@@ -336,7 +336,7 @@ export function DashboardShowcase() {
                     </div>
                   </div>
 
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-md p-4 light:shadow-md">
+                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
                         <Users className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
@@ -349,7 +349,7 @@ export function DashboardShowcase() {
                     </div>
                   </div>
 
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-md p-4 light:shadow-md">
+                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
                         <CheckSquare className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
@@ -362,7 +362,7 @@ export function DashboardShowcase() {
                     </div>
                   </div>
 
-                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-md p-4 light:shadow-md">
+                  <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-7 h-7 dark:bg-linear-bg-hover light:bg-gray-100 rounded-md flex items-center justify-center">
                         <DollarSign className="w-3.5 h-3.5 dark:text-text-secondary light:text-text-light-secondary" />
@@ -376,7 +376,7 @@ export function DashboardShowcase() {
                   </div>
                 </div>
 
-                <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 border rounded-md p-4 light:shadow-md">
+                <div className="dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border border rounded-md p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xs font-medium flex items-center gap-2 dark:text-text-tertiary light:text-text-light-tertiary">
                       <Target className="w-3.5 h-3.5" />
