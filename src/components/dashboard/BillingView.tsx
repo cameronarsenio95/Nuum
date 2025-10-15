@@ -216,7 +216,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
         <h3 className="text-lg font-medium mb-4">Current Plan</h3>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            {currentPlan && (
+            {currentPlan ? (
               <>
                 <div className={`w-12 h-12 ${currentPlan.bgColor} rounded-linear flex items-center justify-center`}>
                   <currentPlan.icon className={`w-6 h-6 ${currentPlan.color}`} />
@@ -236,9 +236,13 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                       {workspace.subscription_status || 'active'}
                     </span>
                   </div>
-                  {currentPlan.price && (
+                  {currentPlan.price ? (
                     <p className="dark:text-text-secondary light:text-text-light-secondary">
                       €{currentPlan.price} per {currentPlan.period}
+                    </p>
+                  ) : (
+                    <p className="dark:text-text-secondary light:text-text-light-secondary">
+                      Custom pricing
                     </p>
                   )}
                   {workspace.subscription_expires_at && (
@@ -250,6 +254,10 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   )}
                 </div>
               </>
+            ) : (
+              <div>
+                <p className="dark:text-text-secondary light:text-text-light-secondary">No plan selected</p>
+              </div>
             )}
           </div>
         </div>
@@ -328,11 +336,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                 ) : canUpgrade ? (
                   <button
                     onClick={() => setShowCheckout(plan.value as 'standard' | 'elite')}
-                    className={`w-full py-2.5 rounded-linear text-sm font-medium linear-transition ${
-                      plan.highlighted
-                        ? 'bg-linear-accent hover:bg-linear-accent-hover text-white shadow-md hover:shadow-lg'
-                        : 'bg-white hover:bg-gray-100 text-black'
-                    }`}
+                    className="w-full py-2.5 rounded-linear text-sm font-medium bg-white hover:bg-gray-100 text-black linear-transition"
                   >
                     Upgrade Now
                   </button>
