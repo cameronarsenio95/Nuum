@@ -12,7 +12,7 @@ interface CreatorFormProps {
     phone: string;
     instagram_handle: string;
     tiktok_handle: string;
-    youtube_handle: string;
+    snapchat_handle: string;
     notes: string;
     status: 'active' | 'inactive' | 'blacklisted';
     tags: string[];
@@ -128,13 +128,13 @@ export function CreatorFormModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">YouTube</label>
+              <label className="block text-sm font-medium mb-2">Snapchat</label>
               <input
                 type="text"
-                value={newCreator.youtube_handle}
-                onChange={(e) => setNewCreator({ ...newCreator, youtube_handle: e.target.value })}
+                value={newCreator.snapchat_handle}
+                onChange={(e) => setNewCreator({ ...newCreator, snapchat_handle: e.target.value })}
                 className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                placeholder="@channel"
+                placeholder="username"
               />
             </div>
           </div>
@@ -292,22 +292,37 @@ export function CreatorDetailModal({
             <h4 className="text-sm font-medium dark:text-text-tertiary light:text-text-light-tertiary mb-3">Social Media</h4>
             <div className="grid md:grid-cols-3 gap-4">
               {creator.instagram_handle && (
-                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                <a
+                  href={`https://instagram.com/${creator.instagram_handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition"
+                >
                   <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
                   <span className="text-sm">@{creator.instagram_handle}</span>
-                </div>
+                </a>
               )}
               {creator.tiktok_handle && (
-                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+                <a
+                  href={`https://tiktok.com/@${creator.tiktok_handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition"
+                >
                   <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
                   <span className="text-sm">@{creator.tiktok_handle}</span>
-                </div>
+                </a>
               )}
-              {creator.youtube_handle && (
-                <div className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+              {creator.snapchat_handle && (
+                <a
+                  href={`https://snapchat.com/add/${creator.snapchat_handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear hover:dark:bg-linear-bg hover:light:bg-linear-light-bg linear-transition"
+                >
                   <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
-                  <span className="text-sm">@{creator.youtube_handle}</span>
-                </div>
+                  <span className="text-sm">@{creator.snapchat_handle}</span>
+                </a>
               )}
             </div>
           </div>

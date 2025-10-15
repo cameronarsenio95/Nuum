@@ -36,7 +36,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
   const [newAdSet, setNewAdSet] = useState({
     name: '',
     creator_id: '',
-    platform: 'META' as 'META' | 'TikTok' | 'Google' | 'YouTube' | 'Other',
+    platform: 'META' as 'META' | 'TikTok' | 'Google' | 'Snapchat' | 'Other',
     status: 'draft' as 'active' | 'paused' | 'completed' | 'draft',
     revenue: '',
     spend: '',
@@ -223,8 +223,8 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         return 'bg-pink-500/10 text-pink-400 border-pink-500/20';
       case 'Google':
         return 'bg-red-500/10 text-red-400 border-red-500/20';
-      case 'YouTube':
-        return 'bg-red-600/10 text-red-500 border-red-600/20';
+      case 'Snapchat':
+        return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
       default:
         return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
@@ -330,7 +330,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
             <option value="META">META</option>
             <option value="TikTok">TikTok</option>
             <option value="Google">Google</option>
-            <option value="YouTube">YouTube</option>
+            <option value="Snapchat">Snapchat</option>
             <option value="Other">Other</option>
           </select>
           <select
@@ -513,7 +513,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                     <option value="META">META</option>
                     <option value="TikTok">TikTok</option>
                     <option value="Google">Google</option>
-                    <option value="YouTube">YouTube</option>
+                    <option value="Snapchat">Snapchat</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
@@ -642,7 +642,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                     <option value="META">META</option>
                     <option value="TikTok">TikTok</option>
                     <option value="Google">Google</option>
-                    <option value="YouTube">YouTube</option>
+                    <option value="Snapchat">Snapchat</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
