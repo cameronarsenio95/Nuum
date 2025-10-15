@@ -17,7 +17,7 @@ const testimonials = [
 
 export function SocialProof() {
   return (
-    <section className="py-20 px-6 dark:bg-[#1A1C1F] light:bg-linear-light-bg-subtle">
+    <section className="py-20 px-6 dark:bg-[#1A1C1F] light:bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="mb-4 text-balance">Trusted by fashion and beauty brands</h2>
@@ -41,7 +41,7 @@ export function SocialProof() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="p-6 rounded-md border dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-linear-light-bg-secondary light:border-linear-light-border-subtle"
+              className="p-6 rounded-md border dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-gray-200 light:shadow-md"
             >
               <Quote className="w-5 h-5 mb-4 dark:text-text-tertiary light:text-text-light-tertiary" strokeWidth={1.5} />
               <p className="text-base mb-4 text-balance dark:text-text-primary light:text-text-light-primary">{testimonial.quote}</p>

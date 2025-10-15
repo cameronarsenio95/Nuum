@@ -204,7 +204,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
 
       <div className="grid lg:grid-cols-4 gap-4 md:gap-6">
         <div className="lg:col-span-1">
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <FileText className="w-5 h-5 dark:text-linear-accent light:text-linear-light-accent" />
               <h3 className="font-medium">Notes</h3>
@@ -278,7 +278,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
 
         <div className="lg:col-span-3">
           {!selectedNote && !isCreatingNew ? (
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-12 text-center">
+            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-12 text-center">
               <FileText className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No Note Selected</h3>
               <p className="dark:text-text-secondary light:text-text-light-secondary mb-4">
@@ -286,8 +286,8 @@ export function NotionsView({ workspace }: NotionsViewProps) {
               </p>
             </div>
           ) : (
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg flex flex-col h-[calc(100vh-200px)]">
-              <div className="p-6 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg flex flex-col h-[calc(100vh-200px)]">
+              <div className="p-6 border-b dark:border-linear-border-subtle light:border-linear-light-border">
                 <input
                   type="text"
                   value={editForm.title}
@@ -316,7 +316,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
                 />
               </div>
 
-              <div className="p-6 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+              <div className="p-6 border-t dark:border-linear-border-subtle light:border-linear-light-border">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {selectedNote && (

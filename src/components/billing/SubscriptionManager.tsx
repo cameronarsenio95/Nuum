@@ -109,7 +109,7 @@ export function SubscriptionManager({
 
   return (
     <>
-      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
+      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
         <h3 className="text-lg font-medium mb-4">Subscription Management</h3>
 
         <div className="space-y-4">

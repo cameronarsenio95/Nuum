@@ -102,7 +102,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="border rounded-linear-lg max-w-md w-full p-8 relative dark:bg-linear-bg-secondary dark:border-linear-border light:bg-linear-light-bg-secondary light:border-linear-light-border">
+      <div className="border rounded-linear-lg max-w-md w-full p-8 relative dark:bg-linear-bg-secondary dark:border-linear-border light:bg-white light:border-gray-300 light:shadow-2xl">
         <button
           onClick={onClose}
           className="absolute top-6 right-6 linear-transition dark:text-text-secondary dark:hover:text-text-primary light:text-text-light-secondary light:hover:text-text-light-primary"
@@ -129,7 +129,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   type="button"
                   onClick={() => handleSocialLogin('google')}
                   disabled={loading}
-                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-3 hover:shadow-sm disabled:opacity-50 dark:bg-linear-bg dark:border-linear-border dark:hover:bg-linear-bg-hover dark:text-text-primary light:bg-white light:border-linear-light-border light:hover:bg-linear-light-bg-hover light:text-text-light-primary"
+                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-3 disabled:opacity-50 dark:bg-linear-bg dark:border-linear-border dark:hover:bg-linear-bg-hover dark:text-text-primary light:bg-white light:border-gray-300 light:hover:bg-gray-50 light:text-text-light-primary light:shadow-sm light:hover:shadow-md"
                 >
                   <Chrome className="w-5 h-5" />
                   Continue with Google
@@ -139,7 +139,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   type="button"
                   onClick={() => handleSocialLogin('apple')}
                   disabled={loading}
-                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-3 hover:shadow-sm disabled:opacity-50 dark:bg-linear-bg dark:border-linear-border dark:hover:bg-linear-bg-hover dark:text-text-primary light:bg-white light:border-linear-light-border light:hover:bg-linear-light-bg-hover light:text-text-light-primary"
+                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-3 disabled:opacity-50 dark:bg-linear-bg dark:border-linear-border dark:hover:bg-linear-bg-hover dark:text-text-primary light:bg-white light:border-gray-300 light:hover:bg-gray-50 light:text-text-light-primary light:shadow-sm light:hover:shadow-md"
                 >
                   <AppleIcon className="w-5 h-5" />
                   Continue with Apple
@@ -149,7 +149,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   type="button"
                   onClick={() => handleSocialLogin('azure')}
                   disabled={loading}
-                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-3 hover:shadow-sm disabled:opacity-50 dark:bg-linear-bg dark:border-linear-border dark:hover:bg-linear-bg-hover dark:text-text-primary light:bg-white light:border-linear-light-border light:hover:bg-linear-light-bg-hover light:text-text-light-primary"
+                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-3 disabled:opacity-50 dark:bg-linear-bg dark:border-linear-border dark:hover:bg-linear-bg-hover dark:text-text-primary light:bg-white light:border-gray-300 light:hover:bg-gray-50 light:text-text-light-primary light:shadow-sm light:hover:shadow-md"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 23 23" fill="currentColor">
                     <path d="M0 0h11v11H0zm12 0h11v11H12zM0 12h11v11H0zm12 0h11v11H12z"/>
@@ -159,24 +159,24 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle"></div>
+                    <div className="w-full border-t dark:border-linear-border-subtle light:border-gray-200"></div>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="px-2 dark:bg-linear-bg-secondary dark:text-text-tertiary light:bg-linear-light-bg-secondary light:text-text-light-tertiary">or</span>
+                    <span className="px-2 dark:bg-linear-bg-secondary dark:text-text-tertiary light:bg-white light:text-text-light-tertiary">or</span>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowEmailForm(true)}
-                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition hover:shadow-sm dark:bg-linear-accent dark:hover:bg-linear-accent-hover dark:text-linear-bg dark:border-linear-accent light:bg-linear-light-accent light:hover:bg-linear-light-accent-hover light:text-white light:border-linear-light-accent"
+                  className="w-full py-3 px-4 border rounded-linear text-sm font-medium linear-transition dark:bg-linear-accent dark:hover:bg-linear-accent-hover dark:text-linear-bg dark:border-linear-accent light:bg-linear-light-accent light:hover:bg-linear-light-accent-hover light:text-white light:border-linear-light-accent light:shadow-md light:hover:shadow-lg"
                 >
                   <Mail className="w-4 h-4 inline mr-2" />
                   Continue with Email
                 </button>
 
                 {error && (
-                  <div className="p-3 border rounded-linear text-sm flex items-start gap-2 dark:bg-linear-error-subtle dark:border-linear-error-border dark:text-linear-error light:bg-linear-light-error-subtle light:border-linear-light-error-border light:text-linear-light-error">
+                  <div className="p-3 border rounded-linear text-sm flex items-start gap-2 dark:bg-linear-error-subtle dark:border-linear-error-border dark:text-linear-error light:bg-red-50 light:border-red-200 light:text-red-600">
                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>{error}</span>
                   </div>
@@ -200,7 +200,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-linear-light-bg light:border-linear-light-border-subtle light:focus:border-linear-light-border light:text-text-light-primary light:placeholder:text-text-light-tertiary"
+                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-white light:border-gray-300 light:focus:border-gray-400 light:text-text-light-primary light:placeholder:text-text-light-tertiary"
                   placeholder="you@company.com"
                 />
               </div>
@@ -215,7 +215,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-linear-light-bg light:border-linear-light-border-subtle light:focus:border-linear-light-border light:text-text-light-primary light:placeholder:text-text-light-tertiary"
+                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-white light:border-gray-300 light:focus:border-gray-400 light:text-text-light-primary light:placeholder:text-text-light-tertiary"
                   placeholder="••••••••"
                 />
                 {password && (
@@ -251,7 +251,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-linear-light-bg light:border-linear-light-border-subtle light:focus:border-linear-light-border light:text-text-light-primary light:placeholder:text-text-light-tertiary"
+                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary dark:placeholder:text-text-tertiary light:bg-white light:border-gray-300 light:focus:border-gray-400 light:text-text-light-primary light:placeholder:text-text-light-tertiary"
                   placeholder="Your Company"
                 />
               </div>
@@ -264,7 +264,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
                 <select
                   value={useCase}
                   onChange={(e) => setUseCase(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary light:bg-linear-light-bg light:border-linear-light-border-subtle light:focus:border-linear-light-border light:text-text-light-primary"
+                  className="w-full px-4 py-2.5 border rounded-linear text-sm focus:outline-none linear-transition dark:bg-linear-bg dark:border-linear-border-subtle dark:focus:border-linear-border dark:text-text-primary light:bg-white light:border-gray-300 light:focus:border-gray-400 light:text-text-light-primary"
                 >
                   {useCaseOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -288,7 +288,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
               </div>
 
               {error && (
-                <div className="p-3 border rounded-linear text-sm flex items-start gap-2 dark:bg-linear-error-subtle dark:border-linear-error-border dark:text-linear-error light:bg-linear-light-error-subtle light:border-linear-light-error-border light:text-linear-light-error">
+                <div className="p-3 border rounded-linear text-sm flex items-start gap-2 dark:bg-linear-error-subtle dark:border-linear-error-border dark:text-linear-error light:bg-red-50 light:border-red-200 light:text-red-600">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
@@ -297,7 +297,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-linear text-sm font-medium linear-transition disabled:opacity-50 dark:bg-linear-accent dark:hover:bg-linear-accent-hover dark:text-linear-bg light:bg-linear-light-accent light:hover:bg-linear-light-accent-hover light:text-linear-light-bg"
+                className="w-full py-2.5 rounded-linear text-sm font-medium linear-transition disabled:opacity-50 dark:bg-linear-accent dark:hover:bg-linear-accent-hover dark:text-linear-bg light:bg-linear-light-accent light:hover:bg-linear-light-accent-hover light:text-white light:shadow-md light:hover:shadow-lg"
               >
                 {loading ? 'Creating account...' : 'Start Free Trial'}
               </button>

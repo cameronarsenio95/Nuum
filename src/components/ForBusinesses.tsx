@@ -24,7 +24,7 @@ export function ForBusinesses() {
             return (
               <div
                 key={index}
-                className="p-5 backdrop-blur-sm rounded-md border linear-transition text-center group dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:bg-linear-light-bg-secondary light:border-linear-light-border-subtle light:hover:border-linear-light-border-hover"
+                className="p-5 backdrop-blur-sm rounded-md border linear-transition text-center group dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:bg-white light:border-linear-light-border light:hover:border-linear-light-border-hover"
               >
                 <div className="w-10 h-10 rounded-md flex items-center justify-center mx-auto mb-3 linear-transition dark:bg-linear-bg-hover dark:group-hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:group-hover:bg-linear-light-bg-active">
                   <Icon className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" strokeWidth={2} />

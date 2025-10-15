@@ -106,7 +106,7 @@ export function SocialMediaConnect({ workspaceId, onConnect }: SocialMediaConnec
           return (
             <div
               key={connection.platform}
-              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6"
+              className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -196,7 +196,7 @@ export function SocialMediaConnect({ workspaceId, onConnect }: SocialMediaConnec
         })}
       </div>
 
-      <div className="p-4 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
+      <div className="p-4 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg">
         <h4 className="font-medium mb-2">Coming Soon</h4>
         <p className="text-sm dark:text-text-secondary light:text-text-light-secondary mb-3">
           More platforms will be added including YouTube, Facebook, and Twitter/X. Contact us if you need a specific platform.
