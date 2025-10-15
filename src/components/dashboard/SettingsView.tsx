@@ -167,13 +167,12 @@ export function SettingsView({ workspace }: SettingsViewProps) {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-medium mb-2">Settings</h2>
-        <p className="dark:text-text-secondary light:text-text-light-secondary">Manage your profile and preferences</p>
-      </div>
-
-      <div className="max-w-3xl">
+    <div className="flex justify-center">
+      <div className="w-full max-w-3xl">
+        <div className="mb-8">
+          <h2 className="text-2xl font-medium mb-2">Settings</h2>
+          <p className="dark:text-text-secondary light:text-text-light-secondary">Manage your profile and preferences</p>
+        </div>
         {trialInfo.isActive && (
           <div className={`p-6 rounded-linear-lg mb-6 border-2 ${
             isTrialExpiringSoon()
@@ -513,6 +512,11 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           </div>
 
+          <AccountSettings
+            profile={profile}
+            onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
+          />
+
           {message && (
             <div className={`p-4 rounded-linear border ${
               message.type === 'success'
@@ -523,7 +527,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-center pb-8">
             <button
               type="submit"
               disabled={saving}
@@ -535,13 +539,6 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           </div>
         </form>
 
-        <AccountSettings
-          profile={profile}
-          onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
-        />
-
-        <WorkspaceSettings workspace={workspace} />
-
         <UpgradeModal
           isOpen={showUpgradeModal}
           onClose={() => setShowUpgradeModal(false)}
@@ -551,7 +548,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           trialDaysRemaining={trialInfo.daysRemaining}
           isTrialActive={trialInfo.isActive}
         />
-      </div>
+        </div>
     </div>
   );
 }
