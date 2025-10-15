@@ -5,7 +5,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { UpgradeModal } from '../modals/UpgradeModal';
 import { AccountSettings } from './AccountSettings';
-import { DemoLinkManager } from './DemoLinkManager';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -519,8 +518,6 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           profile={profile}
           onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
         />
-
-        <DemoLinkManager workspace={workspace} />
 
         {message && (
           <div className={`p-4 rounded-linear border mt-6 ${
