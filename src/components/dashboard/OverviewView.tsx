@@ -67,10 +67,11 @@ export function OverviewView({ workspace }: OverviewViewProps) {
       const activeCampaigns = campaigns.filter((c) => c.status === 'active').length;
       const totalBudget = campaigns.reduce((sum, c) => sum + (Number(c.budget) || 0), 0);
 
-      // Get total revenue from ad_sets instead of campaigns
+      // Get total revenue from ad_sets for this workspace only
       const { data: adSetsData } = await supabase
         .from('ad_sets')
-        .select('revenue');
+        .select('revenue')
+        .eq('workspace_id', workspace.id);
 
       const totalRevenue = adSetsData?.reduce((sum, adSet) => sum + (Number(adSet.revenue) || 0), 0) || 0;
 
