@@ -7,7 +7,7 @@ interface FooterProps {
 
 export function Footer({ onPrivacyClick, onTermsClick }: FooterProps) {
   return (
-    <footer className="border-t py-16 px-6 dark:border-linear-border-subtle light:border-linear-light-border">
+    <footer className="border-t py-16 px-6 dark:border-linear-border-subtle light:border-linear-light-border-subtle">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div>
@@ -40,15 +40,15 @@ export function Footer({ onPrivacyClick, onTermsClick }: FooterProps) {
           <div>
             <h4 className="font-medium mb-4 text-sm dark:text-text-primary light:text-text-light-primary">Connect</h4>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-linear flex items-center justify-center linear-transition dark:bg-linear-bg-secondary dark:hover:bg-linear-bg-subtle light:bg-white light:hover:bg-linear-light-bg-subtle">
+              <a href="#" className="w-10 h-10 rounded-linear flex items-center justify-center linear-transition dark:bg-linear-bg-secondary dark:hover:bg-linear-bg-subtle light:bg-linear-light-bg-secondary light:hover:bg-linear-light-bg-subtle">
                 <Linkedin className="w-4 h-4 dark:text-text-primary light:text-text-light-primary" strokeWidth={2} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-linear flex items-center justify-center linear-transition dark:bg-linear-bg-secondary dark:hover:bg-linear-bg-subtle light:bg-white light:hover:bg-linear-light-bg-subtle">
+              <a href="#" className="w-10 h-10 rounded-linear flex items-center justify-center linear-transition dark:bg-linear-bg-secondary dark:hover:bg-linear-bg-subtle light:bg-linear-light-bg-secondary light:hover:bg-linear-light-bg-subtle">
                 <Twitter className="w-4 h-4 dark:text-text-primary light:text-text-light-primary" strokeWidth={2} />
               </a>
             </div>
             <div className="mt-6">
-              <select className="border rounded-linear px-3 py-2 text-sm linear-transition dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border dark:text-text-primary light:bg-white light:border-linear-light-border light:hover:border-linear-light-border light:text-text-light-primary">
+              <select className="border rounded-linear px-3 py-2 text-sm linear-transition dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border dark:text-text-primary light:bg-linear-light-bg-secondary light:border-linear-light-border-subtle light:hover:border-linear-light-border light:text-text-light-primary">
                 <option>EN</option>
                 <option>NL</option>
                 <option>DE</option>
@@ -57,7 +57,7 @@ export function Footer({ onPrivacyClick, onTermsClick }: FooterProps) {
           </div>
         </div>
 
-        <div className="pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4 dark:border-linear-border-subtle light:border-linear-light-border">
+        <div className="pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4 dark:border-linear-border-subtle light:border-linear-light-border-subtle">
           <div className="text-sm text-center md:text-left dark:text-text-secondary light:text-text-light-secondary">
             © 2025 NUUM · All rights reserved · Built for brands that grow through creators.
           </div>

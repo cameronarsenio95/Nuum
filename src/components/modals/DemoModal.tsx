@@ -10,7 +10,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="border rounded-linear-lg max-w-5xl w-full relative dark:bg-linear-bg-secondary dark:border-linear-border light:bg-white light:border-linear-light-border">
+      <div className="border rounded-linear-lg max-w-5xl w-full relative dark:bg-linear-bg-secondary dark:border-linear-border light:bg-linear-light-bg-secondary light:border-linear-light-border">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center linear-transition dark:bg-linear-bg-hover dark:hover:bg-linear-bg-active dark:text-text-secondary dark:hover:text-text-primary light:bg-linear-light-bg-hover light:hover:bg-linear-light-bg-active light:text-text-light-secondary light:hover:text-text-light-primary"

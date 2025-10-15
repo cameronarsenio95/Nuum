@@ -79,7 +79,7 @@ export function ProofMetrics() {
           {metrics.map((metric, index) => (
             <div
               key={index}
-              className="border rounded-linear-lg p-8 text-center linear-transition dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border light:bg-white light:border-linear-light-border light:hover:border-linear-light-border"
+              className="border rounded-linear-lg p-8 text-center linear-transition dark:bg-linear-bg-secondary dark:border-linear-border-subtle dark:hover:border-linear-border light:bg-linear-light-bg-secondary light:border-linear-light-border-subtle light:hover:border-linear-light-border"
             >
               <AnimatedCounter value={metric.value} suffix={metric.suffix} />
               <p className="mt-4 dark:text-text-secondary light:text-text-light-secondary">{metric.label}</p>

@@ -41,7 +41,7 @@ export function SocialProof() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="p-6 rounded-md border dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border"
+              className="p-6 rounded-md border dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-linear-light-bg-secondary light:border-linear-light-border-subtle"
             >
               <Quote className="w-5 h-5 mb-4 dark:text-text-tertiary light:text-text-light-tertiary" strokeWidth={1.5} />
               <p className="text-base mb-4 text-balance dark:text-text-primary light:text-text-light-primary">{testimonial.quote}</p>

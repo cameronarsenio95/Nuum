@@ -212,7 +212,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
         </div>
       )}
 
-      <div className="mb-8 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+      <div className="mb-8 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
         <h3 className="text-lg font-medium mb-4">Current Plan</h3>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
@@ -266,10 +266,10 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
             return (
               <div
                 key={plan.value}
-                className={`relative dark:bg-linear-bg-secondary light:bg-white border rounded-linear-lg p-6 linear-transition ${
+                className={`relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border rounded-linear-lg p-6 linear-transition ${
                   plan.highlighted
                     ? 'border-linear-accent shadow-lg shadow-linear-accent/20 scale-105'
-                    : 'dark:border-linear-border-subtle light:border-linear-light-border'
+                    : 'dark:border-linear-border-subtle light:border-linear-light-border-subtle'
                 }`}
               >
                 {plan.highlighted && (
@@ -362,7 +362,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
       />
 
       <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <CreditCard className="w-5 h-5 dark:text-linear-accent light:text-linear-light-accent" />
@@ -388,7 +388,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   className="flex items-center justify-between p-3 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-8 dark:bg-linear-bg-tertiary light:bg-linear-light-bg-tertiary rounded border dark:border-linear-border-subtle light:border-linear-light-border flex items-center justify-center">
+                    <div className="w-10 h-8 dark:bg-linear-bg-tertiary light:bg-linear-light-bg-tertiary rounded border dark:border-linear-border-subtle light:border-linear-light-border-subtle flex items-center justify-center">
                       <CreditCard className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary" />
                     </div>
                     <div>
@@ -427,7 +427,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
           )}
         </div>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
           <div className="flex items-center gap-3 mb-4">
             <FileText className="w-5 h-5 dark:text-linear-accent light:text-linear-light-accent" />
             <h3 className="font-medium">Recent Invoices</h3>
@@ -494,7 +494,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
       {showCheckout && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6 z-50" onClick={() => setShowCheckout(null)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-medium">Complete Your Upgrade</h3>
               <button
