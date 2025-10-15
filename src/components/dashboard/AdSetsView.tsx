@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, ArrowLeft, DollarSign, TrendingUp, MousePointer, Target, Edit2, Trash2, X, ExternalLink, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import type { Database } from '../../lib/database.types';
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -19,6 +20,7 @@ interface AdSetWithCreator extends AdSet {
 
 export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
   const { user } = useAuth();
+  const toast = useToast();
   const [adSets, setAdSets] = useState<AdSetWithCreator[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [currentCampaign, setCurrentCampaign] = useState<Campaign>(campaign);
@@ -448,6 +450,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(adSet.spark_code!);
+                          toast.success('Spark Code copied to clipboard');
                         }}
                         className="text-sm text-linear-accent hover:text-linear-accent/80 linear-transition"
                         title="Copy Spark Code"
