@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X, ListChecks } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { ThemeToggle } from '../ThemeToggle';
@@ -12,8 +12,8 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface DashboardLayoutProps {
   workspace: Workspace;
-  currentView: 'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'deliverables';
-  onViewChange: (view: 'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'deliverables') => void;
+  currentView: 'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing';
+  onViewChange: (view: 'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing') => void;
   children: React.ReactNode;
 }
 
@@ -63,7 +63,6 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
     { name: 'Overview', value: 'overview' as const, icon: LayoutDashboard },
     { name: 'Campaigns', value: 'campaigns' as const, icon: Target },
     { name: 'Creators', value: 'creators' as const, icon: Users },
-    { name: 'Deliverables', value: 'deliverables' as const, icon: ListChecks },
     { name: 'Tasks', value: 'tasks' as const, icon: CheckSquare },
     { name: 'Content', value: 'content' as const, icon: Image },
     { name: 'Notes', value: 'notions' as const, icon: FileText },
