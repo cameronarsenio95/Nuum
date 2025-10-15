@@ -60,6 +60,23 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
   const plans = [
     {
+      name: 'Free',
+      price: 0,
+      period: 'month',
+      icon: Zap,
+      color: 'text-gray-400',
+      bgColor: 'bg-gray-400/10',
+      features: [
+        '1 brand workspace',
+        'Up to 5 creators',
+        '1GB storage',
+        'Basic features',
+        'Community support',
+      ],
+      value: 'free',
+      highlighted: false,
+    },
+    {
       name: 'Standard',
       price: 49,
       period: 'month',
@@ -75,7 +92,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
         'Email support',
       ],
       value: 'standard',
-      highlighted: workspace.plan === 'free',
+      highlighted: false,
     },
     {
       name: 'Elite',
@@ -95,6 +112,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
       ],
       value: 'elite',
       highlighted: true,
+      mostPopular: true,
     },
     {
       name: 'Enterprise',
@@ -280,8 +298,8 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                     : 'dark:border-linear-border-subtle light:border-linear-light-border-subtle'
                 }`}
               >
-                {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-linear-accent rounded-full text-xs font-medium text-white">
+                {plan.mostPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-white rounded-full text-xs font-medium text-black">
                     Most Popular
                   </div>
                 )}
