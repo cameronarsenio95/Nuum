@@ -60,23 +60,6 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
   const plans = [
     {
-      name: 'Free',
-      price: 0,
-      period: 'month',
-      icon: Zap,
-      color: 'text-gray-400',
-      bgColor: 'bg-gray-400/10',
-      features: [
-        '1 brand workspace',
-        'Up to 5 creators',
-        '1GB storage',
-        'Basic features',
-        'Email support',
-      ],
-      value: 'free',
-      highlighted: false,
-    },
-    {
       name: 'Standard',
       price: 49,
       period: 'month',
@@ -229,56 +212,52 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
         </div>
       )}
 
-      <div className="mb-8 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8">
-        <h3 className="text-lg font-medium mb-6 text-center">Current Plan</h3>
-        <div className="flex flex-col items-center">
-          {currentPlan ? (
-            <>
-              <div className={`w-16 h-16 ${currentPlan.bgColor} rounded-linear flex items-center justify-center mb-4`}>
-                <currentPlan.icon className={`w-8 h-8 ${currentPlan.color}`} />
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <h4 className="text-2xl font-medium">{currentPlan.name}</h4>
-                  <span className={`text-xs px-3 py-1 rounded-full border capitalize ${
-                    workspace.plan === 'free'
-                      ? 'text-gray-400 bg-gray-400/10 border-gray-400/20'
-                      : workspace.plan === 'standard'
-                      ? 'text-blue-400 bg-blue-400/10 border-blue-400/20'
-                      : workspace.plan === 'elite'
-                      ? 'text-linear-accent bg-linear-accent/10 border-linear-accent/20'
-                      : 'text-purple-400 bg-purple-400/10 border-purple-400/20'
-                  }`}>
-                    {workspace.subscription_status || 'active'}
-                  </span>
+      <div className="mb-8 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+        <h3 className="text-lg font-medium mb-4">Current Plan</h3>
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            {currentPlan && (
+              <>
+                <div className={`w-12 h-12 ${currentPlan.bgColor} rounded-linear flex items-center justify-center`}>
+                  <currentPlan.icon className={`w-6 h-6 ${currentPlan.color}`} />
                 </div>
-                {currentPlan.price !== null && currentPlan.price > 0 && (
-                  <p className="dark:text-text-secondary light:text-text-light-secondary text-lg mb-2">
-                    €{currentPlan.price} per {currentPlan.period}
-                  </p>
-                )}
-                {workspace.subscription_expires_at && (
-                  <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary">
-                    {workspace.subscription_status === 'trialing'
-                      ? `Trial ends ${new Date(workspace.subscription_expires_at).toLocaleDateString()}`
-                      : `Renews ${new Date(workspace.subscription_expires_at).toLocaleDateString()}`}
-                  </p>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-4">
-              <p className="dark:text-text-secondary light:text-text-light-secondary">
-                No plan information available
-              </p>
-            </div>
-          )}
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h4 className="text-xl font-medium">{currentPlan.name}</h4>
+                    <span className={`text-xs px-3 py-1 rounded-full border capitalize ${
+                      workspace.plan === 'free'
+                        ? 'text-gray-400 bg-gray-400/10 border-gray-400/20'
+                        : workspace.plan === 'standard'
+                        ? 'text-blue-400 bg-blue-400/10 border-blue-400/20'
+                        : workspace.plan === 'elite'
+                        ? 'text-linear-accent bg-linear-accent/10 border-linear-accent/20'
+                        : 'text-purple-400 bg-purple-400/10 border-purple-400/20'
+                    }`}>
+                      {workspace.subscription_status || 'active'}
+                    </span>
+                  </div>
+                  {currentPlan.price && (
+                    <p className="dark:text-text-secondary light:text-text-light-secondary">
+                      €{currentPlan.price} per {currentPlan.period}
+                    </p>
+                  )}
+                  {workspace.subscription_expires_at && (
+                    <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mt-1">
+                      {workspace.subscription_status === 'trialing'
+                        ? `Trial ends ${new Date(workspace.subscription_expires_at).toLocaleDateString()}`
+                        : `Renews ${new Date(workspace.subscription_expires_at).toLocaleDateString()}`}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="mb-8">
         <h3 className="text-lg font-medium mb-4">Available Plans</h3>
-        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6">
           {plans.map((plan) => {
             const Icon = plan.icon;
             const isCurrent = plan.value === workspace.plan;
@@ -287,7 +266,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
             return (
               <div
                 key={plan.value}
-                className={`relative dark:bg-linear-bg-secondary light:bg-white border rounded-linear-lg p-6 linear-transition flex flex-col ${
+                className={`relative dark:bg-linear-bg-secondary light:bg-white border rounded-linear-lg p-6 linear-transition ${
                   plan.highlighted
                     ? 'border-linear-accent shadow-lg shadow-linear-accent/20 scale-105'
                     : 'dark:border-linear-border-subtle light:border-linear-light-border'
@@ -305,24 +284,26 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   </div>
                 )}
 
-                <div className="text-center mb-6">
-                  <div className={`w-12 h-12 ${plan.bgColor} rounded-linear flex items-center justify-center mx-auto mb-3`}>
-                    <Icon className={`w-6 h-6 ${plan.color}`} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-10 h-10 ${plan.bgColor} rounded-linear flex items-center justify-center`}>
+                    <Icon className={`w-5 h-5 ${plan.color}`} />
                   </div>
-                  <h4 className="text-xl font-medium mb-2">{plan.name}</h4>
-                  <div className="flex items-baseline justify-center gap-1 h-12 items-center">
-                    {plan.price ? (
-                      <>
-                        <span className="text-3xl font-medium">€{plan.price}</span>
-                        <span className="text-sm dark:text-text-tertiary light:text-text-light-tertiary">/{plan.period}</span>
-                      </>
-                    ) : (
-                      <span className="text-2xl font-medium">Custom</span>
-                    )}
+                  <div>
+                    <h4 className="font-medium">{plan.name}</h4>
+                    <div className="flex items-baseline gap-1">
+                      {plan.price ? (
+                        <>
+                          <span className="text-2xl font-medium">€{plan.price}</span>
+                          <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">/{plan.period}</span>
+                        </>
+                      ) : (
+                        <span className="text-xl font-medium">Custom</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <ul className="space-y-2 mb-6 flex-grow">
+                <ul className="space-y-2 mb-6">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
@@ -332,53 +313,33 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                 </ul>
 
                 {plan.value === 'enterprise' ? (
-                  <a
-                    href="mailto:sales@nuum.app?subject=Enterprise%20Plan%20Inquiry"
-                    className="w-full py-3 rounded-lg text-sm font-medium linear-transition flex items-center justify-center border hover:opacity-90"
-                    style={{
-                      backgroundColor: '#1f2937',
-                      color: '#ffffff',
-                      borderColor: '#374151'
-                    }}
+                  <button
+                    className="w-full py-2.5 rounded-linear text-sm font-medium bg-white hover:bg-gray-100 text-black linear-transition"
                   >
                     Contact Sales
-                  </a>
+                  </button>
                 ) : isCurrent ? (
                   <button
                     disabled
-                    className="w-full py-3 rounded-lg text-sm font-medium cursor-not-allowed border"
-                    style={{
-                      backgroundColor: '#f3f4f6',
-                      color: '#6b7280',
-                      borderColor: '#d1d5db'
-                    }}
+                    className="w-full py-2.5 rounded-linear text-sm font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed"
                   >
                     Current Plan
                   </button>
                 ) : canUpgrade ? (
                   <button
                     onClick={() => setShowCheckout(plan.value as 'standard' | 'elite')}
-                    className="w-full py-3 rounded-lg text-sm font-medium linear-transition shadow-md hover:shadow-lg hover:opacity-90"
-                    style={plan.highlighted ? {
-                      backgroundColor: '#3b82f6',
-                      color: '#ffffff'
-                    } : {
-                      backgroundColor: '#1f2937',
-                      color: '#ffffff',
-                      border: '1px solid #374151'
-                    }}
+                    className={`w-full py-2.5 rounded-linear text-sm font-medium linear-transition ${
+                      plan.highlighted
+                        ? 'bg-linear-accent hover:bg-linear-accent-hover text-white shadow-md hover:shadow-lg'
+                        : 'bg-white hover:bg-gray-100 text-black'
+                    }`}
                   >
-                    {plan.value === 'free' ? 'Get Started' : 'Upgrade Now'}
+                    Upgrade Now
                   </button>
                 ) : (
                   <button
                     disabled
-                    className="w-full py-3 rounded-lg text-sm font-medium cursor-not-allowed border"
-                    style={{
-                      backgroundColor: '#f3f4f6',
-                      color: '#9ca3af',
-                      borderColor: '#d1d5db'
-                    }}
+                    className="w-full py-2.5 rounded-linear text-sm font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed"
                   >
                     Not Available
                   </button>

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Target, Edit2, Trash2, X, BarChart3, TrendingUp } from 'lucide-react';
+import { Plus, Target, Edit2, Trash2, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { CampaignAnalytics } from '../analytics/CampaignAnalytics';
-import { CampaignComparison } from '../analytics/CampaignComparison';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -26,9 +24,6 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-  const [analyticsCampaign, setAnalyticsCampaign] = useState<Campaign | null>(null);
   const [newCampaign, setNewCampaign] = useState({
     name: '',
     status: 'draft' as 'draft' | 'active' | 'completed' | 'archived',
@@ -188,22 +183,13 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
           <h2 className="text-xl md:text-2xl font-medium mb-2">Campaigns</h2>
           <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">Manage your influencer marketing campaigns</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowComparison(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border hover:dark:border-linear-border-subtle hover:light:border-linear-light-border rounded-linear linear-transition whitespace-nowrap"
-          >
-            <TrendingUp className="w-4 h-4" />
-            Compare
-          </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            New Campaign
-          </button>
-        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition whitespace-nowrap"
+        >
+          <Plus className="w-4 h-4" />
+          New Campaign
+        </button>
       </div>
 
       {campaigns.length === 0 ? (
@@ -224,6 +210,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
             <div
               key={campaign.id}
               className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group flex flex-col"
+              onClick={() => onCampaignClick?.(campaign)}
             >
               <div className="flex items-start justify-between mb-4">
                 <h3 className="font-medium text-base md:text-lg">{campaign.name}</h3>
@@ -231,18 +218,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                   <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
                     {campaign.status}
                   </span>
-                  <div className="opacity-0 group-hover:opacity-100 linear-transition flex items-center gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAnalyticsCampaign(campaign);
-                        setShowAnalytics(true);
-                      }}
-                      className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear"
-                      title="View Analytics"
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                    </button>
+                  <div className="opacity-0 group-hover:opacity-100 linear-transition">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -255,8 +231,6 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                   </div>
                 </div>
               </div>
-
-              <div className="cursor-pointer" onClick={() => onCampaignClick?.(campaign)}>
 
               {(campaign as any).total_ad_sets > 0 && (
                 <div className="mb-4 pb-4 border-b dark:border-linear-border-subtle light:border-linear-light-border">
@@ -294,7 +268,6 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                   </div>
                 </div>
               )}
-              </div>
 
             </div>
           ))}
@@ -439,32 +412,6 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
           </div>
         </div>
       )}
-
-      {showAnalytics && analyticsCampaign && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowAnalytics(false)}>
-          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-medium mb-2">{analyticsCampaign.name}</h2>
-                <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">Campaign Analytics</p>
-              </div>
-              <button
-                onClick={() => setShowAnalytics(false)}
-                className="p-2 hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle rounded-linear linear-transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <CampaignAnalytics campaign={analyticsCampaign} workspaceId={workspace.id} />
-          </div>
-        </div>
-      )}
-
-      <CampaignComparison
-        workspaceId={workspace.id}
-        isOpen={showComparison}
-        onClose={() => setShowComparison(false)}
-      />
     </div>
   );
 }

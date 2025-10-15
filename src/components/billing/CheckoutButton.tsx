@@ -51,23 +51,13 @@ export function CheckoutButton({ plan, workspaceId, className }: CheckoutButtonP
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error('API Error:', response.status, data);
-
-        if (response.status === 503 && data.setupUrl) {
-          showToast(
-            'Stripe payment processing is not yet configured for this workspace. Please contact support to enable payments.',
-            'error'
-          );
-          setLoading(false);
-          return;
-        }
-
-        throw new Error(data.error || data.message || `HTTP ${response.status}`);
+        const errorData = await response.json();
+        console.error('API Error:', response.status, errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
+      const data = await response.json();
       console.log('Checkout response:', data);
 
       if (data.error) {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Key } from 'lucide-react';
+import { Upload, Camera, Key, Mail, Trash2, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -12,12 +12,14 @@ interface AccountSettingsProps {
 }
 
 export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProps) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,10 +89,28 @@ export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProp
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== 'DELETE') {
+      setMessage({ type: 'error', text: 'Please type DELETE to confirm' });
+      return;
+    }
+
+    try {
+      setMessage({ type: 'success', text: 'Deleting account...' });
+
+      const { error } = await supabase.auth.admin.deleteUser(user?.id || '');
+
+      if (error) throw error;
+
+      await signOut();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: 'Account deletion requires admin privileges. Please contact support.' });
+    }
+  };
 
   return (
-    <div className="space-y-6 mt-6">
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8">
+    <div className="space-y-6">
+      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
         <h3 className="text-lg font-medium mb-6">Profile Picture</h3>
 
         <div className="flex items-center gap-6">
@@ -136,8 +156,8 @@ export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProp
         </div>
       </div>
 
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8">
-        <h3 className="text-lg font-medium mb-6">Security</h3>
+      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+        <h3 className="text-lg font-medium mb-4">Security</h3>
 
         <div className="space-y-3">
           <button
@@ -156,6 +176,25 @@ export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProp
         </div>
       </div>
 
+      <div className="dark:bg-linear-bg-secondary light:bg-white border border-linear-error/20 rounded-linear-lg p-6">
+        <h3 className="text-lg font-medium mb-4 text-linear-error">Danger Zone</h3>
+
+        <div className="space-y-3">
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full flex items-center justify-between p-4 bg-linear-error/10 border border-linear-error/20 rounded-linear hover:bg-linear-error/20 linear-transition"
+          >
+            <div className="flex items-center gap-3">
+              <Trash2 className="w-5 h-5 text-linear-error" />
+              <div className="text-left">
+                <p className="font-medium text-sm text-linear-error">Delete Account</p>
+                <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Permanently delete your account and all data</p>
+              </div>
+            </div>
+            <span className="text-sm text-linear-error">→</span>
+          </button>
+        </div>
+      </div>
 
       {message && (
         <div className={`p-4 rounded-linear border ${
@@ -224,6 +263,54 @@ export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProp
         </div>
       )}
 
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
+          <div className="bg-linear-bg-secondary border border-linear-error/20 rounded-linear-lg p-6 w-full max-w-md">
+            <div className="flex items-center gap-3 mb-6">
+              <AlertTriangle className="w-6 h-6 text-linear-error" />
+              <h3 className="text-xl font-medium text-linear-error">Delete Account</h3>
+            </div>
+            <div className="space-y-4">
+              <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
+                This action cannot be undone. This will permanently delete your account and remove all data associated with it.
+              </p>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Type <span className="font-mono text-linear-error">DELETE</span> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value)}
+                  className="w-full px-4 py-2 bg-linear-bg border border-linear-error/20 rounded-linear focus:outline-none focus:border-linear-error"
+                  placeholder="DELETE"
+                />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteConfirm('');
+                    setMessage(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-linear-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirm !== 'DELETE'}
+                  className="flex-1 px-4 py-2 bg-linear-error hover:bg-linear-error/90 text-white rounded-linear linear-transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Delete Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
