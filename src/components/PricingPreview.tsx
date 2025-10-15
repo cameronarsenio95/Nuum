@@ -55,8 +55,8 @@ export function PricingPreview({ onSignupClick }: PricingPreviewProps) {
               className={`border rounded-lg p-5 md:p-6 touch-manipulation active:scale-98 ${
                 plan.featured
                   ? 'dark:border-linear-accent dark:shadow-lg dark:shadow-linear-accent/10 light:border-linear-light-accent light:shadow-lg light:shadow-linear-light-accent/10'
-                  : 'dark:border-linear-border-subtle light:border-linear-light-border-subtle'
-              } dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary`}
+                  : 'dark:border-linear-border-subtle light:border-linear-light-border'
+              } dark:bg-linear-bg-secondary light:bg-white`}
             >
               {plan.featured && (
                 <div className="inline-block px-2.5 py-1 rounded-md text-xs font-medium mb-4 dark:bg-linear-accent dark:text-linear-bg light:bg-linear-light-accent light:text-linear-light-bg">

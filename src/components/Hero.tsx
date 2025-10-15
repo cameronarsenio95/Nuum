@@ -94,7 +94,7 @@ export function Hero({ onSignupClick, onDemoClick }: HeroProps) {
               </button>
               <button
                 onClick={handleDemoClick}
-                className="flex items-center justify-center gap-2 px-6 py-3 sm:px-5 sm:py-2.5 text-base sm:text-sm rounded-md linear-transition border touch-manipulation active:scale-95 dark:text-text-secondary dark:hover:text-text-primary dark:bg-linear-bg-hover dark:hover:bg-linear-bg-active dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:text-text-light-secondary light:hover:text-text-light-primary light:bg-linear-light-bg-hover light:hover:bg-linear-light-bg-active light:border-linear-light-border-subtle light:hover:border-linear-light-border-hover"
+                className="flex items-center justify-center gap-2 px-6 py-3 sm:px-5 sm:py-2.5 text-base sm:text-sm rounded-md linear-transition border touch-manipulation active:scale-95 dark:text-text-secondary dark:hover:text-text-primary dark:bg-linear-bg-hover dark:hover:bg-linear-bg-active dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:text-text-light-secondary light:hover:text-text-light-primary light:bg-linear-light-bg-hover light:hover:bg-linear-light-bg-active light:border-linear-light-border light:hover:border-linear-light-border-hover"
               >
                 <Play className="w-4 h-4" strokeWidth={2} />
                 Watch Demo
@@ -118,7 +118,7 @@ export function Hero({ onSignupClick, onDemoClick }: HeroProps) {
                 `,
               }}
             >
-              <div className="relative rounded-lg overflow-hidden border shadow-2xl dark:border-linear-border-subtle dark:bg-linear-bg-elevated light:border-linear-light-border-subtle light:bg-linear-light-bg-elevated">
+              <div className="relative rounded-lg overflow-hidden border shadow-2xl dark:border-linear-border-subtle dark:bg-linear-bg-elevated light:border-linear-light-border light:bg-linear-light-bg-elevated">
                 <div className="absolute inset-0 bg-gradient-to-br via-transparent to-transparent dark:from-linear-accent/10 light:from-linear-light-accent/10" />
 
                 <div className="relative p-6">
@@ -144,7 +144,7 @@ export function Hero({ onSignupClick, onDemoClick }: HeroProps) {
                     { label: 'Total Content', value: '1,248', change: '+18%', color: 'green' },
                     { label: 'Total Revenue', value: '$87.2K', change: '+24%', color: 'green' },
                     ].map((stat, i) => (
-                      <div key={i} className="border rounded-md p-2.5 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border-subtle light:hover:bg-linear-light-bg-active">
+                      <div key={i} className="border rounded-md p-2.5 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border light:hover:bg-linear-light-bg-active">
                         <div className="text-[9px] mb-1.5 font-medium tracking-wide uppercase dark:text-text-tertiary light:text-text-light-tertiary">{stat.label}</div>
                         <div className="text-lg font-semibold mb-0.5 dark:text-text-primary light:text-text-light-primary">{stat.value}</div>
                         <div className="flex items-center gap-1">
@@ -160,7 +160,7 @@ export function Hero({ onSignupClick, onDemoClick }: HeroProps) {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="border rounded-md p-4 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border-subtle light:hover:bg-linear-light-bg-active">
+                    <div className="border rounded-md p-4 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border light:hover:bg-linear-light-bg-active">
                       <div className="text-[10px] mb-3 font-medium uppercase tracking-wide dark:text-text-tertiary light:text-text-light-tertiary">Top Creators</div>
                       <div className="space-y-2.5">
                       {[
@@ -183,7 +183,7 @@ export function Hero({ onSignupClick, onDemoClick }: HeroProps) {
                       </div>
                     </div>
 
-                    <div className="border rounded-md p-4 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border-subtle light:hover:bg-linear-light-bg-active">
+                    <div className="border rounded-md p-4 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border light:hover:bg-linear-light-bg-active">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-[10px] font-medium uppercase tracking-wide dark:text-text-tertiary light:text-text-light-tertiary">Content Performance</div>
                         <div className="text-[9px] uppercase tracking-wide dark:text-text-tertiary light:text-text-light-tertiary">Last 7 Days</div>
@@ -217,7 +217,7 @@ export function Hero({ onSignupClick, onDemoClick }: HeroProps) {
                     </div>
                   </div>
 
-                  <div className="mt-4 border rounded-md p-4 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border-subtle light:hover:bg-linear-light-bg-active">
+                  <div className="mt-4 border rounded-md p-4 transition-colors duration-200 dark:bg-linear-bg-hover dark:border-linear-border-subtle dark:hover:bg-linear-bg-active light:bg-linear-light-bg-hover light:border-linear-light-border light:hover:bg-linear-light-bg-active">
                     <div className="flex items-center justify-between mb-3">
                       <div className="text-[10px] font-medium uppercase tracking-wide dark:text-text-tertiary light:text-text-light-tertiary">Recent Campaigns</div>
                       <div className="text-[9px] font-medium cursor-pointer transition-colors dark:text-linear-accent dark:hover:text-linear-accent-hover light:text-text-light-link light:hover:text-text-light-link-hover">View All →</div>

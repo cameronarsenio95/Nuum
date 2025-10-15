@@ -5,7 +5,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { UpgradeModal } from '../modals/UpgradeModal';
 import { AccountSettings } from './AccountSettings';
-import { WorkspaceSettings } from './WorkspaceSettings';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -65,7 +64,8 @@ export function SettingsView({ workspace }: SettingsViewProps) {
     setLoading(false);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) return;
 
     setSaving(true);
@@ -166,12 +166,13 @@ export function SettingsView({ workspace }: SettingsViewProps) {
   };
 
   return (
-    <div className="flex justify-center">
-      <div className="max-w-4xl w-full">
-        <div className="mb-8">
-          <h2 className="text-2xl font-medium mb-2">Settings</h2>
-          <p className="dark:text-text-secondary light:text-text-light-secondary">Manage your profile and preferences</p>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-2xl font-medium mb-2">Settings</h2>
+        <p className="dark:text-text-secondary light:text-text-light-secondary">Manage your profile and preferences</p>
+      </div>
+
+      <div className="space-y-6">
         {trialInfo.isActive && (
           <div className={`p-6 rounded-linear-lg mb-6 border-2 ${
             isTrialExpiringSoon()
@@ -208,7 +209,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
                 </div>
               )}
             </div>
-            <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+            <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border">
               <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-2">
                 After trial ends, upgrade to unlock more features:
               </p>
@@ -224,7 +225,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           </div>
         )}
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 mb-8">
+        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-medium flex items-center gap-2">
               {(() => {
@@ -247,7 +248,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium flex items-center gap-2">
@@ -381,145 +382,145 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           )}
         </div>
+        <form onSubmit={handleSave} className="space-y-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8">
+            <h3 className="text-lg font-medium mb-6 flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Personal Information
+            </h3>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 mb-8">
-          <h3 className="text-lg font-medium mb-6 flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Personal Information
-          </h3>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
-              <input
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="w-full px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle border dark:border-linear-border light:border-linear-light-border rounded-linear dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed"
-              />
-              <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Email cannot be changed</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Full Name</label>
-              <input
-                type="text"
-                value={profile.full_name}
-                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                placeholder="John Doe"
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-2">Phone</label>
+                <label className="block text-sm font-medium mb-2">Email</label>
                 <input
-                  type="tel"
-                  value={profile.phone}
-                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                  placeholder="+31 6 12345678"
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="w-full px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle border dark:border-linear-border light:border-linear-light-border rounded-linear dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed"
                 />
+                <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Email cannot be changed</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Company</label>
+                <label className="block text-sm font-medium mb-2">Full Name</label>
                 <input
                   type="text"
-                  value={profile.company}
-                  onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+                  value={profile.full_name}
+                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                   className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                  placeholder="Company Name"
+                  placeholder="John Doe"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Job Title</label>
-              <input
-                type="text"
-                value={profile.job_title}
-                onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
-                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                placeholder="Marketing Manager"
-              />
-            </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    value={profile.phone}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                    placeholder="+31 6 12345678"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Bio</label>
-              <textarea
-                value={profile.bio}
-                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent h-24"
-                placeholder="Tell us about yourself..."
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 mb-8">
-          <h3 className="text-lg font-medium mb-6">Preferences</h3>
-
-          <div className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Timezone</label>
-                <select
-                  value={profile.timezone}
-                  onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                >
-                  <option value="UTC">UTC</option>
-                  <option value="Europe/Amsterdam">Europe/Amsterdam</option>
-                  <option value="America/New_York">America/New York</option>
-                  <option value="America/Los_Angeles">America/Los Angeles</option>
-                  <option value="Asia/Tokyo">Asia/Tokyo</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Company</label>
+                  <input
+                    type="text"
+                    value={profile.company}
+                    onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                    placeholder="Company Name"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Language</label>
-                <select
-                  value={profile.language}
-                  onChange={(e) => setProfile({ ...profile, language: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                >
-                  <option value="en">English</option>
-                  <option value="nl">Nederlands</option>
-                  <option value="de">Deutsch</option>
-                  <option value="fr">Français</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between py-3 px-4 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear">
-              <div>
-                <p className="font-medium text-sm">Email Notifications</p>
-                <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Receive email updates about your campaigns and tasks</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+                <label className="block text-sm font-medium mb-2">Job Title</label>
                 <input
-                  type="checkbox"
-                  checked={profile.notifications_enabled}
-                  onChange={(e) => setProfile({ ...profile, notifications_enabled: e.target.checked })}
-                  className="sr-only peer"
+                  type="text"
+                  value={profile.job_title}
+                  onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
+                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  placeholder="Marketing Manager"
                 />
-                <div className="w-11 h-6 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-linear-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg"></div>
-              </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Bio</label>
+                <textarea
+                  value={profile.bio}
+                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent h-24"
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
             </div>
           </div>
-        </div>
+
+          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8">
+            <h3 className="text-lg font-medium mb-6">Preferences</h3>
+
+            <div className="space-y-5">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Timezone</label>
+                  <select
+                    value={profile.timezone}
+                    onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="UTC">UTC</option>
+                    <option value="Europe/Amsterdam">Europe/Amsterdam</option>
+                    <option value="America/New_York">America/New York</option>
+                    <option value="America/Los_Angeles">America/Los Angeles</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Language</label>
+                  <select
+                    value={profile.language}
+                    onChange={(e) => setProfile({ ...profile, language: e.target.value })}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="en">English</option>
+                    <option value="nl">Nederlands</option>
+                    <option value="de">Deutsch</option>
+                    <option value="fr">Français</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between py-3 px-4 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear">
+                <div>
+                  <p className="font-medium text-sm">Email Notifications</p>
+                  <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Receive email updates about your campaigns and tasks</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={profile.notifications_enabled}
+                    onChange={(e) => setProfile({ ...profile, notifications_enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-linear-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </form>
 
         <AccountSettings
           profile={profile}
           onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
         />
 
-        <WorkspaceSettings workspace={workspace} />
-
         {message && (
-          <div className={`p-4 rounded-linear border mb-6 ${
+          <div className={`p-4 rounded-linear border mt-6 ${
             message.type === 'success'
               ? 'bg-linear-success/10 border-linear-success-border/20 text-linear-success'
               : 'bg-linear-error/10 border-linear-error-border/20 text-linear-error'
@@ -528,11 +529,14 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           </div>
         )}
 
-        <div className="flex justify-center py-8">
+        <div className="flex items-center justify-between pt-6 mt-6 border-t dark:border-linear-border-subtle light:border-linear-light-border">
+          <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary">
+            Changes will be saved to your profile
+          </p>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-8 py-3 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Saving...' : 'Save Changes'}

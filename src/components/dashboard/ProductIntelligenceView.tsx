@@ -125,7 +125,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
       case 'medium':
         return 'text-linear-info bg-linear-info-subtle border-linear-info-border';
       default:
-        return 'dark:text-text-tertiary light:text-text-light-tertiary bg-white/5 dark:border-linear-border-subtle light:border-linear-light-border-subtle';
+        return 'dark:text-text-tertiary light:text-text-light-tertiary bg-white/5 dark:border-linear-border-subtle light:border-linear-light-border';
     }
   };
 
@@ -186,7 +186,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
         </div>
       </div>
 
-      <div className="relative rounded-linear-lg overflow-hidden border dark:border-linear-border-subtle light:border-linear-light-border-subtle bg-white/5 backdrop-blur-sm p-8">
+      <div className="relative rounded-linear-lg overflow-hidden border dark:border-linear-border-subtle light:border-linear-light-border bg-white/5 backdrop-blur-sm p-8">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
           <div className="absolute bottom-10 left-10 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
@@ -209,7 +209,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+      <div className="flex items-center gap-2 border-b dark:border-linear-border-subtle light:border-linear-light-border">
         <button
           onClick={() => setActiveTab('all')}
           className={`px-4 py-2 text-sm font-medium linear-transition relative ${
@@ -253,7 +253,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
 
       <div className="space-y-4">
         {filteredSuggestions.length === 0 ? (
-          <div className="text-center py-12 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+          <div className="text-center py-12 dark:bg-linear-bg-secondary light:bg-white rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border">
             <Sparkles className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
             <p className="dark:text-text-secondary light:text-text-light-secondary">No suggestions yet. Keep working and AI will analyze your patterns.</p>
           </div>
@@ -261,7 +261,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
           filteredSuggestions.map((suggestion) => (
             <div
               key={suggestion.id}
-              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border-subtle overflow-hidden hover:dark:border-linear-border light:border-linear-light-border linear-transition animate-slide-up"
+              className="dark:bg-linear-bg-secondary light:bg-white rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border overflow-hidden hover:dark:border-linear-border light:border-linear-light-border linear-transition animate-slide-up"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -292,7 +292,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
                             ? 'text-linear-success bg-linear-success-subtle border-linear-success-border'
                             : suggestion.status === 'rejected'
                             ? 'text-linear-error bg-linear-error-subtle border-linear-error-border'
-                            : 'dark:text-text-tertiary light:text-text-light-tertiary bg-white/5 dark:border-linear-border-subtle light:border-linear-light-border-subtle'
+                            : 'dark:text-text-tertiary light:text-text-light-tertiary bg-white/5 dark:border-linear-border-subtle light:border-linear-light-border'
                         }`}>
                           {getStatusIcon(suggestion.status)}
                           {suggestion.status.charAt(0).toUpperCase() + suggestion.status.slice(1).replace('_', ' ')}
@@ -300,7 +300,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
                         {suggestion.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="text-xs px-3 py-1.5 rounded-full bg-white/5 dark:text-text-tertiary light:text-text-light-tertiary border dark:border-linear-border-subtle light:border-linear-light-border-subtle"
+                            className="text-xs px-3 py-1.5 rounded-full bg-white/5 dark:text-text-tertiary light:text-text-light-tertiary border dark:border-linear-border-subtle light:border-linear-light-border"
                           >
                             {tag}
                           </span>
@@ -345,7 +345,7 @@ export function ProductIntelligenceView({ workspace }: ProductIntelligenceViewPr
                 </button>
 
                 {expandedCards.has(suggestion.id) && (
-                  <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle animate-slide-up">
+                  <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border animate-slide-up">
                     <p className="dark:text-text-secondary light:text-text-light-secondary text-sm leading-relaxed">
                       {suggestion.ai_reasoning}
                     </p>

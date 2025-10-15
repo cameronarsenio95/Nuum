@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export function Header({ onLoginClick, onSignupClick, onBackClick, onHowItWorksClick, onPricingClick, onResourcesClick }: HeaderProps = {}) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b dark:bg-linear-bg/90 dark:border-linear-border-subtle light:bg-linear-light-bg/90 light:border-linear-light-border-subtle">
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b dark:bg-linear-bg/90 dark:border-linear-border-subtle light:bg-linear-light-bg/90 light:border-linear-light-border">
       <nav className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <button
           onClick={onBackClick}

@@ -23,7 +23,7 @@ export function FinalCTA({ onSignupClick, onHowItWorksClick }: FinalCTAProps) {
           </button>
           <button
             onClick={onHowItWorksClick}
-            className="px-6 py-3 sm:px-5 sm:py-2.5 border rounded-md text-base sm:text-sm font-medium linear-transition touch-manipulation active:scale-95 dark:bg-white/10 dark:hover:bg-white/15 dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:bg-black/10 light:hover:bg-black/15 light:border-linear-light-border-subtle light:hover:border-linear-light-border-hover"
+            className="px-6 py-3 sm:px-5 sm:py-2.5 border rounded-md text-base sm:text-sm font-medium linear-transition touch-manipulation active:scale-95 dark:bg-white/10 dark:hover:bg-white/15 dark:border-linear-border-subtle dark:hover:border-linear-border-hover light:bg-black/10 light:hover:bg-black/15 light:border-linear-light-border light:hover:border-linear-light-border-hover"
           >
             See How It Works
           </button>

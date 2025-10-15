@@ -270,7 +270,7 @@ export function ContactView() {
         </div>
 
         <div className="space-y-1">
-          <div className="flex items-start gap-3 py-3 px-4 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+          <div className="flex items-start gap-3 py-3 px-4 border-b dark:border-linear-border-subtle light:border-linear-light-border">
             <div className="w-10 h-10 rounded-full dark:bg-gray-600 light:bg-gray-300 flex items-center justify-center flex-shrink-0">
               <span className="text-sm font-medium text-white">
                 {selectedTicket.user_name.charAt(0)}
@@ -301,7 +301,7 @@ export function ContactView() {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className="flex items-start gap-3 py-3 px-4 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle"
+              className="flex items-start gap-3 py-3 px-4 border-b dark:border-linear-border-subtle light:border-linear-light-border"
             >
               <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                 msg.author_type === 'support'
@@ -341,7 +341,7 @@ export function ContactView() {
           ))}
 
           {selectedTicket.status !== 'closed' && (
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-8">
+            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-8">
               <h3 className="text-lg font-medium mb-4 dark:text-text-primary light:text-text-light-primary">
                 Add a reply
               </h3>
@@ -368,7 +368,7 @@ export function ContactView() {
 
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 max-w-md w-full">
+            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 max-w-md w-full">
               <div className="flex items-start gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
                   <Trash2 className="w-5 h-5 text-red-500" />
@@ -428,7 +428,7 @@ export function ContactView() {
       <div className="grid md:grid-cols-2 gap-6 mb-16">
         <button
           onClick={() => setShowContactForm('sales')}
-          className="group dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-10 text-left hover:border-linear-accent transition-all"
+          className="group dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-10 text-left hover:border-linear-accent transition-all"
         >
           <Mail className="w-8 h-8 mb-6 dark:text-text-primary light:text-text-light-primary" />
           <h3 className="text-2xl font-medium mb-3 dark:text-text-primary light:text-text-light-primary">
@@ -445,7 +445,7 @@ export function ContactView() {
 
         <button
           onClick={() => setShowContactForm('support')}
-          className="group dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-10 text-left hover:border-linear-accent transition-all"
+          className="group dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-10 text-left hover:border-linear-accent transition-all"
         >
           <MessageCircle className="w-8 h-8 mb-6 dark:text-text-primary light:text-text-light-primary" />
           <h3 className="text-2xl font-medium mb-3 dark:text-text-primary light:text-text-light-primary">
@@ -471,7 +471,7 @@ export function ContactView() {
               <button
                 key={ticket.id}
                 onClick={() => setSelectedTicket(ticket)}
-                className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 text-left hover:border-linear-accent transition-colors"
+                className="w-full dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 text-left hover:border-linear-accent transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
@@ -622,7 +622,7 @@ function SalesForm({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          <div className="border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle pt-6">
+          <div className="border-t dark:border-linear-border-subtle light:border-linear-light-border pt-6">
             <p className="dark:text-text-secondary light:text-text-light-secondary mb-2">
               Technical issues or product questions?
             </p>
@@ -637,7 +637,7 @@ function SalesForm({ onBack }: { onBack: () => void }) {
         </div>
 
         <div>
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-8">
+          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-8">
             <h2 className="text-xl font-medium mb-6 dark:text-text-primary light:text-text-light-primary">
               Tell us how we can help
             </h2>
@@ -873,7 +873,7 @@ function SupportForm({ onBack, onSuccess }: { onBack: () => void; onSuccess: () 
           </div>
 
           <div className="space-y-6">
-            <div className="border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle pt-6">
+            <div className="border-t dark:border-linear-border-subtle light:border-linear-light-border pt-6">
               <p className="dark:text-text-secondary light:text-text-light-secondary mb-2">
                 Questions about our plans, pricing, or request a demo?
               </p>
@@ -886,7 +886,7 @@ function SupportForm({ onBack, onSuccess }: { onBack: () => void; onSuccess: () 
               </button>
             </div>
 
-            <div className="border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle pt-6">
+            <div className="border-t dark:border-linear-border-subtle light:border-linear-light-border pt-6">
               <p className="dark:text-text-secondary light:text-text-light-secondary mb-2">
                 Get an overview of NUUM's features, integrations, and how to use them.
               </p>
@@ -904,7 +904,7 @@ function SupportForm({ onBack, onSuccess }: { onBack: () => void; onSuccess: () 
         </div>
 
         <div>
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-8">
+          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-medium dark:text-text-primary light:text-text-light-primary mb-2">
                 Get in touch

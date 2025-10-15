@@ -70,23 +70,23 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
   ];
 
   return (
-    <div className="min-h-screen dark:dark:bg-linear-bg light:bg-linear-light-bg light:bg-linear-light-bg">
+    <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg">
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 border rounded-linear dark:bg-linear-bg-secondary dark:border-linear-border light:bg-white light:border-linear-light-border"
       >
         {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
 
       <div className="flex h-screen">
-        <aside className={`w-64 border-r flex flex-col dark:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:dark:border-linear-border light:border-linear-light-border light:bg-linear-light-bg-secondary light:border-linear-light-border fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-          <div className="p-6 border-b dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
+        <aside className={`w-64 border-r flex flex-col fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-300 dark:bg-linear-bg-secondary dark:border-linear-border light:bg-white light:border-linear-light-border ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+          <div className="p-6 border-b dark:border-linear-border light:border-linear-light-border">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-linear flex items-center justify-center flex-shrink-0 dark:dark:bg-linear-accent light:bg-linear-light-accent dark:dark:text-linear-bg light:text-linear-light-bg light:bg-linear-light-accent light:text-linear-light-bg">
+              <div className="w-8 h-8 rounded-linear flex items-center justify-center flex-shrink-0 dark:bg-linear-accent dark:text-linear-bg light:bg-linear-light-accent light:text-linear-light-bg">
                 <LayoutDashboard className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="font-medium text-sm truncate dark:dark:text-text-primary light:text-text-light-primary light:text-text-light-primary">{profile?.company || workspace.name}</h1>
+                <h1 className="font-medium text-sm truncate dark:text-text-primary light:text-text-light-primary">{profile?.company || workspace.name}</h1>
                 <span className={`text-xs px-2 py-0.5 rounded-full border capitalize inline-block ${
                   workspace.plan === 'free' ? 'text-gray-400 bg-gray-400/10 border-gray-400/20' :
                   workspace.plan === 'standard' ? 'text-blue-400 bg-blue-400/10 border-blue-400/20' :
@@ -125,9 +125,9 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
             </ul>
           </nav>
 
-          <div className="p-4 border-t space-y-1 dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
+          <div className="p-4 border-t space-y-1 dark:border-linear-border light:border-linear-light-border">
             <div className="flex items-center gap-2 mb-2 px-3">
-              <span className="text-xs font-medium dark:dark:text-text-tertiary light:text-text-light-tertiary light:text-text-light-tertiary">Theme</span>
+              <span className="text-xs font-medium dark:text-text-tertiary light:text-text-light-tertiary">Theme</span>
               <ThemeToggle />
             </div>
             <button
@@ -179,7 +179,7 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
               type="button"
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition dark:text-text-secondary light:text-text-light-secondary dark:hover:text-text-primary light:hover:text-text-light-primary dark:hover:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <LogOut className="w-4 h-4" />
               {isSigningOut ? 'Signing out...' : 'Sign Out'}
