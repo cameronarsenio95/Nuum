@@ -15,10 +15,9 @@ interface DashboardLayoutProps {
   currentView: 'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'deliverables';
   onViewChange: (view: 'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'deliverables') => void;
   children: React.ReactNode;
-  isDemoMode?: boolean;
 }
 
-export function DashboardLayout({ workspace, currentView, onViewChange, children, isDemoMode = false }: DashboardLayoutProps) {
+export function DashboardLayout({ workspace, currentView, onViewChange, children }: DashboardLayoutProps) {
   const { signOut, user } = useAuth();
   const { trialInfo } = usePlanLimits();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -67,10 +66,8 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
     { name: 'Deliverables', value: 'deliverables' as const, icon: ListChecks },
     { name: 'Tasks', value: 'tasks' as const, icon: CheckSquare },
     { name: 'Content', value: 'content' as const, icon: Image },
-    ...(!isDemoMode ? [
-      { name: 'Notes', value: 'notions' as const, icon: FileText },
-      { name: 'Team', value: 'team' as const, icon: SettingsIcon },
-    ] : []),
+    { name: 'Notes', value: 'notions' as const, icon: FileText },
+    { name: 'Team', value: 'team' as const, icon: SettingsIcon },
   ];
 
   return (
@@ -134,64 +131,60 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
               <span className="text-xs font-medium dark:text-text-tertiary light:text-text-light-tertiary">Theme</span>
               <ThemeToggle />
             </div>
-            {!isDemoMode && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onViewChange('contact');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                    currentView === 'contact'
-                      ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
-                      : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
-                  }`}
-                >
-                  <HeadphonesIcon className="w-4 h-4" />
-                  Contact
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onViewChange('settings');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                    currentView === 'settings'
-                      ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
-                      : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
-                  }`}
-                >
-                  <UserIcon className="w-4 h-4" />
-                  Settings
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onViewChange('billing');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                    currentView === 'billing'
-                      ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
-                      : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Billing
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  disabled={isSigningOut}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <LogOut className="w-4 h-4" />
-                  {isSigningOut ? 'Signing out...' : 'Sign Out'}
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                onViewChange('contact');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
+                currentView === 'contact'
+                  ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
+                  : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
+              }`}
+            >
+              <HeadphonesIcon className="w-4 h-4" />
+              Contact
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onViewChange('settings');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
+                currentView === 'settings'
+                  ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
+                  : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
+              }`}
+            >
+              <UserIcon className="w-4 h-4" />
+              Settings
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onViewChange('billing');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
+                currentView === 'billing'
+                  ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
+                  : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
+              }`}
+            >
+              <CreditCard className="w-4 h-4" />
+              Billing
+            </button>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LogOut className="w-4 h-4" />
+              {isSigningOut ? 'Signing out...' : 'Sign Out'}
+            </button>
           </div>
         </aside>
 
