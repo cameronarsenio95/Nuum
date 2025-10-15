@@ -1,5 +1,3 @@
-import { ThemeToggle } from './ThemeToggle';
-
 interface HeaderProps {
   onLoginClick?: () => void;
   onSignupClick?: () => void;
@@ -42,9 +40,6 @@ export function Header({ onLoginClick, onSignupClick, onBackClick, onHowItWorksC
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <div className="hidden sm:block">
-            <ThemeToggle />
-          </div>
           <button
             onClick={onLoginClick}
             className="text-xs md:text-sm px-2 md:px-0 dark:text-text-secondary light:text-text-light-secondary dark:hover:text-text-primary light:hover:text-text-light-primary linear-transition touch-manipulation active:scale-95"

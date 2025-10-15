@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
-import { ThemeToggle } from '../ThemeToggle';
 import { TrialBanner } from './TrialBanner';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
@@ -126,10 +125,6 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
           </nav>
 
           <div className="p-4 border-t space-y-1 dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
-            <div className="flex items-center gap-2 mb-2 px-3">
-              <span className="text-xs font-medium dark:dark:text-text-tertiary light:text-text-light-tertiary light:text-text-light-tertiary">Theme</span>
-              <ThemeToggle />
-            </div>
             <button
               type="button"
               onClick={() => {
