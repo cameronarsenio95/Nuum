@@ -159,7 +159,7 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
               placeholder="Search by workspace name, slug, or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-3 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent text-base"
+              className="w-full pl-10 pr-10 py-3 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent text-base"
             />
             {searchQuery && (
               <button
@@ -175,7 +175,7 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
             className={`flex items-center gap-2 px-4 py-3 rounded-linear linear-transition border ${
               showFilters
                 ? 'dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:border-linear-border light:border-linear-light-border'
-                : 'dark:bg-linear-bg-secondary light:bg-white dark:border-linear-border-subtle light:border-linear-light-border'
+                : 'dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:border-linear-border-subtle light:border-linear-light-border-subtle'
             }`}
           >
             <Filter className="w-4 h-4" />
@@ -184,7 +184,7 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
         </div>
 
         {showFilters && (
-          <div className="p-4 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear space-y-3">
+          <div className="p-4 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear space-y-3">
             <div>
               <label className="block text-sm font-medium mb-2">Plan</label>
               <select
@@ -226,7 +226,7 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
       )}
 
       {!loading && searchQuery.length >= 2 && results.length === 0 && (
-        <div className="text-center py-12 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear">
+        <div className="text-center py-12 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear">
           <AlertCircle className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No customers found</h3>
           <p className="dark:text-text-secondary light:text-text-light-secondary">Try adjusting your search or filters</p>
@@ -239,7 +239,7 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
             <button
               key={customer.workspace.id}
               onClick={() => onSelectCustomer(customer)}
-              className="w-full p-6 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear hover:dark:border-linear-border light:border-linear-light-border linear-transition text-left"
+              className="w-full p-6 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear hover:dark:border-linear-border light:border-linear-light-border linear-transition text-left"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">

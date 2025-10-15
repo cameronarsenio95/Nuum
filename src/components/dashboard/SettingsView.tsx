@@ -210,7 +210,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
                 </div>
               )}
             </div>
-            <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border">
+            <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
               <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-2">
                 After trial ends, upgrade to unlock more features:
               </p>
@@ -226,7 +226,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           </div>
         )}
 
-        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 mb-8">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-medium flex items-center gap-2">
               {(() => {
@@ -384,7 +384,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           )}
         </div>
         <form onSubmit={handleSave} className="space-y-8">
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
             <h3 className="text-lg font-medium mb-6 flex items-center gap-2">
               <User className="w-5 h-5" />
               Personal Information
@@ -460,7 +460,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           </div>
 
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
             <h3 className="text-lg font-medium mb-6">Preferences</h3>
 
             <div className="space-y-4">

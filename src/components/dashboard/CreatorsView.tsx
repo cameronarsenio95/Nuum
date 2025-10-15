@@ -362,7 +362,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       </div>
 
       {creators.length === 0 ? (
-        <div className="text-center py-20 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg">
+        <div className="text-center py-20 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
           <UsersIcon className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No creators yet</h3>
           <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">Add your first creator to start building your database</p>
@@ -378,7 +378,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
           {creators.map((creator) => (
             <div
               key={creator.id}
-              className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group"
+              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group"
               onClick={() => openDetailModal(creator)}
             >
               <div className="flex items-start justify-between mb-4">
@@ -453,7 +453,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
               )}
 
               {creatorRevenues[creator.id] > 0 && (
-                <div className="mt-3 pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border">
+                <div className="mt-3 pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                   <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-1">Total Revenue</div>
                   <div className="text-lg font-medium dark:text-linear-success light:text-linear-light-success">
                     ${creatorRevenues[creator.id].toLocaleString()}
@@ -526,7 +526,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
 
       {showDeleteConfirm && creatorToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-medium mb-4">Delete Creator</h3>
             <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">
               Are you sure you want to delete <span className="font-medium dark:text-text-primary light:text-text-light-primary">{creatorToDelete.name}</span>? This action cannot be undone.

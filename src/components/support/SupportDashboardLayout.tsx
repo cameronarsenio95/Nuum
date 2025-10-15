@@ -49,7 +49,7 @@ export function SupportDashboardLayout({ currentView, onViewChange, children }: 
   return (
     <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg">
       <div className="flex h-screen">
-        <aside className="w-64 border-r flex flex-col dark:bg-linear-bg-secondary light:bg-white dark:border-linear-border light:border-linear-light-border">
+        <aside className="w-64 border-r flex flex-col dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:border-linear-border light:border-linear-light-border">
           <div className="p-6 border-b dark:border-linear-border light:border-linear-light-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-linear flex items-center justify-center flex-shrink-0 bg-linear-error dark:text-linear-bg light:text-white">
@@ -62,7 +62,7 @@ export function SupportDashboardLayout({ currentView, onViewChange, children }: 
             </div>
 
             {supportStaff && (
-              <div className="p-3 rounded-linear dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border">
+              <div className="p-3 rounded-linear dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                 <div className="text-sm font-medium dark:text-text-primary light:text-text-light-primary mb-1">
                   {supportStaff.full_name}
                 </div>

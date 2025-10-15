@@ -110,7 +110,7 @@ export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProp
 
   return (
     <div className="space-y-6">
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
         <h3 className="text-lg font-medium mb-6">Profile Picture</h3>
 
         <div className="flex items-center gap-6">
@@ -156,7 +156,7 @@ export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProp
         </div>
       </div>
 
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
         <h3 className="text-lg font-medium mb-4">Security</h3>
 
         <div className="space-y-3">
@@ -176,7 +176,7 @@ export function AccountSettings({ profile, onAvatarUpdate }: AccountSettingsProp
         </div>
       </div>
 
-      <div className="dark:bg-linear-bg-secondary light:bg-white border border-linear-error/20 rounded-linear-lg p-6">
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border border-linear-error/20 rounded-linear-lg p-6">
         <h3 className="text-lg font-medium mb-4 text-linear-error">Danger Zone</h3>
 
         <div className="space-y-3">

@@ -193,7 +193,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
       </div>
 
       {campaigns.length === 0 ? (
-        <div className="text-center py-12 md:py-20 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg">
+        <div className="text-center py-12 md:py-20 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
           <Target className="w-10 h-10 md:w-12 md:h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
           <h3 className="text-base md:text-lg font-medium mb-2">No campaigns yet</h3>
           <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary mb-6 px-4">Create your first campaign to get started</p>
@@ -209,7 +209,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
           {campaigns.map((campaign) => (
             <div
               key={campaign.id}
-              className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group flex flex-col"
+              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group flex flex-col"
               onClick={() => onCampaignClick?.(campaign)}
             >
               <div className="flex items-start justify-between mb-4">
@@ -233,7 +233,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
               </div>
 
               {(campaign as any).total_ad_sets > 0 && (
-                <div className="mb-4 pb-4 border-b dark:border-linear-border-subtle light:border-linear-light-border">
+                <div className="mb-4 pb-4 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Ad Sets</span>
@@ -276,7 +276,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowCreateModal(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-medium">Create New Campaign</h3>
               <button onClick={() => setShowCreateModal(false)} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
@@ -329,7 +329,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
       {showEditModal && selectedCampaign && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowEditModal(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-medium">Edit Campaign</h3>
               <button onClick={() => setShowEditModal(false)} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
@@ -390,7 +390,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
       {showDeleteConfirm && campaignToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-medium mb-4">Delete Campaign</h3>
             <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">
               Are you sure you want to delete <span className="font-medium dark:text-text-primary light:text-text-light-primary">{campaignToDelete.name}</span>? This action cannot be undone.

@@ -44,7 +44,7 @@ export function CreatorFormModal({
 }: CreatorFormProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onCancel}>
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium">{title}</h3>
           <button onClick={onCancel} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
@@ -233,7 +233,7 @@ export function CreatorDetailModal({
 }: DetailModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onClose}>
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between mb-6">
           <div>
             <h3 className="text-2xl font-medium mb-2">{creator.name}</h3>
@@ -259,7 +259,7 @@ export function CreatorDetailModal({
         </div>
 
         <div className="space-y-6">
-          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-4">
+          <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
             <div className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-2">Total Revenue Generated</div>
             <div className="text-3xl font-medium dark:text-linear-success light:text-linear-light-success">
               ${adSets.reduce((sum, adSet) => sum + (Number(adSet.revenue) || 0), 0).toLocaleString()}
@@ -390,7 +390,7 @@ interface CampaignModalProps {
 export function AddToCampaignModal({ campaigns, onSelect, onClose }: CampaignModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onClose}>
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium">Add to Campaign</h3>
           <button onClick={onClose} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">

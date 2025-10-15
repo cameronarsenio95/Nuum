@@ -134,13 +134,13 @@ export function OverviewView({ workspace }: OverviewViewProps) {
     switch (status) {
       case 'active':
       case 'done':
-        return 'dark:text-linear-success dark:bg-linear-success-subtle dark:border-linear-success-border light:text-linear-light-success light:bg-linear-light-success-subtle light:border-linear-light-success-border';
+        return 'text-linear-success bg-linear-success-subtle border-linear-success-border';
       case 'completed':
-        return 'dark:text-linear-info dark:bg-linear-info-subtle dark:border-linear-info-border light:text-linear-light-info light:bg-linear-light-info-subtle light:border-linear-light-info-border';
+        return 'text-linear-info bg-linear-info-subtle border-linear-info-border';
       case 'in_progress':
-        return 'dark:text-linear-warning dark:bg-linear-warning-subtle dark:border-linear-warning-border light:text-linear-light-warning light:bg-linear-light-warning-subtle light:border-linear-light-warning-border';
+        return 'text-linear-warning bg-linear-warning-subtle border-linear-warning-border';
       default:
-        return 'dark:text-text-tertiary dark:bg-linear-bg-hover dark:border-linear-border light:text-text-light-tertiary light:bg-linear-light-bg-hover light:border-linear-light-border';
+        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
     }
   };
 
@@ -156,10 +156,10 @@ export function OverviewView({ workspace }: OverviewViewProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-linear flex items-center justify-center dark:bg-linear-info-subtle light:bg-linear-light-info-subtle">
-              <Target className="w-5 h-5 dark:text-linear-info light:text-linear-light-info" />
+            <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
+              <Target className="w-5 h-5 text-linear-info" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
           </div>
@@ -171,9 +171,9 @@ export function OverviewView({ workspace }: OverviewViewProps) {
           </div>
         </div>
 
-        <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-linear flex items-center justify-center dark:bg-linear-accent-subtle light:bg-linear-light-accent-subtle">
+            <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center dark:text-linear-bg light:text-linear-light-bg">
               <Users className="w-5 h-5 dark:text-linear-accent light:text-linear-light-accent" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Creators</span>
@@ -186,9 +186,9 @@ export function OverviewView({ workspace }: OverviewViewProps) {
           </div>
         </div>
 
-        <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-linear flex items-center justify-center dark:bg-linear-success-subtle light:bg-linear-light-success-subtle">
+            <div className="w-10 h-10 bg-linear-success-subtle rounded-linear flex items-center justify-center">
               <CheckSquare className="w-5 h-5 dark:text-linear-success light:text-linear-light-success" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Tasks</span>
@@ -201,10 +201,10 @@ export function OverviewView({ workspace }: OverviewViewProps) {
           </div>
         </div>
 
-        <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-linear flex items-center justify-center dark:bg-linear-warning-subtle light:bg-linear-light-warning-subtle">
-              <DollarSign className="w-5 h-5 dark:text-linear-warning light:text-linear-light-warning" />
+            <div className="w-10 h-10 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-linear-warning" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Revenue</span>
           </div>
@@ -218,7 +218,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
-        <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
             <Target className="w-4 h-4" />
             Recent Campaigns
@@ -230,7 +230,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
               {recentCampaigns.map((campaign) => (
                 <div
                   key={campaign.id}
-                  className="flex items-center justify-between p-3 rounded-linear linear-transition dark:bg-linear-bg dark:hover:bg-linear-bg-subtle light:bg-linear-light-bg-subtle light:hover:bg-linear-light-bg-hover"
+                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle linear-transition"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{campaign.name}</div>
@@ -247,7 +247,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
           )}
         </div>
 
-        <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
             <CheckSquare className="w-4 h-4" />
             Recent Tasks
@@ -259,7 +259,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
               {recentTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center justify-between p-3 rounded-linear linear-transition dark:bg-linear-bg dark:hover:bg-linear-bg-subtle light:bg-linear-light-bg-subtle light:hover:bg-linear-light-bg-hover"
+                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle linear-transition"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{task.title}</div>
@@ -275,7 +275,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
         </div>
       </div>
 
-      <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
         <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
           <Users className="w-4 h-4" />
           Top Creators
@@ -287,9 +287,9 @@ export function OverviewView({ workspace }: OverviewViewProps) {
             {topCreators.map((creator, index) => (
               <div
                 key={creator.id}
-                className="p-4 rounded-linear linear-transition relative dark:bg-linear-bg dark:hover:bg-linear-bg-subtle light:bg-linear-light-bg-subtle light:hover:bg-linear-light-bg-hover"
+                className="p-4 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle linear-transition relative"
               >
-                <div className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border dark:bg-linear-bg-secondary dark:text-linear-warning dark:border-linear-warning-border light:bg-white light:text-linear-light-warning light:border-linear-light-warning-border">
+                <div className="absolute top-3 right-3 w-8 h-8 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-full flex items-center justify-center text-sm font-medium text-linear-warning border border-linear-warning-border">
                   #{index + 1}
                 </div>
                 <div className="font-medium mb-3">{creator.name}</div>
@@ -303,7 +303,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
                     <div className="truncate">{creator.email}</div>
                   )}
                 </div>
-                <div className="pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border">
+                <div className="pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                   <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-1">Total Revenue</div>
                   <div className="text-lg font-medium dark:text-linear-success light:text-linear-light-success">
                     ${((creator as any).totalRevenue || 0).toLocaleString()}

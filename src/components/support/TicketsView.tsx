@@ -300,7 +300,7 @@ export function TicketsView() {
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-6">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-6">
               <h3 className="text-sm font-medium mb-2 dark:text-text-tertiary light:text-text-light-tertiary">
                 Original Message
               </h3>
@@ -310,7 +310,7 @@ export function TicketsView() {
             </div>
 
             {messages.length > 0 && (
-              <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear">
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear">
                 <h3 className="text-lg font-medium p-6 pb-4 dark:text-text-primary light:text-text-light-primary">
                   Conversation
                 </h3>
@@ -318,7 +318,7 @@ export function TicketsView() {
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className="flex items-start gap-3 py-3 px-6 border-b dark:border-linear-border-subtle light:border-linear-light-border"
+                      className="flex items-start gap-3 py-3 px-6 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle"
                     >
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                         msg.author_type === 'support'
@@ -360,7 +360,7 @@ export function TicketsView() {
               </div>
             )}
 
-            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-6">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium dark:text-text-primary light:text-text-light-primary">
                   Send Reply
@@ -414,7 +414,7 @@ export function TicketsView() {
           </div>
 
           <div className="space-y-6">
-            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-6">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-6">
               <h3 className="text-sm font-medium mb-4 dark:text-text-tertiary light:text-text-light-tertiary">
                 Ticket Details
               </h3>
@@ -455,7 +455,7 @@ export function TicketsView() {
 
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 max-w-md w-full">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 max-w-md w-full">
               <div className="flex items-start gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
                   <Trash2 className="w-5 h-5 text-red-500" />
@@ -506,7 +506,7 @@ export function TicketsView() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 rounded-linear border dark:bg-linear-bg-secondary light:bg-white dark:border-linear-border light:border-linear-light-border dark:text-text-primary light:text-text-light-primary"
+          className="px-4 py-2 rounded-linear border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:border-linear-border light:border-linear-light-border dark:text-text-primary light:text-text-light-primary"
         >
           <option value="all">All Status</option>
           <option value="open">Open</option>
@@ -518,7 +518,7 @@ export function TicketsView() {
         <select
           value={filterPriority}
           onChange={(e) => setFilterPriority(e.target.value)}
-          className="px-4 py-2 rounded-linear border dark:bg-linear-bg-secondary light:bg-white dark:border-linear-border light:border-linear-light-border dark:text-text-primary light:text-text-light-primary"
+          className="px-4 py-2 rounded-linear border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:border-linear-border light:border-linear-light-border dark:text-text-primary light:text-text-light-primary"
         >
           <option value="all">All Priority</option>
           <option value="urgent">Urgent</option>
@@ -529,7 +529,7 @@ export function TicketsView() {
       </div>
 
       {tickets.length === 0 ? (
-        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-12 text-center">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-12 text-center">
           <MessageSquare className="w-12 h-12 mx-auto mb-4 dark:text-text-tertiary light:text-text-light-tertiary" />
           <p className="dark:text-text-secondary light:text-text-light-secondary">
             No support tickets found
@@ -541,7 +541,7 @@ export function TicketsView() {
             <div
               key={ticket.id}
               onClick={() => setSelectedTicket(ticket)}
-              className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-6 cursor-pointer hover:border-linear-accent transition-colors"
+              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-6 cursor-pointer hover:border-linear-accent transition-colors"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">

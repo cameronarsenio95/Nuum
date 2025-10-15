@@ -110,7 +110,7 @@ export function AuditLogViewer() {
               placeholder="Search by email, workspace name, or staff..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-3 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+              className="w-full pl-10 pr-10 py-3 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
             />
             {searchQuery && (
               <button
@@ -126,7 +126,7 @@ export function AuditLogViewer() {
             className={`flex items-center gap-2 px-4 py-3 rounded-linear linear-transition border ${
               showFilters
                 ? 'dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:border-linear-border light:border-linear-light-border'
-                : 'dark:bg-linear-bg-secondary light:bg-white dark:border-linear-border-subtle light:border-linear-light-border'
+                : 'dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:border-linear-border-subtle light:border-linear-light-border-subtle'
             }`}
           >
             <Filter className="w-4 h-4" />
@@ -135,7 +135,7 @@ export function AuditLogViewer() {
         </div>
 
         {showFilters && (
-          <div className="p-4 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="p-4 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <label className="block text-sm font-medium mb-2">Action Type</label>
               <select
@@ -228,7 +228,7 @@ export function AuditLogViewer() {
       )}
 
       {!loading && filteredLogs.length === 0 && (
-        <div className="text-center py-12 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear">
+        <div className="text-center py-12 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear">
           <FileText className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No audit logs found</h3>
           <p className="dark:text-text-secondary light:text-text-light-secondary">Try adjusting your search or filters</p>
@@ -241,7 +241,7 @@ export function AuditLogViewer() {
             <button
               key={log.id}
               onClick={() => setSelectedLog(log)}
-              className="w-full p-4 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear hover:dark:border-linear-border light:border-linear-light-border linear-transition text-left"
+              className="w-full p-4 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear hover:dark:border-linear-border light:border-linear-light-border linear-transition text-left"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -283,7 +283,7 @@ export function AuditLogViewer() {
 
       {selectedLog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setSelectedLog(null)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 w-full max-w-2xl max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 w-full max-w-2xl max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-xl font-medium">Audit Log Details</h3>
               <button
@@ -333,7 +333,7 @@ export function AuditLogViewer() {
               {selectedLog.previous_state && (
                 <div>
                   <label className="block text-sm font-medium mb-2">Previous State</label>
-                  <pre className="p-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear text-xs overflow-auto">
+                  <pre className="p-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear text-xs overflow-auto">
                     {JSON.stringify(selectedLog.previous_state, null, 2)}
                   </pre>
                 </div>
@@ -342,7 +342,7 @@ export function AuditLogViewer() {
               {selectedLog.new_state && (
                 <div>
                   <label className="block text-sm font-medium mb-2">New State</label>
-                  <pre className="p-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear text-xs overflow-auto">
+                  <pre className="p-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear text-xs overflow-auto">
                     {JSON.stringify(selectedLog.new_state, null, 2)}
                   </pre>
                 </div>

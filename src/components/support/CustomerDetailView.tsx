@@ -227,7 +227,7 @@ export function CustomerDetailView({ workspaceId, onBack }: CustomerDetailViewPr
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
-        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-6">
           <h3 className="text-lg font-medium mb-4">Subscription Details</h3>
 
           <div className="space-y-4">
@@ -292,7 +292,7 @@ export function CustomerDetailView({ workspaceId, onBack }: CustomerDetailViewPr
           </div>
         </div>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-6">
           <h3 className="text-lg font-medium mb-4">Plan Limits</h3>
 
           <div className="space-y-4">
@@ -350,7 +350,7 @@ export function CustomerDetailView({ workspaceId, onBack }: CustomerDetailViewPr
         </div>
       </div>
 
-      <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear p-6">
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-6">
         <h3 className="text-lg font-medium mb-4">Owner Information</h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
@@ -374,7 +374,7 @@ export function CustomerDetailView({ workspaceId, onBack }: CustomerDetailViewPr
 
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowConfirmDialog(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-4 mb-4">
               <div className="p-2 bg-linear-warning/10 rounded-linear">
                 <AlertTriangle className="w-6 h-6 text-linear-warning" />
