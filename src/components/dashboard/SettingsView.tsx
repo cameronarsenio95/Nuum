@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { UpgradeModal } from '../modals/UpgradeModal';
 import { AccountSettings } from './AccountSettings';
+import { WorkspaceSettings } from './WorkspaceSettings';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -166,13 +167,13 @@ export function SettingsView({ workspace }: SettingsViewProps) {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div>
       <div className="mb-8">
         <h2 className="text-2xl font-medium mb-2">Settings</h2>
         <p className="dark:text-text-secondary light:text-text-light-secondary">Manage your profile and preferences</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="max-w-3xl">
         {trialInfo.isActive && (
           <div className={`p-6 rounded-linear-lg mb-6 border-2 ${
             isTrialExpiringSoon()
@@ -209,7 +210,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
                 </div>
               )}
             </div>
-            <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border">
+            <div className="mt-4 pt-4 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
               <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-2">
                 After trial ends, upgrade to unlock more features:
               </p>
@@ -225,7 +226,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           </div>
         )}
 
-        <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8 mb-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-medium flex items-center gap-2">
               {(() => {
@@ -248,7 +249,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium flex items-center gap-2">
@@ -382,14 +383,14 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           )}
         </div>
-        <form onSubmit={handleSave} className="space-y-6">
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8">
+        <form onSubmit={handleSave} className="space-y-8">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
             <h3 className="text-lg font-medium mb-6 flex items-center gap-2">
               <User className="w-5 h-5" />
               Personal Information
             </h3>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Email</label>
                 <input
@@ -412,7 +413,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
                 />
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Phone</label>
                   <input
@@ -459,11 +460,11 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           </div>
 
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6 md:p-8">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
             <h3 className="text-lg font-medium mb-6">Preferences</h3>
 
-            <div className="space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Timezone</label>
                   <select
@@ -512,6 +513,26 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           </div>
 
+          {message && (
+            <div className={`p-4 rounded-linear border ${
+              message.type === 'success'
+                ? 'bg-linear-success/10 border-linear-success-border/20 text-linear-success'
+                : 'bg-linear-error/10 border-linear-error-border/20 text-linear-error'
+            }`}>
+              {message.text}
+            </div>
+          )}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </form>
 
         <AccountSettings
@@ -519,29 +540,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
           onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
         />
 
-        {message && (
-          <div className={`p-4 rounded-linear border mt-6 ${
-            message.type === 'success'
-              ? 'bg-linear-success/10 border-linear-success-border/20 text-linear-success'
-              : 'bg-linear-error/10 border-linear-error-border/20 text-linear-error'
-          }`}>
-            {message.text}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between pt-6 mt-6 border-t dark:border-linear-border-subtle light:border-linear-light-border">
-          <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary">
-            Changes will be saved to your profile
-          </p>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
+        <WorkspaceSettings workspace={workspace} />
 
         <UpgradeModal
           isOpen={showUpgradeModal}

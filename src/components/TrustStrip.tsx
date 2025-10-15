@@ -6,7 +6,7 @@ interface TrustStripProps {
 
 export function TrustStrip({ onSignupClick }: TrustStripProps) {
   return (
-    <section className="py-24 px-6 border-t dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-gray-50 light:border-gray-200">
+    <section className="py-24 px-6 border-t dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-linear-light-bg-secondary light:border-linear-light-border-subtle">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="mb-4 text-balance">
           Build your creator system today.

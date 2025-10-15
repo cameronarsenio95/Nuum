@@ -328,7 +328,7 @@ export function ContentView({ workspace }: ContentViewProps) {
 
       <div className="grid lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-4">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <Folder className="w-5 h-5 dark:text-linear-accent light:text-linear-light-accent" />
               <h3 className="font-medium">Creators</h3>
@@ -378,7 +378,7 @@ export function ContentView({ workspace }: ContentViewProps) {
 
         <div className="lg:col-span-3">
           {!selectedCreator ? (
-            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-12 text-center">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-12 text-center">
               <Folder className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">Select a Creator</h3>
               <p className="dark:text-text-secondary light:text-text-light-secondary">
@@ -386,7 +386,7 @@ export function ContentView({ workspace }: ContentViewProps) {
               </p>
             </div>
           ) : content.length === 0 ? (
-            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-12 text-center">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-12 text-center">
               <Upload className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No Content Yet</h3>
               <p className="dark:text-text-secondary light:text-text-light-secondary mb-4">
@@ -405,7 +405,7 @@ export function ContentView({ workspace }: ContentViewProps) {
               {content.map((item) => (
                 <div
                   key={item.id}
-                  className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg overflow-hidden group"
+                  className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg overflow-hidden group"
                 >
                   <div className="aspect-video dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle flex items-center justify-center relative cursor-pointer" onClick={() => setPreviewMedia(item)}>
                     {item.file_type.startsWith('image/') ? (
@@ -517,7 +517,7 @@ export function ContentView({ workspace }: ContentViewProps) {
 
       {showUploadModal && selectedCreator && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-lg">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-lg">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-medium">Upload Content for {selectedCreator.name}</h3>
               <button
@@ -617,7 +617,7 @@ export function ContentView({ workspace }: ContentViewProps) {
               </button>
             </div>
 
-            <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg overflow-hidden">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg overflow-hidden">
               {previewMedia.file_type.startsWith('image/') ? (
                 <img
                   src={previewMedia.file_url}
@@ -637,7 +637,7 @@ export function ContentView({ workspace }: ContentViewProps) {
                 </div>
               )}
 
-              <div className="p-6 border-t dark:border-linear-border-subtle light:border-linear-light-border">
+              <div className="p-6 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                 <h3 className="text-xl font-medium mb-2">
                   {previewMedia.title || previewMedia.file_name}
                 </h3>

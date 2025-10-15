@@ -77,7 +77,7 @@ export function RightsManagement({ contentId, currentRights, onUpdate }: RightsM
   const isExpiringSoon = rights.rights_expiry && new Date(rights.rights_expiry) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   return (
-    <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg p-6">
+    <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-linear flex items-center justify-center ${
@@ -232,7 +232,7 @@ export function RightsManagement({ contentId, currentRights, onUpdate }: RightsM
             {rights.usage_territories.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {rights.usage_territories.map((territory) => (
-                  <span key={territory} className="px-3 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle text-sm rounded-full border dark:border-linear-border-subtle light:border-linear-light-border">
+                  <span key={territory} className="px-3 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle text-sm rounded-full border dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                     {territory}
                   </span>
                 ))}

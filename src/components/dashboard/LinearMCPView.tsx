@@ -179,7 +179,7 @@ export function LinearMCPView({ workspace }: LinearMCPViewProps) {
         </div>
       </div>
 
-      <div className="relative rounded-linear-lg overflow-hidden border dark:border-linear-border-subtle light:border-linear-light-border bg-white/5 backdrop-blur-sm p-8">
+      <div className="relative rounded-linear-lg overflow-hidden border dark:border-linear-border-subtle light:border-linear-light-border-subtle bg-white/5 backdrop-blur-sm p-8">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
           <div className="absolute bottom-10 right-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
@@ -218,7 +218,7 @@ export function LinearMCPView({ workspace }: LinearMCPViewProps) {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="space-y-6">
-          <div className="dark:bg-linear-bg-secondary light:bg-white rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border-subtle p-6">
             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
               <LinkIcon className="w-5 h-5" />
               Connection Status
@@ -271,7 +271,7 @@ export function LinearMCPView({ workspace }: LinearMCPViewProps) {
             )}
           </div>
 
-          <div className="dark:bg-linear-bg-secondary light:bg-white rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border-subtle p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-lg flex items-center gap-2">
                 <Code className="w-5 h-5" />
@@ -298,7 +298,7 @@ export function LinearMCPView({ workspace }: LinearMCPViewProps) {
         </div>
 
         <div className="space-y-6">
-          <div className="dark:bg-linear-bg-secondary light:bg-white rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border-subtle p-6">
             <h3 className="font-semibold text-lg mb-4">Ask anything</h3>
             <div className="space-y-4">
               <div className="relative">
@@ -308,7 +308,7 @@ export function LinearMCPView({ workspace }: LinearMCPViewProps) {
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Ask anything about Linear data..."
-                  className="w-full px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent linear-transition"
+                  className="w-full px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear focus:outline-none focus:border-linear-accent linear-transition"
                 />
                 <button
                   onClick={handleSendMessage}
@@ -318,15 +318,15 @@ export function LinearMCPView({ workspace }: LinearMCPViewProps) {
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <button className="flex items-center gap-2 px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear text-sm hover:dark:border-linear-border light:border-linear-light-border linear-transition">
+                <button className="flex items-center gap-2 px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear text-sm hover:dark:border-linear-border light:border-linear-light-border linear-transition">
                   <Paperclip className="w-4 h-4" />
                   Attach
                 </button>
-                <button className="flex items-center gap-2 px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear text-sm hover:dark:border-linear-border light:border-linear-light-border linear-transition">
+                <button className="flex items-center gap-2 px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear text-sm hover:dark:border-linear-border light:border-linear-light-border linear-transition">
                   <Search className="w-4 h-4" />
                   Search
                 </button>
-                <button className="flex items-center gap-2 px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear text-sm hover:dark:border-linear-border light:border-linear-light-border linear-transition">
+                <button className="flex items-center gap-2 px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear text-sm hover:dark:border-linear-border light:border-linear-light-border linear-transition">
                   <Brain className="w-4 h-4" />
                   Reason
                 </button>
@@ -334,7 +334,7 @@ export function LinearMCPView({ workspace }: LinearMCPViewProps) {
             </div>
           </div>
 
-          <div className="dark:bg-linear-bg-secondary light:bg-white rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-linear-lg border dark:border-linear-border-subtle light:border-linear-light-border-subtle p-6">
             <h3 className="font-semibold text-lg mb-4">Recent Sync Activity</h3>
             <div className="space-y-3">
               {syncLogs.length === 0 ? (

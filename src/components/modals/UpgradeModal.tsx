@@ -105,7 +105,7 @@ export function UpgradeModal({ isOpen, onClose, currentPlan, workspaceId, reason
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-50 overflow-y-auto" onClick={onClose}>
       <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 dark:bg-linear-bg light:bg-linear-light-bg border-b dark:border-linear-border-subtle light:border-linear-light-border p-6 flex items-center justify-between">
+        <div className="sticky top-0 dark:bg-linear-bg light:bg-linear-light-bg border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle p-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-medium mb-2">
               {isTrialActive ? `${trialDaysRemaining} ${trialDaysRemaining === 1 ? 'Day' : 'Days'} Left in Your Trial` : 'Upgrade Your Plan'}
@@ -138,10 +138,10 @@ export function UpgradeModal({ isOpen, onClose, currentPlan, workspaceId, reason
               return (
                 <div
                   key={plan.name}
-                  className={`relative dark:bg-linear-bg-secondary light:bg-white border rounded-linear-lg p-6 linear-transition ${
+                  className={`relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border rounded-linear-lg p-6 linear-transition ${
                     plan.highlighted
                       ? 'border-linear-accent shadow-lg shadow-linear-accent/20 scale-105'
-                      : 'dark:border-linear-border-subtle light:border-linear-light-border hover:dark:border-linear-border light:border-linear-light-border'
+                      : 'dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:border-linear-border light:border-linear-light-border'
                   }`}
                 >
                   {plan.highlighted && (
@@ -202,7 +202,7 @@ export function UpgradeModal({ isOpen, onClose, currentPlan, workspaceId, reason
             })}
           </div>
 
-          <div className="mt-8 p-6 dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-linear-light-border rounded-linear-lg">
+          <div className="mt-8 p-6 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
             <h3 className="font-medium mb-4">{isTrialActive ? 'What You Get:' : 'All Plans Include:'}</h3>
             <div className="grid md:grid-cols-3 gap-4 text-sm dark:text-text-secondary light:text-text-light-secondary">
               {!isTrialActive && (
@@ -252,7 +252,7 @@ export function UpgradeModal({ isOpen, onClose, currentPlan, workspaceId, reason
 
       {selectedPlan && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6 z-[60]" onClick={() => setSelectedPlan(null)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-medium">Complete Your Upgrade</h3>
               <button
