@@ -1,0 +1,8 @@
+# robots.txt for NUUM
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /support
+
+Sitemap: https://nuum.app/sitemap.xml

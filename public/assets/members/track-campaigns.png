@@ -1,0 +1,10 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#0a0a0b"/>
+  <rect x="40" y="40" width="1120" height="720" rx="12" fill="#16171a" stroke="#2a2c33"/>
+  <text x="80" y="100" font-family="Arial" font-size="24" fill="#ffffff" font-weight="bold">Track Campaigns</text>
+  <rect x="80" y="140" width="340" height="500" rx="8" fill="#1e1f24" stroke="#2a2c33"/>
+  <rect x="100" y="160" width="300" height="100" rx="4" fill="#2a2c33"/>
+  <rect x="100" y="280" width="300" height="100" rx="4" fill="#2a2c33"/>
+  <rect x="100" y="400" width="300" height="100" rx="4" fill="#2A53D0" opacity="0.3"/>
+  <rect x="440" y="140" width="640" height="500" rx="8" fill="#1e1f24" stroke="#2a2c33"/>
+</svg>

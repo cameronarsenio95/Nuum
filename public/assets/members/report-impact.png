@@ -1,0 +1,10 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#0a0a0b"/>
+  <rect x="40" y="40" width="1120" height="720" rx="12" fill="#16171a" stroke="#2a2c33"/>
+  <text x="80" y="100" font-family="Arial" font-size="24" fill="#ffffff" font-weight="bold">Report Impact</text>
+  <rect x="80" y="140" width="340" height="200" rx="8" fill="#2A53D0" opacity="0.3"/>
+  <text x="250" y="250" font-family="Arial" font-size="48" fill="#2A53D0" font-weight="bold">+180%</text>
+  <rect x="440" y="140" width="340" height="200" rx="8" fill="#1e1f24" stroke="#2a2c33"/>
+  <rect x="800" y="140" width="340" height="200" rx="8" fill="#1e1f24" stroke="#2a2c33"/>
+  <rect x="80" y="360" width="1060" height="280" rx="8" fill="#1e1f24" stroke="#2a2c33"/>
+</svg>
