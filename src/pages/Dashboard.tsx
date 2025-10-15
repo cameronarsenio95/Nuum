@@ -15,6 +15,7 @@ import { NotionsView } from '../components/dashboard/NotionsView';
 import { AdSetsView } from '../components/dashboard/AdSetsView';
 import { BillingView } from '../components/dashboard/BillingView';
 import { ContactView } from '../components/dashboard/ContactView';
+import AnalyticsView from '../components/dashboard/AnalyticsView';
 import { OnboardingWizard } from '../components/onboarding/OnboardingWizard';
 import type { Database } from '../lib/database.types';
 
@@ -25,7 +26,7 @@ function DashboardContent() {
   const { user } = useAuth();
   const { showOnboarding, completeOnboarding, skipOnboarding } = useOnboarding();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [currentView, setCurrentView] = useState<'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'ad-sets'>('overview');
+  const [currentView, setCurrentView] = useState<'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'ad-sets' | 'analytics'>('overview');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -168,6 +169,7 @@ function DashboardContent() {
         onViewChange={setCurrentView}
       >
         {currentView === 'overview' && <OverviewView workspace={workspace} />}
+        {currentView === 'analytics' && <AnalyticsView workspaceId={workspace.id} />}
         {currentView === 'campaigns' && <CampaignsView workspace={workspace} onCampaignClick={handleCampaignClick} />}
         {currentView === 'ad-sets' && selectedCampaign && <AdSetsView campaign={selectedCampaign} onBack={handleBackToCampaigns} />}
         {currentView === 'creators' && <CreatorsView workspace={workspace} />}

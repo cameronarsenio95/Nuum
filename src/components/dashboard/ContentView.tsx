@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Folder, Upload, X, Image as ImageIcon, Video, File, Trash2, Search, Download, Eye, HardDrive, Lock } from 'lucide-react';
+import { Folder, Upload, X, Image as ImageIcon, Video, File, Trash2, Search, Download, Eye, HardDrive, Lock, CheckCircle, Clock, XCircle, Edit } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { UpgradeModal } from '../modals/UpgradeModal';
+import { ContentReviewModal } from './ContentReviewModal';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -30,6 +31,9 @@ export function ContentView({ workspace }: ContentViewProps) {
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [previewMedia, setPreviewMedia] = useState<ContentMedia | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [contentToReview, setContentToReview] = useState<any>(null);
+  const [approvalFilter, setApprovalFilter] = useState<string>('all');
   const [uploadForm, setUploadForm] = useState({
     file: null as File | null,
     title: '',
