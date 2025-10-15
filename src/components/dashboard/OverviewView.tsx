@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Target, Users, CheckSquare, TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { Target, Users, CheckSquare, TrendingUp, Calendar, DollarSign, ListChecks, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
 
@@ -7,6 +7,7 @@ type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
 type Task = Database['public']['Tables']['tasks']['Row'];
+type Deliverable = Database['public']['Tables']['deliverables']['Row'];
 
 interface OverviewViewProps {
   workspace: Workspace;
@@ -21,6 +22,9 @@ interface Stats {
   tasksPending: number;
   totalBudget: number;
   totalRevenue: number;
+  totalDeliverables: number;
+  deliverablesInReview: number;
+  deliverablesOverdue: number;
 }
 
 export function OverviewView({ workspace }: OverviewViewProps) {
@@ -33,10 +37,14 @@ export function OverviewView({ workspace }: OverviewViewProps) {
     tasksPending: 0,
     totalBudget: 0,
     totalRevenue: 0,
+    totalDeliverables: 0,
+    deliverablesInReview: 0,
+    deliverablesOverdue: 0,
   });
   const [recentCampaigns, setRecentCampaigns] = useState<Campaign[]>([]);
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [topCreators, setTopCreators] = useState<Creator[]>([]);
+  const [upcomingDeliverables, setUpcomingDeliverables] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +52,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
   }, [workspace.id]);
 
   const loadOverviewData = async () => {
-    const [campaignsData, creatorsData, tasksData] = await Promise.all([
+    const [campaignsData, creatorsData, tasksData, deliverablesData] = await Promise.all([
       supabase
         .from('campaigns')
         .select('*')
@@ -60,6 +68,15 @@ export function OverviewView({ workspace }: OverviewViewProps) {
         .select('*')
         .eq('workspace_id', workspace.id)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('deliverables')
+        .select(`
+          *,
+          campaign:campaigns!inner(workspace_id, name),
+          creator:creators(name)
+        `)
+        .eq('campaign.workspace_id', workspace.id)
+        .order('due_date', { ascending: true, nullsFirst: false }),
     ]);
 
     if (campaignsData.data) {
@@ -127,6 +144,27 @@ export function OverviewView({ workspace }: OverviewViewProps) {
       setRecentTasks(tasks.slice(0, 5));
     }
 
+    if (deliverablesData.data) {
+      const deliverables = deliverablesData.data;
+      const inReview = deliverables.filter((d: any) => d.status === 'in_review').length;
+      const now = new Date();
+      const overdue = deliverables.filter((d: any) =>
+        d.due_date && new Date(d.due_date) < now && d.status !== 'completed'
+      ).length;
+
+      setStats((prev) => ({
+        ...prev,
+        totalDeliverables: deliverables.length,
+        deliverablesInReview: inReview,
+        deliverablesOverdue: overdue,
+      }));
+
+      const upcoming = deliverables
+        .filter((d: any) => d.due_date && d.status !== 'completed')
+        .slice(0, 5);
+      setUpcomingDeliverables(upcoming);
+    }
+
     setLoading(false);
   };
 
@@ -155,7 +193,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
         <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">Dashboard overview of your workspace</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
         <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-linear flex items-center justify-center dark:bg-linear-info-subtle light:bg-linear-light-info-subtle">
@@ -167,6 +205,26 @@ export function OverviewView({ workspace }: OverviewViewProps) {
             <div className="text-xl md:text-2xl font-medium">{stats.totalCampaigns}</div>
             <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               {stats.activeCampaigns} active
+            </div>
+          </div>
+        </div>
+
+        <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 rounded-linear flex items-center justify-center dark:bg-linear-warning-subtle light:bg-linear-light-warning-subtle">
+              <ListChecks className="w-5 h-5 dark:text-linear-warning light:text-linear-light-warning" />
+            </div>
+            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Deliverables</span>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xl md:text-2xl font-medium">{stats.totalDeliverables}</div>
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary flex items-center gap-1">
+              {stats.deliverablesInReview} in review
+              {stats.deliverablesOverdue > 0 && (
+                <span className="flex items-center gap-1 dark:text-linear-error light:text-linear-light-error">
+                  • {stats.deliverablesOverdue} overdue
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -215,6 +273,50 @@ export function OverviewView({ workspace }: OverviewViewProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="border rounded-linear-lg p-4 md:p-6 dark:bg-linear-bg-secondary dark:border-linear-border-subtle light:bg-white light:border-linear-light-border">
+        <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+          <ListChecks className="w-4 h-4" />
+          Upcoming Deliverables
+        </h3>
+        {upcomingDeliverables.length === 0 ? (
+          <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No upcoming deliverables</p>
+        ) : (
+          <div className="space-y-3">
+            {upcomingDeliverables.map((deliverable: any) => {
+              const dueDate = deliverable.due_date ? new Date(deliverable.due_date) : null;
+              const isOverdue = dueDate && dueDate < new Date();
+              const daysUntil = dueDate ? Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+              return (
+                <div
+                  key={deliverable.id}
+                  className="flex items-center justify-between p-3 rounded-linear linear-transition dark:bg-linear-bg dark:hover:bg-linear-bg-subtle light:bg-linear-light-bg-subtle light:hover:bg-linear-light-bg-hover"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate flex items-center gap-2">
+                      {deliverable.title}
+                      {isOverdue && <AlertCircle className="w-4 h-4 dark:text-linear-error light:text-linear-light-error" />}
+                    </div>
+                    <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">
+                      {deliverable.creator?.name} • {deliverable.campaign?.name}
+                    </div>
+                  </div>
+                  <div className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                    isOverdue
+                      ? 'dark:text-linear-error dark:bg-linear-error-subtle light:text-linear-light-error light:bg-linear-light-error-subtle'
+                      : daysUntil && daysUntil <= 3
+                      ? 'dark:text-linear-warning dark:bg-linear-warning-subtle light:text-linear-light-warning light:bg-linear-light-warning-subtle'
+                      : 'dark:text-text-tertiary dark:bg-linear-bg-hover light:text-text-light-tertiary light:bg-linear-light-bg-hover'
+                  }`}>
+                    {isOverdue ? 'Overdue' : daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil}d`}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
