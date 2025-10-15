@@ -259,11 +259,6 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                       €{currentPlan.price} per {currentPlan.period}
                     </p>
                   )}
-                  {currentPlan.price === 0 && (
-                    <p className="dark:text-text-secondary light:text-text-light-secondary">
-                      Free forever
-                    </p>
-                  )}
                   {workspace.subscription_expires_at && (
                     <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mt-1">
                       {workspace.subscription_status === 'trialing'
@@ -318,14 +313,14 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   <div>
                     <h4 className="font-medium">{plan.name}</h4>
                     <div className="flex items-baseline gap-1">
-                      {plan.price ? (
+                      {plan.price !== null && plan.price > 0 ? (
                         <>
                           <span className="text-2xl font-medium">€{plan.price}</span>
                           <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">/{plan.period}</span>
                         </>
-                      ) : (
+                      ) : plan.price === null ? (
                         <span className="text-xl font-medium">Custom</span>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>
