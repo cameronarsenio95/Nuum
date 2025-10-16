@@ -96,7 +96,7 @@ Deno.serve(async (req: Request) => {
       "read_orders",
       "read_products",
       "read_customers",
-      "read_analytics",
+      "read_price_rules",
     ].join(",");
 
     const shopifyStorePrompt = `
