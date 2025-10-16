@@ -16,6 +16,7 @@ import { AdSetsView } from '../components/dashboard/AdSetsView';
 import { BillingView } from '../components/dashboard/BillingView';
 import { ContactView } from '../components/dashboard/ContactView';
 import AnalyticsView from '../components/dashboard/AnalyticsView';
+import { ShopifyIntegrationView } from '../components/dashboard/ShopifyIntegrationView';
 import { OnboardingWizard } from '../components/onboarding/OnboardingWizard';
 import { FrozenAccountModal } from '../components/modals/FrozenAccountModal';
 import type { Database } from '../lib/database.types';
@@ -27,7 +28,7 @@ function DashboardContent() {
   const { user } = useAuth();
   const { showOnboarding, completeOnboarding, skipOnboarding } = useOnboarding();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [currentView, setCurrentView] = useState<'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'ad-sets' | 'analytics'>('overview');
+  const [currentView, setCurrentView] = useState<'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'ad-sets' | 'analytics' | 'shopify'>('overview');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFrozenModal, setShowFrozenModal] = useState(false);
@@ -176,7 +177,7 @@ function DashboardContent() {
       )}
       <DashboardLayout
         workspace={workspace}
-        currentView={currentView === 'ad-sets' ? 'campaigns' : currentView}
+        currentView={currentView === 'ad-sets' ? 'campaigns' : currentView === 'shopify' ? 'shopify' : currentView}
         onViewChange={setCurrentView}
       >
         {currentView === 'overview' && <OverviewView workspace={workspace} onViewChange={setCurrentView} />}
@@ -191,6 +192,7 @@ function DashboardContent() {
         {currentView === 'contact' && <ContactView />}
         {currentView === 'settings' && <SettingsView workspace={workspace} />}
         {currentView === 'billing' && <BillingView workspace={workspace} onWorkspaceUpdate={loadWorkspace} />}
+        {currentView === 'shopify' && <ShopifyIntegrationView workspace={workspace} />}
       </DashboardLayout>
     </PlanLimitsProvider>
   );
