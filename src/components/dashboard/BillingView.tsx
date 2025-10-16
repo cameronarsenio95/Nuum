@@ -387,7 +387,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
             return (
               <div
                 key={plan.value}
-                className={`relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 rounded-linear-lg p-6 linear-transition hover:scale-[1.02] animate-slide-up ${
+                className={`relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 rounded-linear-lg p-6 linear-transition hover:scale-[1.02] animate-slide-up flex flex-col ${
                   plan.startHere
                     ? 'border-green-500/30 hover:border-green-500/50 hover:shadow-xl'
                     : plan.highlighted
@@ -431,7 +431,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   )}
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
@@ -442,7 +442,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
                 {plan.value === 'enterprise' ? (
                   <button
-                    className="group w-full py-2.5 dark:bg-linear-bg-tertiary light:bg-linear-light-bg-tertiary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:border-linear-border hover:light:border-linear-light-border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2"
+                    className="group w-full py-2.5 dark:bg-linear-bg-tertiary light:bg-linear-light-bg-tertiary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:border-linear-border hover:light:border-linear-light-border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 mt-auto"
                   >
                     Contact Sales
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
@@ -450,7 +450,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                 ) : isCurrent ? (
                   <button
                     disabled
-                    className="w-full py-2.5 rounded-linear text-sm font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed"
+                    className="w-full py-2.5 rounded-linear text-sm font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed mt-auto"
                   >
                     Current Plan
                   </button>
@@ -458,7 +458,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   plan.value === 'free' ? (
                     <button
                       onClick={() => setShowCheckout('standard')}
-                      className="group w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                      className="group w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg mt-auto"
                     >
                       Start Free Trial
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
@@ -466,16 +466,16 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   ) : (
                     <button
                       onClick={() => setShowCheckout(plan.value as 'standard' | 'elite')}
-                      className="group w-full py-2.5 bg-linear-accent hover:bg-linear-accent-hover hover:shadow-lg hover:shadow-linear-accent/20 rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 text-linear-bg"
+                      className="group w-full py-2.5 bg-white hover:bg-gray-100 text-black rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg mt-auto"
                     >
-                      Start Free Trial
+                      Upgrade
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
                     </button>
                   )
                 ) : (
                   <button
                     disabled
-                    className="w-full py-2.5 rounded-linear text-sm font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed"
+                    className="w-full py-2.5 rounded-linear text-sm font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed mt-auto"
                   >
                     Not Available
                   </button>
