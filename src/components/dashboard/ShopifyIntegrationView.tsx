@@ -92,7 +92,7 @@ export function ShopifyIntegrationView({ workspace }: Props) {
 
     const cleanDomain = shopDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-    const clientId = import.meta.env.VITE_SHOPIFY_CLIENT_ID || '288860569601';
+    const clientId = import.meta.env.VITE_SHOPIFY_CLIENT_ID || 'd22a8ccbfd2c3ff8cdc76bc0c603aa7d';
     const scopes = 'read_orders,read_products,read_customers,read_price_rules,read_analytics';
     const baseUrl = import.meta.env.VITE_SUPABASE_URL;
     const redirectUri = `${baseUrl}/functions/v1/shopify-oauth-callback`;
