@@ -86,41 +86,24 @@ export function ShopifyIntegrationView({ workspace }: Props) {
   };
 
   const handleConnect = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
+    const shopDomain = prompt('Enter your Shopify store URL (e.g., mystore.myshopify.com):');
 
-      if (!session) {
-        console.error('No active session');
-        return;
-      }
+    if (!shopDomain) return;
 
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const redirectUri = `${window.location.origin}/dashboard`;
+    const cleanDomain = shopDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-      const response = await fetch(
-        `${baseUrl}/functions/v1/shopify-oauth-start?workspace_id=${workspace.id}&redirect_uri=${encodeURIComponent(redirectUri)}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        }
-      );
+    const clientId = '288860569601';
+    const scopes = 'read_orders,read_products,read_customers,read_price_rules,read_analytics';
+    const redirectUri = `${window.location.origin}/dashboard`;
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('Error connecting to Shopify:', error);
-        return;
-      }
+    const state = btoa(JSON.stringify({
+      workspace_id: workspace.id,
+      user_id: user?.id
+    }));
 
-      const html = await response.text();
-      const newWindow = window.open('', '_blank');
-      if (newWindow) {
-        newWindow.document.write(html);
-        newWindow.document.close();
-      }
-    } catch (error) {
-      console.error('Error initiating Shopify connection:', error);
-    }
+    const authUrl = `https://${cleanDomain}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+
+    window.location.href = authUrl;
   };
 
   const handleDisconnect = async () => {
