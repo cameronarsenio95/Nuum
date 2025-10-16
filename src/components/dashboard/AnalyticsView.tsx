@@ -127,48 +127,49 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
 
         const { data: fallbackCreators, error: fallbackError } = await supabase
           .from('creators')
-          .select(`
-            id,
-            name,
-            campaign_creators!inner(
-              campaign_id,
-              campaigns!inner(
-                id,
-                total_revenue,
-                total_spend
-              )
-            )
-          `)
-          .eq('workspace_id', workspaceId)
-          .limit(10);
+          .select('id, name')
+          .eq('workspace_id', workspaceId);
 
         if (fallbackError) {
           console.error('Error loading creators fallback:', fallbackError);
           setTopCreators([]);
         } else {
-          const aggregated = (fallbackCreators || []).map(creator => {
-            const totalRevenue = creator.campaign_creators.reduce((sum: number, cc: any) =>
-              sum + (cc.campaigns?.total_revenue || 0), 0);
-            const totalSpend = creator.campaign_creators.reduce((sum: number, cc: any) =>
-              sum + (cc.campaigns?.total_spend || 0), 0);
-            const profit = totalRevenue - totalSpend;
-            const roiPercentage = totalSpend > 0 ? ((profit / totalSpend) * 100) : 0;
+          const creatorsWithMetrics = await Promise.all(
+            (fallbackCreators || []).map(async (creator) => {
+              const { data: adSetsData } = await supabase
+                .from('ad_sets')
+                .select('revenue, spend, conversions, campaign_id')
+                .eq('creator_id', creator.id);
 
-            return {
-              creator_id: creator.id,
-              creator_name: creator.name,
-              total_revenue: totalRevenue,
-              total_spend: totalSpend,
-              profit,
-              roi_percentage: roiPercentage,
-              conversions: 0,
-              campaigns_count: creator.campaign_creators.length,
-              ad_sets_count: 0
-            };
-          }).sort((a, b) => b.total_revenue - a.total_revenue);
+              const totalRevenue = adSetsData?.reduce((sum, ad) => sum + (Number(ad.revenue) || 0), 0) || 0;
+              const totalSpend = adSetsData?.reduce((sum, ad) => sum + (Number(ad.spend) || 0), 0) || 0;
+              const totalConversions = adSetsData?.reduce((sum, ad) => sum + (Number(ad.conversions) || 0), 0) || 0;
+              const profit = totalRevenue - totalSpend;
+              const roiPercentage = totalSpend > 0 ? Number(((profit / totalSpend) * 100).toFixed(2)) : 0;
 
-          console.log('Fallback creators data:', aggregated);
-          setTopCreators(aggregated);
+              const uniqueCampaigns = new Set(adSetsData?.map(ad => ad.campaign_id) || []);
+
+              return {
+                creator_id: creator.id,
+                creator_name: creator.name,
+                total_revenue: totalRevenue,
+                total_spend: totalSpend,
+                profit,
+                roi_percentage: roiPercentage,
+                conversions: totalConversions,
+                campaigns_count: uniqueCampaigns.size,
+                ad_sets_count: adSetsData?.length || 0
+              };
+            })
+          );
+
+          const sortedCreators = creatorsWithMetrics
+            .filter(c => c.total_revenue > 0 || c.campaigns_count > 0)
+            .sort((a, b) => b.total_revenue - a.total_revenue)
+            .slice(0, 10);
+
+          console.log('Fallback creators data:', sortedCreators);
+          setTopCreators(sortedCreators);
         }
       } else {
         console.log('Top creators data:', creatorsData);
