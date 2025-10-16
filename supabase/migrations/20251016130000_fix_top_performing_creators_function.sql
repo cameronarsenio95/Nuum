@@ -4,19 +4,19 @@
   1. Problem
     - Function only shows creators with ad_sets that have revenue
     - If ad_sets.revenue is 0 or NULL, creators don't appear
-    - Need to show all creators with their campaign association
+    - Need to show ALL creators in workspace
 
   2. Solution
-    - Join creators with campaigns through campaign_creators
-    - Calculate revenue from ad_sets linked to both creator AND campaign
-    - Show creators even if they have no revenue yet
-    - Order by total revenue contribution
+    - Show ALL creators in the workspace
+    - Calculate revenue from ad_sets if available
+    - Show creators even without campaigns or revenue
+    - Order by total revenue contribution (0 if none)
 
   3. Changes
-    - Use campaign_creators junction table
+    - Use campaign_creators junction table for revenue calculation
     - Aggregate ad_set revenue per creator
-    - Remove overly restrictive filters
-    - Keep only creators with at least one campaign
+    - Remove HAVING filter - show all creators
+    - Creators without campaigns show 0 revenue and 0 campaigns
 */
 
 CREATE OR REPLACE FUNCTION get_top_performing_creators(
@@ -52,7 +52,6 @@ BEGIN
     LEFT JOIN ad_sets ads ON ads.creator_id = cr.id AND ads.campaign_id = c.id
     WHERE cr.workspace_id = p_workspace_id
     GROUP BY cr.id, cr.name
-    HAVING COUNT(DISTINCT cc.campaign_id) > 0
   )
   SELECT
     ccs.id AS creator_id,

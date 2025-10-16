@@ -122,8 +122,13 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
           p_order_by: 'revenue'
         });
 
-      if (creatorsError) throw creatorsError;
-      setTopCreators(creatorsData || []);
+      if (creatorsError) {
+        console.error('Error loading top creators:', creatorsError);
+        setTopCreators([]);
+      } else {
+        console.log('Top creators data:', creatorsData);
+        setTopCreators(creatorsData || []);
+      }
 
       const { data: platformsData, error: platformsError } = await supabase
         .from('platform_performance_summary')
