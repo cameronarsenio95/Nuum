@@ -45,40 +45,14 @@ function DashboardContent() {
 
   const handleShopifyCallback = async () => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const state = params.get('state');
-    const shop = params.get('shop');
+    const shopifySuccess = params.get('shopify');
 
-    if (code && state && shop) {
-      try {
-        const stateData = JSON.parse(atob(state));
-        const workspaceId = stateData.workspace_id;
-
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-          console.error('No active session');
-          return;
-        }
-
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shopify-oauth-callback?code=${code}&shop=${shop}&state=${state}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          window.history.replaceState({}, document.title, '/dashboard');
-          setCurrentView('shopify');
-        } else {
-          console.error('Shopify OAuth callback failed');
-        }
-      } catch (error) {
-        console.error('Error handling Shopify callback:', error);
-      }
+    if (shopifySuccess === 'connected') {
+      window.history.replaceState({}, document.title, '/dashboard');
+      setCurrentView('shopify');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     }
   };
 
