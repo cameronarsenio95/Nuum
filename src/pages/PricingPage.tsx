@@ -4,20 +4,21 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 
 const trialFeatures = [
-  '7-day trial with Standard features',
-  '1 brand workspace',
-  'Up to 25 creators',
-  '5GB storage',
-  'Basic analytics',
-  'Team collaboration (3 members)',
-  'Email support',
+  '7-day trial with Elite features',
+  'Up to 3 brand workspaces',
+  'Up to 50 creators',
+  '25GB storage',
+  'Full analytics & exports',
+  'Team collaboration (5 members)',
+  'Priority support',
 ];
 
 const standardFeatures = [
   '1 brand workspace',
   'Up to 25 creators',
   '5GB storage',
-  'Basic analytics',
+  'Advanced analytics',
+  'Revenue tracking',
   'Team collaboration (3 members)',
   'Email support',
 ];
@@ -27,6 +28,8 @@ const eliteFeatures = [
   'Up to 50 creators',
   '25GB storage',
   'Full analytics & exports',
+  'Revenue tracking',
+  'Task assignment',
   'Team collaboration (5 members)',
   'Priority support',
 ];
@@ -312,28 +315,28 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                     </tr>
                     <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary linear-transition">
                       <td className="py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Brand workspaces</td>
-                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">1</td>
+                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">3</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">1</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">3</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Unlimited</td>
                     </tr>
                     <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary linear-transition">
                       <td className="py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Creator profiles</td>
-                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">25</td>
+                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">50</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">25</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">50</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Unlimited</td>
                     </tr>
                     <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary linear-transition">
                       <td className="py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Storage</td>
-                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">5GB</td>
+                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">25GB</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">5GB</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">25GB</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Unlimited</td>
                     </tr>
                     <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary linear-transition">
                       <td className="py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Team members</td>
-                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">3</td>
+                      <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">5</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">3</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">5</td>
                       <td className="text-center py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Unlimited</td>
@@ -372,8 +375,8 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                     </tr>
                     <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary linear-transition">
                       <td className="py-3 px-6 text-sm dark:text-text-secondary light:text-text-light-secondary">Revenue tracking</td>
-                      <td className="text-center py-3 px-6 text-sm dark:text-text-tertiary light:text-text-light-tertiary">—</td>
-                      <td className="text-center py-3 px-6 text-sm dark:text-text-tertiary light:text-text-light-tertiary">—</td>
+                      <td className="text-center py-3 px-6"><Check className="w-4 h-4 text-blue-400 mx-auto" strokeWidth={2} /></td>
+                      <td className="text-center py-3 px-6"><Check className="w-4 h-4 text-blue-400 mx-auto" strokeWidth={2} /></td>
                       <td className="text-center py-3 px-6"><Check className="w-4 h-4 text-blue-400 mx-auto" strokeWidth={2} /></td>
                       <td className="text-center py-3 px-6"><Check className="w-4 h-4 text-blue-400 mx-auto" strokeWidth={2} /></td>
                     </tr>

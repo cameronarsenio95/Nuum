@@ -131,15 +131,16 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
 
     if (isTrialActive) {
       setLimits({
-        maxCreators: 25,
-        maxStorageGb: 5,
-        maxTeamMembers: 3,
+        maxCreators: 50,
+        maxStorageGb: 25,
+        maxTeamMembers: 5,
         features: {
-          revenue_tracking: false,
-          advanced_analytics: false,
+          revenue_tracking: true,
+          advanced_analytics: true,
+          export_data: true,
           team_collaboration: true,
-          priority_support: false,
-          task_assignment: false,
+          priority_support: true,
+          task_assignment: true,
           ...((workspace.features as Record<string, boolean>) || {}),
         },
       });
@@ -149,11 +150,12 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
         maxStorageGb: 5,
         maxTeamMembers: 3,
         features: {
-          revenue_tracking: false,
-          advanced_analytics: false,
+          revenue_tracking: true,
+          advanced_analytics: true,
           team_collaboration: true,
           priority_support: false,
           task_assignment: false,
+          export_data: false,
           ...((workspace.features as Record<string, boolean>) || {}),
         },
       });
@@ -165,6 +167,7 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
         features: {
           revenue_tracking: true,
           advanced_analytics: true,
+          export_data: true,
           team_collaboration: true,
           priority_support: true,
           task_assignment: true,
