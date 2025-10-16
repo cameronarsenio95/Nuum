@@ -42,6 +42,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
     notes: '',
     status: 'active' as 'active' | 'inactive' | 'blacklisted',
     tags: [] as string[],
+    discount_code: '',
   });
   const [tagInput, setTagInput] = useState('');
 
@@ -142,6 +143,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       created_by: user.id,
       status: newCreator.status,
       tags: newCreator.tags.length > 0 ? newCreator.tags : null,
+      discount_code: newCreator.discount_code || null,
     });
 
     if (error) {
@@ -169,6 +171,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         notes: newCreator.notes || null,
         status: newCreator.status,
         tags: newCreator.tags.length > 0 ? newCreator.tags : null,
+        discount_code: newCreator.discount_code || null,
       })
       .eq('id', selectedCreator.id);
 
@@ -246,6 +249,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       notes: creator.notes || '',
       status: creator.status as 'active' | 'inactive' | 'blacklisted',
       tags: creator.tags || [],
+      discount_code: creator.discount_code || '',
     });
     setShowEditModal(true);
   };
@@ -277,6 +281,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       notes: '',
       status: 'active',
       tags: [],
+      discount_code: '',
     });
     setTagInput('');
   };

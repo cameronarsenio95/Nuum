@@ -16,6 +16,7 @@ interface CreatorFormProps {
     notes: string;
     status: 'active' | 'inactive' | 'blacklisted';
     tags: string[];
+    discount_code?: string;
   };
   setNewCreator: (creator: any) => void;
   tagInput: string;
@@ -140,38 +141,14 @@ export function CreatorFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Tags</label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                className="flex-1 px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                placeholder="Add tag..."
-              />
-              <button
-                type="button"
-                onClick={addTag}
-                className="px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            {newCreator.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {newCreator.tags.map((tag, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1 bg-linear-info/10 text-linear-info text-sm rounded-full flex items-center gap-2 cursor-pointer hover:bg-linear-info/20"
-                    onClick={() => removeTag(tag)}
-                  >
-                    {tag}
-                    <X className="w-3 h-3" />
-                  </span>
-                ))}
-              </div>
-            )}
+            <label className="block text-sm font-medium mb-2">Discount Code</label>
+            <input
+              type="text"
+              value={newCreator.discount_code || ''}
+              onChange={(e) => setNewCreator({ ...newCreator, discount_code: e.target.value })}
+              className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+              placeholder="e.g., CREATOR10"
+            />
           </div>
 
           <div>
