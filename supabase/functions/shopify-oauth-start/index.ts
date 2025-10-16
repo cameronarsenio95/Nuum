@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
           <style>
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              max-width: 500px;
+              max-width: 600px;
               margin: 50px auto;
               padding: 20px;
               background: #0a0a0a;
@@ -141,6 +141,7 @@ Deno.serve(async (req: Request) => {
               font-size: 14px;
               font-weight: 500;
               cursor: pointer;
+              margin-bottom: 10px;
             }
             button:hover {
               background: #f0f0f0;
@@ -149,6 +150,39 @@ Deno.serve(async (req: Request) => {
               font-size: 12px;
               color: #6c6e73;
               margin-top: 15px;
+            }
+            .info-box {
+              background: #161718;
+              border: 1px solid #1a1b1c;
+              border-radius: 8px;
+              padding: 15px;
+              margin-top: 20px;
+              display: none;
+            }
+            .info-box h2 {
+              font-size: 16px;
+              margin-bottom: 10px;
+              color: #e6e6e7;
+            }
+            .info-box pre {
+              background: #0a0a0a;
+              padding: 10px;
+              border-radius: 4px;
+              overflow-x: auto;
+              font-size: 12px;
+              color: #3b82f6;
+              word-break: break-all;
+              white-space: pre-wrap;
+            }
+            .copy-btn {
+              background: #3b82f6;
+              color: white;
+              padding: 8px 12px;
+              font-size: 12px;
+              margin-top: 10px;
+            }
+            .copy-btn:hover {
+              background: #2563eb;
             }
           </style>
         </head>
@@ -162,12 +196,39 @@ Deno.serve(async (req: Request) => {
               placeholder="mystore.myshopify.com"
               required
             />
+            <button type="button" onclick="showRedirectUri()">Show Redirect URI (for Shopify App setup)</button>
             <button type="submit">Continue to Shopify</button>
           </form>
           <div class="note">
             You'll be redirected to Shopify to authorize NUUM to access your store data.
           </div>
+
+          <div id="infoBox" class="info-box">
+            <h2>Redirect URI for Shopify App</h2>
+            <p style="color: #9ea0a5; font-size: 13px;">Copy this URL and add it to your Shopify App settings under "App setup" > "URLs" > "Allowed redirection URL(s)"</p>
+            <pre id="redirectUriDisplay"></pre>
+            <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+          </div>
+
           <script>
+            const redirectUri = '${shopifyCallbackUrl}';
+
+            function showRedirectUri() {
+              document.getElementById('infoBox').style.display = 'block';
+              document.getElementById('redirectUriDisplay').textContent = redirectUri;
+            }
+
+            function copyToClipboard() {
+              navigator.clipboard.writeText(redirectUri).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                  btn.textContent = originalText;
+                }, 2000);
+              });
+            }
+
             document.getElementById('shopifyForm').addEventListener('submit', function(e) {
               e.preventDefault();
               const shopDomain = document.getElementById('shopDomain').value.trim();
@@ -178,12 +239,7 @@ Deno.serve(async (req: Request) => {
               }
 
               const cleanDomain = shopDomain.replace(/^https?:\\/\\//, '').replace(/\\/$/, '');
-
-              const redirectUri = '${shopifyCallbackUrl}';
               const authUrl = \`https://\${cleanDomain}/admin/oauth/authorize?client_id=${shopifyAppClientId}&scope=${scopes}&redirect_uri=\${encodeURIComponent(redirectUri)}&state=${state}\`;
-
-              console.log('Redirect URI:', redirectUri);
-              console.log('Full auth URL:', authUrl);
 
               window.location.href = authUrl;
             });
