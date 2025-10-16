@@ -419,6 +419,12 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
                     <span>{creator.phone}</span>
                   </div>
                 )}
+                {creator.discount_code && (
+                  <div className="flex items-center gap-2 text-sm dark:text-text-secondary light:text-text-light-secondary">
+                    <Tag className="w-4 h-4" />
+                    <span className="font-mono text-linear-accent">{creator.discount_code}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2">

@@ -265,6 +265,15 @@ export function CreatorDetailModal({
             )}
           </div>
 
+          {creator.discount_code && (
+            <div>
+              <h4 className="text-sm font-medium dark:text-text-tertiary light:text-text-light-tertiary mb-2">Discount Code</h4>
+              <div className="px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear font-mono text-linear-accent">
+                {creator.discount_code}
+              </div>
+            </div>
+          )}
+
           <div>
             <h4 className="text-sm font-medium dark:text-text-tertiary light:text-text-light-tertiary mb-3">Social Media</h4>
             <div className="grid md:grid-cols-3 gap-4">
