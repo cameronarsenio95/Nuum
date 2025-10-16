@@ -123,8 +123,53 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
         });
 
       if (creatorsError) {
-        console.error('Error loading top creators:', creatorsError);
-        setTopCreators([]);
+        console.error('Error loading top creators via RPC:', creatorsError);
+
+        const { data: fallbackCreators, error: fallbackError } = await supabase
+          .from('creators')
+          .select(`
+            id,
+            name,
+            campaign_creators!inner(
+              campaign_id,
+              campaigns!inner(
+                id,
+                total_revenue,
+                total_spend
+              )
+            )
+          `)
+          .eq('workspace_id', workspaceId)
+          .limit(10);
+
+        if (fallbackError) {
+          console.error('Error loading creators fallback:', fallbackError);
+          setTopCreators([]);
+        } else {
+          const aggregated = (fallbackCreators || []).map(creator => {
+            const totalRevenue = creator.campaign_creators.reduce((sum: number, cc: any) =>
+              sum + (cc.campaigns?.total_revenue || 0), 0);
+            const totalSpend = creator.campaign_creators.reduce((sum: number, cc: any) =>
+              sum + (cc.campaigns?.total_spend || 0), 0);
+            const profit = totalRevenue - totalSpend;
+            const roiPercentage = totalSpend > 0 ? ((profit / totalSpend) * 100) : 0;
+
+            return {
+              creator_id: creator.id,
+              creator_name: creator.name,
+              total_revenue: totalRevenue,
+              total_spend: totalSpend,
+              profit,
+              roi_percentage: roiPercentage,
+              conversions: 0,
+              campaigns_count: creator.campaign_creators.length,
+              ad_sets_count: 0
+            };
+          }).sort((a, b) => b.total_revenue - a.total_revenue);
+
+          console.log('Fallback creators data:', aggregated);
+          setTopCreators(aggregated);
+        }
       } else {
         console.log('Top creators data:', creatorsData);
         setTopCreators(creatorsData || []);
