@@ -86,10 +86,41 @@ export function ShopifyIntegrationView({ workspace }: Props) {
   };
 
   const handleConnect = async () => {
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const redirectUri = `${window.location.origin}/dashboard`;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
 
-    window.location.href = `${baseUrl}/functions/v1/shopify-oauth-start?workspace_id=${workspace.id}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      if (!session) {
+        console.error('No active session');
+        return;
+      }
+
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const redirectUri = `${window.location.origin}/dashboard`;
+
+      const response = await fetch(
+        `${baseUrl}/functions/v1/shopify-oauth-start?workspace_id=${workspace.id}&redirect_uri=${encodeURIComponent(redirectUri)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Error connecting to Shopify:', error);
+        return;
+      }
+
+      const html = await response.text();
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(html);
+        newWindow.document.close();
+      }
+    } catch (error) {
+      console.error('Error initiating Shopify connection:', error);
+    }
   };
 
   const handleDisconnect = async () => {
