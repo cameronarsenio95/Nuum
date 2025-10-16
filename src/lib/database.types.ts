@@ -19,7 +19,7 @@ export interface Database {
           max_creators: number | null
           max_storage_gb: number | null
           storage_used_bytes: number
-          subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired'
+          subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired' | 'frozen'
           subscription_expires_at: string | null
           features: Json
           owner_id: string

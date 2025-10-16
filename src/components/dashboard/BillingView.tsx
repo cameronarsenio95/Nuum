@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, Check, Clock, AlertCircle, Download, ExternalLink, Crown, Zap, Building, FileText } from 'lucide-react';
+import { CreditCard, Check, Clock, AlertCircle, Download, ExternalLink, Crown, Zap, Building, FileText, AlertTriangle, Calendar } from 'lucide-react';
 import { CheckoutButton } from '../billing/CheckoutButton';
 import { SubscriptionManager } from '../billing/SubscriptionManager';
 import { supabase } from '../../lib/supabase';
+import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -36,6 +37,7 @@ interface Invoice {
 }
 
 export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) {
+  const { freeAccountInfo } = usePlanLimits();
   const [showCheckout, setShowCheckout] = useState<'standard' | 'elite' | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -209,6 +211,114 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
           Manage your subscription, billing, and payment methods
         </p>
       </div>
+
+      {freeAccountInfo.isFrozen && (
+        <div className="mb-8 p-6 bg-red-500/10 border-2 border-red-500/30 rounded-linear-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-linear bg-red-500/20 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-red-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-medium mb-2 text-red-400">Account Frozen</h3>
+              <p className="dark:text-text-secondary light:text-text-light-secondary mb-3">
+                Your Free plan has expired. Your account is now frozen and you cannot create or edit any data.
+              </p>
+              <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-4">
+                Upgrade to Standard plan to unlock your account and continue using all features.
+              </p>
+              <button
+                onClick={() => setShowCheckout('standard')}
+                className="px-6 py-2.5 rounded-linear text-sm font-medium bg-red-500 hover:bg-red-600 text-white linear-transition"
+              >
+                Upgrade Now to Unlock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {freeAccountInfo.isFreePlan && !freeAccountInfo.isFrozen && (
+        <div className={`mb-8 p-6 border-2 rounded-linear-lg ${
+          freeAccountInfo.daysRemaining <= 2
+            ? 'bg-red-500/10 border-red-500/30'
+            : freeAccountInfo.daysRemaining <= 3
+            ? 'bg-yellow-500/10 border-yellow-500/30'
+            : 'bg-blue-500/10 border-blue-500/30'
+        }`}>
+          <div className="flex items-start gap-4">
+            <div className={`w-12 h-12 rounded-linear flex items-center justify-center flex-shrink-0 ${
+              freeAccountInfo.daysRemaining <= 2
+                ? 'bg-red-500/20'
+                : freeAccountInfo.daysRemaining <= 3
+                ? 'bg-yellow-500/20'
+                : 'bg-blue-500/20'
+            }`}>
+              <Calendar className={`w-6 h-6 ${
+                freeAccountInfo.daysRemaining <= 2
+                  ? 'text-red-400'
+                  : freeAccountInfo.daysRemaining <= 3
+                  ? 'text-yellow-400'
+                  : 'text-blue-400'
+              }`} />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-medium mb-2">
+                {freeAccountInfo.daysRemaining <= 2 ? 'Free Plan Expiring Soon!' : 'Free Plan Active'}
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="dark:text-text-secondary light:text-text-light-secondary mb-2">
+                    {freeAccountInfo.daysRemaining > 0 ? (
+                      <>
+                        You have <strong className={freeAccountInfo.daysRemaining <= 2 ? 'text-red-400' : ''}>{freeAccountInfo.daysRemaining} {freeAccountInfo.daysRemaining === 1 ? 'day' : 'days'}</strong> remaining in your Free plan.
+                      </>
+                    ) : (
+                      <strong className="text-red-400">Your Free plan expires today!</strong>
+                    )}
+                  </p>
+                  <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary">
+                    Account created: <strong>{new Date(workspace.created_at).toLocaleDateString()}</strong>
+                    {' • '}
+                    Expires: <strong>{freeAccountInfo.expiresAt?.toLocaleDateString()}</strong>
+                  </p>
+                </div>
+
+                <div className="relative w-full h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full linear-transition ${
+                      freeAccountInfo.daysRemaining <= 2
+                        ? 'bg-red-500'
+                        : freeAccountInfo.daysRemaining <= 3
+                        ? 'bg-yellow-500'
+                        : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${Math.max(0, Math.min(100, (7 - freeAccountInfo.daysRemaining) / 7 * 100))}%` }}
+                  />
+                </div>
+
+                <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary">
+                  {freeAccountInfo.daysRemaining <= 2 ? (
+                    <strong className="text-red-400">Warning: Your account will be frozen if you don't upgrade to Standard plan.</strong>
+                  ) : (
+                    'After 7 days, your account will be frozen until you upgrade to a paid plan.'
+                  )}
+                </p>
+
+                <button
+                  onClick={() => setShowCheckout('standard')}
+                  className={`px-6 py-2.5 rounded-linear text-sm font-medium linear-transition ${
+                    freeAccountInfo.daysRemaining <= 2
+                      ? 'bg-red-500 hover:bg-red-600 text-white'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  Upgrade to Standard Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {trialInfo?.isActive && (
         <div className="mb-8 p-6 bg-linear-accent/10 border border-linear-accent/20 rounded-linear-lg">

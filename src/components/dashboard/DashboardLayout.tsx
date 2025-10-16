@@ -197,12 +197,10 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
 
         <main className="flex-1 overflow-auto lg:ml-0">
           <div className="p-4 md:p-8 pt-16 lg:pt-8">
-            {trialInfo.isActive && (
-              <TrialBanner
-                daysRemaining={trialInfo.daysRemaining}
-                onUpgradeClick={() => onViewChange('settings')}
-              />
-            )}
+            <TrialBanner
+              daysRemaining={trialInfo.daysRemaining}
+              onUpgradeClick={() => onViewChange('billing')}
+            />
             {children}
           </div>
         </main>

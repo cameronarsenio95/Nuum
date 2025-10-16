@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { PlanLimitsProvider } from '../contexts/PlanLimitsContext';
+import { PlanLimitsProvider, usePlanLimits } from '../contexts/PlanLimitsContext';
 import { OnboardingProvider, useOnboarding } from '../contexts/OnboardingContext';
 import { supabase } from '../lib/supabase';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
@@ -17,6 +17,7 @@ import { BillingView } from '../components/dashboard/BillingView';
 import { ContactView } from '../components/dashboard/ContactView';
 import AnalyticsView from '../components/dashboard/AnalyticsView';
 import { OnboardingWizard } from '../components/onboarding/OnboardingWizard';
+import { FrozenAccountModal } from '../components/modals/FrozenAccountModal';
 import type { Database } from '../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -29,6 +30,7 @@ function DashboardContent() {
   const [currentView, setCurrentView] = useState<'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'ad-sets' | 'analytics'>('overview');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showFrozenModal, setShowFrozenModal] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -157,6 +159,15 @@ function DashboardContent() {
 
   return (
     <PlanLimitsProvider workspace={workspace}>
+      <FrozenAccountChecker
+        workspace={workspace}
+        showModal={showFrozenModal}
+        onShowModal={setShowFrozenModal}
+        onUpgrade={() => {
+          setShowFrozenModal(false);
+          setCurrentView('billing');
+        }}
+      />
       {showOnboarding && (
         <OnboardingWizard
           onComplete={completeOnboarding}
@@ -179,9 +190,40 @@ function DashboardContent() {
         {currentView === 'notions' && <NotionsView workspace={workspace} />}
         {currentView === 'contact' && <ContactView />}
         {currentView === 'settings' && <SettingsView workspace={workspace} />}
-        {currentView === 'billing' && <BillingView workspace={workspace} />}
+        {currentView === 'billing' && <BillingView workspace={workspace} onWorkspaceUpdate={loadWorkspace} />}
       </DashboardLayout>
     </PlanLimitsProvider>
+  );
+}
+
+function FrozenAccountChecker({
+  workspace,
+  showModal,
+  onShowModal,
+  onUpgrade
+}: {
+  workspace: Workspace;
+  showModal: boolean;
+  onShowModal: (show: boolean) => void;
+  onUpgrade: () => void;
+}) {
+  const { freeAccountInfo } = usePlanLimits();
+
+  useEffect(() => {
+    if (freeAccountInfo.isFrozen && !showModal) {
+      onShowModal(true);
+    }
+  }, [freeAccountInfo.isFrozen]);
+
+  if (!freeAccountInfo.isFrozen || !showModal) {
+    return null;
+  }
+
+  return (
+    <FrozenAccountModal
+      onUpgrade={onUpgrade}
+      onClose={() => onShowModal(false)}
+    />
   );
 }
 

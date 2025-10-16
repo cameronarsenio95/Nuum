@@ -26,11 +26,20 @@ interface TrialInfo {
   endsAt: string | null;
 }
 
+interface FreeAccountInfo {
+  isFreePlan: boolean;
+  daysRemaining: number;
+  expiresAt: Date | null;
+  isFrozen: boolean;
+  isExpired: boolean;
+}
+
 interface PlanLimitsContextType {
   workspace: Workspace | null;
   usage: WorkspaceUsage;
   limits: PlanLimits;
   trialInfo: TrialInfo;
+  freeAccountInfo: FreeAccountInfo;
   loading: boolean;
   canCreateCreator: () => boolean;
   canUploadContent: (fileSizeBytes: number) => boolean;
@@ -41,6 +50,7 @@ interface PlanLimitsContextType {
   getTeamMemberUsagePercent: () => number;
   refreshUsage: () => Promise<void>;
   isTrialExpiringSoon: () => boolean;
+  isFreeAccountExpiringSoon: () => boolean;
 }
 
 const PlanLimitsContext = createContext<PlanLimitsContextType | undefined>(undefined);
@@ -64,6 +74,13 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
     daysRemaining: 0,
     startedAt: null,
     endsAt: null,
+  });
+  const [freeAccountInfo, setFreeAccountInfo] = useState<FreeAccountInfo>({
+    isFreePlan: false,
+    daysRemaining: 0,
+    expiresAt: null,
+    isFrozen: false,
+    isExpired: false,
   });
   const [loading, setLoading] = useState(true);
 
@@ -91,6 +108,25 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
       daysRemaining,
       startedAt: workspace.trial_started_at,
       endsAt: workspace.trial_ends_at,
+    });
+
+    const isFreePlan = workspace.plan === 'free';
+    const isFrozen = workspace.subscription_status === 'frozen';
+    const createdAt = new Date(workspace.created_at);
+    const freeExpiresAt = new Date(createdAt);
+    freeExpiresAt.setDate(freeExpiresAt.getDate() + 7);
+
+    let freeDaysRemaining = 0;
+    if (isFreePlan && freeExpiresAt > now) {
+      freeDaysRemaining = Math.ceil((freeExpiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    setFreeAccountInfo({
+      isFreePlan,
+      daysRemaining: freeDaysRemaining,
+      expiresAt: isFreePlan ? freeExpiresAt : null,
+      isFrozen,
+      isExpired: isFreePlan && freeExpiresAt <= now,
     });
 
     if (isTrialActive) {
@@ -235,6 +271,10 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
     return trialInfo.isActive && trialInfo.daysRemaining <= 2;
   };
 
+  const isFreeAccountExpiringSoon = () => {
+    return freeAccountInfo.isFreePlan && !freeAccountInfo.isFrozen && freeAccountInfo.daysRemaining <= 2;
+  };
+
   return (
     <PlanLimitsContext.Provider
       value={{
@@ -242,6 +282,7 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
         usage,
         limits,
         trialInfo,
+        freeAccountInfo,
         loading,
         canCreateCreator,
         canUploadContent,
@@ -252,6 +293,7 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
         getTeamMemberUsagePercent,
         refreshUsage,
         isTrialExpiringSoon,
+        isFreeAccountExpiringSoon,
       }}
     >
       {children}

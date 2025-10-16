@@ -184,6 +184,19 @@ async function syncCustomerFromStripe(customerId: string) {
       throw new Error('Failed to sync subscription in database');
     }
     console.info(`Successfully synced subscription for customer: ${customerId}`);
+
+    if (subscription.status === 'active' || subscription.status === 'trialing') {
+      const { data: workspace } = await supabase
+        .from('workspaces')
+        .select('id')
+        .eq('stripe_customer_id', customerId)
+        .maybeSingle();
+
+      if (workspace) {
+        await supabase.rpc('unfreeze_account', { workspace_id_input: workspace.id });
+        console.info(`Unfroze account for workspace: ${workspace.id}`);
+      }
+    }
   } catch (error) {
     console.error(`Failed to sync subscription for customer ${customerId}:`, error);
     throw error;
