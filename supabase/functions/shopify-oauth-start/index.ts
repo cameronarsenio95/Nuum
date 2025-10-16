@@ -179,7 +179,11 @@ Deno.serve(async (req: Request) => {
 
               const cleanDomain = shopDomain.replace(/^https?:\\/\\//, '').replace(/\\/$/, '');
 
-              const authUrl = \`https://\${cleanDomain}/admin/oauth/authorize?client_id=${shopifyAppClientId}&scope=${scopes}&redirect_uri=\${encodeURIComponent('${shopifyCallbackUrl}')}&state=${state}\`;
+              const redirectUri = '${shopifyCallbackUrl}';
+              const authUrl = \`https://\${cleanDomain}/admin/oauth/authorize?client_id=${shopifyAppClientId}&scope=${scopes}&redirect_uri=\${encodeURIComponent(redirectUri)}&state=${state}\`;
+
+              console.log('Redirect URI:', redirectUri);
+              console.log('Full auth URL:', authUrl);
 
               window.location.href = authUrl;
             });
