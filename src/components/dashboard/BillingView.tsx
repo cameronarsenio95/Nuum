@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, Check, Clock, AlertCircle, Download, ExternalLink, Crown, Zap, Building, FileText, AlertTriangle, Calendar } from 'lucide-react';
+import { CreditCard, Check, Clock, AlertCircle, Download, ExternalLink, Crown, Zap, Building, FileText, AlertTriangle, Calendar, ArrowRight } from 'lucide-react';
 import { CheckoutButton } from '../billing/CheckoutButton';
 import { SubscriptionManager } from '../billing/SubscriptionManager';
 import { supabase } from '../../lib/supabase';
@@ -62,34 +62,33 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
   const plans = [
     {
-      name: 'Free',
+      name: '7-Day Trial',
+      subtitle: 'Then choose a plan',
       price: 0,
-      period: 'month',
-      icon: Zap,
-      color: 'text-gray-400',
-      bgColor: 'bg-gray-400/10',
+      period: 'for 7 days',
       features: [
-        '1 brand workspace',
-        'Up to 5 creators',
-        '1GB storage',
-        'Basic features',
-        'Community support',
+        '7-day trial with Elite features',
+        'Up to 3 brand workspaces',
+        'Up to 50 creators',
+        '25GB storage',
+        'Full analytics & exports',
+        'Team collaboration (5 members)',
+        'Priority support',
       ],
       value: 'free',
       highlighted: false,
+      startHere: true,
     },
     {
       name: 'Standard',
       price: 49,
       period: 'month',
-      icon: Zap,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-400/10',
       features: [
         '1 brand workspace',
         'Up to 25 creators',
         '5GB storage',
-        'Basic analytics',
+        'Advanced analytics',
+        'Revenue tracking',
         'Team collaboration (3 members)',
         'Email support',
       ],
@@ -100,16 +99,14 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
       name: 'Elite',
       price: 99,
       period: 'month',
-      icon: Crown,
-      color: 'text-linear-accent',
-      bgColor: 'bg-linear-accent/10',
       features: [
         'Up to 3 brand workspaces',
         'Up to 50 creators',
         '25GB storage',
         'Full analytics & exports',
-        'Team collaboration (5 members)',
         'Revenue tracking',
+        'Task assignment',
+        'Team collaboration (5 members)',
         'Priority support',
       ],
       value: 'elite',
@@ -119,18 +116,13 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
     {
       name: 'Enterprise',
       price: null,
-      period: 'custom',
-      icon: Building,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-400/10',
+      subtitle: 'Custom',
       features: [
         'Unlimited workspaces',
         'Unlimited creators',
         'Unlimited storage',
         'Custom integrations',
-        'Unlimited team members',
         'Dedicated account manager',
-        'Onboarding & training',
       ],
       value: 'enterprise',
       highlighted: false,
@@ -389,22 +381,31 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
       <div className="mb-8">
         <h3 className="text-lg font-medium mb-4">Available Plans</h3>
-        <div className="grid lg:grid-cols-4 gap-6">
-          {plans.map((plan) => {
-            const Icon = plan.icon;
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {plans.map((plan, index) => {
             const isCurrent = plan.value === workspace.plan;
             const canUpgrade = plan.value !== 'free' && plan.value !== workspace.plan;
+            const animationDelay = `${0.05 * (index + 1)}s`;
 
             return (
               <div
                 key={plan.value}
-                className={`relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border rounded-linear-lg p-6 linear-transition ${
-                  plan.highlighted
-                    ? 'border-linear-accent shadow-lg shadow-linear-accent/20 scale-105'
-                    : 'dark:border-linear-border-subtle light:border-linear-light-border-subtle'
+                className={`relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 rounded-linear-lg p-6 linear-transition hover:scale-[1.02] animate-slide-up ${
+                  plan.startHere
+                    ? 'border-green-500/30 hover:border-green-500/50 hover:shadow-xl'
+                    : plan.highlighted
+                    ? 'border-linear-accent/30 hover:border-linear-accent/50 hover:shadow-xl'
+                    : 'dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:border-linear-border hover:light:border-linear-light-border hover:shadow-lg'
                 }`}
+                style={{ animationDelay }}
               >
-                {plan.mostPopular && (
+                {plan.startHere && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-green-500 rounded-full text-xs font-medium text-white">
+                    Start Here
+                  </div>
+                )}
+
+                {plan.mostPopular && !isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-white rounded-full text-xs font-medium text-black">
                     Most Popular
                   </div>
@@ -416,39 +417,38 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`w-10 h-10 ${plan.bgColor} rounded-linear flex items-center justify-center`}>
-                    <Icon className={`w-5 h-5 ${plan.color}`} />
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-2">{plan.name}</h3>
+                  <div className="flex items-baseline gap-2">
+                    {plan.price !== null ? (
+                      <>
+                        <span className="text-3xl font-medium">€{plan.price}</span>
+                        <span className="dark:text-text-secondary light:text-text-light-secondary text-sm">/ {plan.period}</span>
+                      </>
+                    ) : (
+                      <span className="text-3xl font-medium">{plan.subtitle || 'Custom'}</span>
+                    )}
                   </div>
-                  <div>
-                    <h4 className="font-medium">{plan.name}</h4>
-                    <div className="flex items-baseline gap-1">
-                      {plan.price !== null && plan.price > 0 ? (
-                        <>
-                          <span className="text-2xl font-medium">€{plan.price}</span>
-                          <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">/{plan.period}</span>
-                        </>
-                      ) : plan.price === null ? (
-                        <span className="text-xl font-medium">Custom</span>
-                      ) : null}
-                    </div>
-                  </div>
+                  {plan.subtitle && plan.price === 0 && (
+                    <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-2">{plan.subtitle}</p>
+                  )}
                 </div>
 
-                <ul className="space-y-2 mb-6">
+                <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm">
+                    <li key={idx} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
-                      <span className="dark:text-text-secondary light:text-text-light-secondary">{feature}</span>
+                      <span className="dark:text-text-secondary light:text-text-light-secondary text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 {plan.value === 'enterprise' ? (
                   <button
-                    className="w-full py-2.5 rounded-linear text-sm font-medium bg-white hover:bg-gray-100 text-black linear-transition"
+                    className="group w-full py-2.5 dark:bg-linear-bg-tertiary light:bg-linear-light-bg-tertiary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:border-linear-border hover:light:border-linear-light-border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2"
                   >
                     Contact Sales
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
                   </button>
                 ) : isCurrent ? (
                   <button
@@ -458,12 +458,23 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                     Current Plan
                   </button>
                 ) : canUpgrade ? (
-                  <button
-                    onClick={() => setShowCheckout(plan.value as 'standard' | 'elite')}
-                    className="w-full py-2.5 rounded-linear text-sm font-medium bg-white hover:bg-gray-100 text-black linear-transition"
-                  >
-                    Upgrade Now
-                  </button>
+                  plan.value === 'free' ? (
+                    <button
+                      onClick={() => setShowCheckout('standard')}
+                      className="group w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                    >
+                      Start Free Trial
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowCheckout(plan.value as 'standard' | 'elite')}
+                      className="group w-full py-2.5 bg-linear-accent hover:bg-linear-accent-hover hover:shadow-lg hover:shadow-linear-accent/20 rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 text-linear-bg"
+                    >
+                      Start Free Trial
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
+                    </button>
+                  )
                 ) : (
                   <button
                     disabled
