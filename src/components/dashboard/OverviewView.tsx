@@ -10,6 +10,7 @@ type Task = Database['public']['Tables']['tasks']['Row'];
 
 interface OverviewViewProps {
   workspace: Workspace;
+  onViewChange?: (view: 'campaigns' | 'creators' | 'tasks' | 'analytics') => void;
 }
 
 interface Stats {
@@ -23,7 +24,7 @@ interface Stats {
   totalRevenue: number;
 }
 
-export function OverviewView({ workspace }: OverviewViewProps) {
+export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
   const [stats, setStats] = useState<Stats>({
     totalCampaigns: 0,
     activeCampaigns: 0,
@@ -157,7 +158,10 @@ export function OverviewView({ workspace }: OverviewViewProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <button
+          onClick={() => onViewChange?.('campaigns')}
+          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
               <Target className="w-5 h-5 text-linear-info" />
@@ -170,9 +174,12 @@ export function OverviewView({ workspace }: OverviewViewProps) {
               {stats.activeCampaigns} active
             </div>
           </div>
-        </div>
+        </button>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <button
+          onClick={() => onViewChange?.('creators')}
+          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center dark:text-linear-bg light:text-linear-light-bg">
               <Users className="w-5 h-5 dark:text-linear-accent light:text-linear-light-accent" />
@@ -185,9 +192,12 @@ export function OverviewView({ workspace }: OverviewViewProps) {
               Total creators
             </div>
           </div>
-        </div>
+        </button>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <button
+          onClick={() => onViewChange?.('tasks')}
+          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-linear-success-subtle rounded-linear flex items-center justify-center">
               <CheckSquare className="w-5 h-5 dark:text-linear-success light:text-linear-light-success" />
@@ -200,9 +210,12 @@ export function OverviewView({ workspace }: OverviewViewProps) {
               {stats.tasksCompleted} completed, {stats.tasksPending} pending
             </div>
           </div>
-        </div>
+        </button>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <button
+          onClick={() => onViewChange?.('analytics')}
+          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-linear-warning" />
@@ -215,23 +228,27 @@ export function OverviewView({ workspace }: OverviewViewProps) {
               Across all ad sets
             </div>
           </div>
-        </div>
+        </button>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
         <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-          <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+          <button
+            onClick={() => onViewChange?.('campaigns')}
+            className="text-sm md:text-base font-medium mb-4 flex items-center gap-2 hover:dark:text-linear-accent hover:light:text-linear-light-accent linear-transition"
+          >
             <Target className="w-4 h-4" />
             Recent Campaigns
-          </h3>
+          </button>
           {recentCampaigns.length === 0 ? (
             <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No campaigns yet</p>
           ) : (
             <div className="space-y-3">
               {recentCampaigns.map((campaign) => (
-                <div
+                <button
                   key={campaign.id}
-                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle linear-transition"
+                  onClick={() => onViewChange?.('campaigns')}
+                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle linear-transition w-full text-left"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{campaign.name}</div>
@@ -242,25 +259,29 @@ export function OverviewView({ workspace }: OverviewViewProps) {
                   <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
                     {campaign.status}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </div>
 
         <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-          <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+          <button
+            onClick={() => onViewChange?.('tasks')}
+            className="text-sm md:text-base font-medium mb-4 flex items-center gap-2 hover:dark:text-linear-accent hover:light:text-linear-light-accent linear-transition"
+          >
             <CheckSquare className="w-4 h-4" />
             Recent Tasks
-          </h3>
+          </button>
           {recentTasks.length === 0 ? (
             <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No tasks yet</p>
           ) : (
             <div className="space-y-3">
               {recentTasks.map((task) => (
-                <div
+                <button
                   key={task.id}
-                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle linear-transition"
+                  onClick={() => onViewChange?.('tasks')}
+                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle linear-transition w-full text-left"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{task.title}</div>
@@ -269,7 +290,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
                   <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(task.status)}`}>
                     {task.status.replace('_', ' ')}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -277,18 +298,22 @@ export function OverviewView({ workspace }: OverviewViewProps) {
       </div>
 
       <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-        <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+        <button
+          onClick={() => onViewChange?.('creators')}
+          className="text-sm md:text-base font-medium mb-4 flex items-center gap-2 hover:dark:text-linear-accent hover:light:text-linear-light-accent linear-transition"
+        >
           <Users className="w-4 h-4" />
           Top Creators
-        </h3>
+        </button>
         {topCreators.length === 0 ? (
           <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No creators with revenue yet</p>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {topCreators.map((creator, index) => (
-              <div
+              <button
                 key={creator.id}
-                className="p-4 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle linear-transition relative"
+                onClick={() => onViewChange?.('creators')}
+                className="p-4 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle linear-transition relative w-full text-left"
               >
                 <div className="absolute top-3 right-3 w-8 h-8 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-full flex items-center justify-center text-sm font-medium text-linear-warning border border-linear-warning-border">
                   #{index + 1}
@@ -310,7 +335,7 @@ export function OverviewView({ workspace }: OverviewViewProps) {
                     ${((creator as any).totalRevenue || 0).toLocaleString()}
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}

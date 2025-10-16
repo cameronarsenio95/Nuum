@@ -168,7 +168,7 @@ function DashboardContent() {
         currentView={currentView === 'ad-sets' ? 'campaigns' : currentView}
         onViewChange={setCurrentView}
       >
-        {currentView === 'overview' && <OverviewView workspace={workspace} />}
+        {currentView === 'overview' && <OverviewView workspace={workspace} onViewChange={setCurrentView} />}
         {currentView === 'analytics' && <AnalyticsView workspaceId={workspace.id} />}
         {currentView === 'campaigns' && <CampaignsView workspace={workspace} onCampaignClick={handleCampaignClick} />}
         {currentView === 'ad-sets' && selectedCampaign && <AdSetsView campaign={selectedCampaign} onBack={handleBackToCampaigns} />}
