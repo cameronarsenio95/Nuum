@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
+import { TrendingUp, DollarSign, Target, BarChart3, Download } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { TrendingUp, TrendingDown, DollarSign, Target, Users, BarChart3, Download, Calendar } from 'lucide-react';
 
 interface AnalyticsSummary {
   total_campaigns: number;
@@ -198,59 +198,74 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
     return new Intl.NumberFormat('nl-NL').format(num);
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'text-linear-success bg-linear-success-subtle border-linear-success-border';
+      case 'completed':
+        return 'text-linear-info bg-linear-info-subtle border-linear-info-border';
+      case 'draft':
+        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
+      default:
+        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="dark:text-text-secondary light:text-text-light-secondary">Loading analytics...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Comprehensive performance insights</p>
+          <h2 className="text-xl md:text-2xl font-medium mb-2">Analytics Dashboard</h2>
+          <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">
+            Comprehensive performance insights
+          </p>
         </div>
-        <div className="flex gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+        <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-linear border dark:border-linear-border-subtle light:border-linear-light-border-subtle p-1">
             <button
               onClick={() => setDateRange('7d')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium linear-transition ${
                 dateRange === '7d'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg'
+                  : 'dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover'
               }`}
             >
               7 Days
             </button>
             <button
               onClick={() => setDateRange('30d')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium linear-transition ${
                 dateRange === '30d'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg'
+                  : 'dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover'
               }`}
             >
               30 Days
             </button>
             <button
               onClick={() => setDateRange('90d')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium linear-transition ${
                 dateRange === '90d'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg'
+                  : 'dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover'
               }`}
             >
               90 Days
             </button>
             <button
               onClick={() => setDateRange('all')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium linear-transition ${
                 dateRange === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg'
+                  : 'dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover'
               }`}
             >
               All Time
@@ -258,7 +273,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
           </div>
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover linear-transition text-xs md:text-sm"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -267,214 +282,188 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
       </div>
 
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {formatCurrency(summary.total_revenue)}
-                </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-linear-success-subtle rounded-linear flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-linear-success" />
               </div>
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
+              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
             </div>
-            <div className="mt-4 flex items-center text-sm">
-              <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-              <span className="text-green-600 font-medium">Profit: {formatCurrency(summary.total_profit)}</span>
+            <div className="space-y-1">
+              <div className="text-xl md:text-2xl font-medium">{formatCurrency(summary.total_revenue)}</div>
+              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary flex items-center gap-1">
+                <TrendingUp className="w-3 h-3 text-linear-success" />
+                Profit: {formatCurrency(summary.total_profit)}
+              </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">ROI</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {summary.overall_roi}%
-                </p>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-linear-info" />
               </div>
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
+              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
             </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
+            <div className="space-y-1">
+              <div className="text-xl md:text-2xl font-medium">{summary.overall_roi}%</div>
+              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
                 Spend: {formatCurrency(summary.total_spend)}
-              </span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Conversions</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {formatNumber(summary.total_conversions)}
-                </p>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
+                <Target className="w-5 h-5 text-linear-warning" />
               </div>
-              <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
+              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Conversions</span>
             </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
+            <div className="space-y-1">
+              <div className="text-xl md:text-2xl font-medium">{formatNumber(summary.total_conversions)}</div>
+              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
                 CTR: {summary.avg_ctr}%
-              </span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Active Campaigns</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {summary.active_campaigns}
-                </p>
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-linear-accent" />
               </div>
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
+              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
             </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
+            <div className="space-y-1">
+              <div className="text-xl md:text-2xl font-medium">{summary.active_campaigns}</div>
+              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
                 {summary.total_creators} Creators
-              </span>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Campaigns</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Campaign</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Revenue</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ROI</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Conv.</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {campaigns.map((campaign) => (
-                  <tr key={campaign.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">{campaign.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">{campaign.status}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {formatCurrency(campaign.total_revenue)}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+          <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            Top Campaigns
+          </h3>
+          {campaigns.length === 0 ? (
+            <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">
+              No campaign data available
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {campaigns.slice(0, 5).map((campaign) => (
+                <div
+                  key={campaign.id}
+                  className="p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{campaign.name}</div>
+                      <span className={`inline-block text-xs px-2 py-0.5 rounded-full border mt-1 ${getStatusColor(campaign.status)}`}>
+                        {campaign.status}
+                      </span>
+                    </div>
+                    <div className="text-right ml-3">
+                      <div className="font-medium text-sm">{formatCurrency(campaign.total_revenue)}</div>
+                      <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">
                         {formatCurrency(campaign.profit)} profit
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        campaign.roi_percentage > 0
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                      }`}>
-                        {campaign.roi_percentage > 0 ? '+' : ''}{campaign.roi_percentage}%
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right text-gray-900 dark:text-white font-medium">
-                      {formatNumber(campaign.total_conversions)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs dark:text-text-secondary light:text-text-light-secondary pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+                    <span className={campaign.roi_percentage > 0 ? 'text-linear-success font-medium' : 'text-linear-error font-medium'}>
+                      {campaign.roi_percentage > 0 ? '+' : ''}{campaign.roi_percentage}% ROI
+                    </span>
+                    <span>{formatNumber(campaign.total_conversions)} conversions</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Creators</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Creator</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Revenue</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ROI</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Campaigns</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {topCreators.map((creator) => (
-                  <tr key={creator.creator_id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900 dark:text-white">{creator.creator_name}</div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {formatCurrency(creator.total_revenue)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        creator.roi_percentage > 0
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                      }`}>
-                        {creator.roi_percentage > 0 ? '+' : ''}{creator.roi_percentage}%
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+          <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Top Creators
+          </h3>
+          {topCreators.length === 0 ? (
+            <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">
+              No creator data available
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {topCreators.slice(0, 5).map((creator, index) => (
+                <div
+                  key={creator.creator_id}
+                  className="p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition relative"
+                >
+                  <div className="absolute top-3 right-3 w-6 h-6 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-full flex items-center justify-center text-xs font-medium text-linear-warning border border-linear-warning-border">
+                    #{index + 1}
+                  </div>
+                  <div className="pr-8">
+                    <div className="font-medium text-sm mb-2">{creator.creator_name}</div>
+                    <div className="flex items-center justify-between text-xs dark:text-text-secondary light:text-text-light-secondary mb-1">
+                      <span>Revenue:</span>
+                      <span className="font-medium">{formatCurrency(creator.total_revenue)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+                      <span className={creator.roi_percentage > 0 ? 'text-linear-success font-medium' : 'text-linear-error font-medium'}>
+                        {creator.roi_percentage > 0 ? '+' : ''}{creator.roi_percentage}% ROI
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-right text-gray-900 dark:text-white font-medium">
-                      {creator.campaigns_count}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">
+                        {creator.campaigns_count} campaigns
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {platformData.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Platform Performance</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+          <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Platform Performance
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {platformData.map((platform) => (
-              <div key={platform.platform} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div
+                key={platform.platform}
+                className="p-4 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
+              >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-gray-900 dark:text-white">{platform.platform}</h4>
+                  <h4 className="font-medium text-sm">{platform.platform}</h4>
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     Number(platform.roi_percentage) > 0
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      ? 'bg-linear-success-subtle text-linear-success border border-linear-success-border'
+                      : 'bg-linear-error-subtle text-linear-error border border-linear-error-border'
                   }`}>
                     {Number(platform.roi_percentage) > 0 ? '+' : ''}{platform.roi_percentage}% ROI
                   </span>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Revenue</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {formatCurrency(platform.total_revenue)}
-                    </span>
+                    <span className="dark:text-text-secondary light:text-text-light-secondary">Revenue</span>
+                    <span className="font-medium">{formatCurrency(platform.total_revenue)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Spend</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {formatCurrency(platform.total_spend)}
-                    </span>
+                    <span className="dark:text-text-secondary light:text-text-light-secondary">Spend</span>
+                    <span className="font-medium">{formatCurrency(platform.total_spend)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Conversions</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {formatNumber(platform.total_conversions)}
-                    </span>
+                  <div className="flex justify-between pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+                    <span className="dark:text-text-secondary light:text-text-light-secondary">Conversions</span>
+                    <span className="font-medium">{formatNumber(platform.total_conversions)}</span>
                   </div>
                 </div>
               </div>
