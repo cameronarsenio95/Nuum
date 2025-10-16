@@ -432,19 +432,21 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                 </div>
               </div>
 
-              {adSet.ad_creative_url && (
+              {(adSet.ad_creative_url || adSet.spark_code) && (
                 <div className="mt-4">
                   <div className="flex items-center gap-3">
-                    <a
-                      href={adSet.ad_creative_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-linear-info hover:text-blue-300 linear-transition"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      View Creative
-                    </a>
+                    {adSet.ad_creative_url && (
+                      <a
+                        href={adSet.ad_creative_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-linear-info hover:text-blue-300 linear-transition"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View Creative
+                      </a>
+                    )}
                     {adSet.spark_code && (
                       <button
                         onClick={(e) => {
