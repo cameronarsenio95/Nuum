@@ -338,9 +338,6 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
           <div className="flex items-center gap-4">
             {currentPlan ? (
               <>
-                <div className={`w-12 h-12 ${currentPlan.bgColor} rounded-linear flex items-center justify-center`}>
-                  <currentPlan.icon className={`w-6 h-6 ${currentPlan.color}`} />
-                </div>
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <h4 className="text-xl font-medium">{currentPlan.name}</h4>
