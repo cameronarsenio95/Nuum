@@ -175,7 +175,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
           </div>
 
           <div id="plans" className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-12">
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 border-green-500/30 rounded-linear-lg p-6 relative hover:border-green-500/50 hover:shadow-xl linear-transition hover:scale-[1.02] animate-slide-up" style={{ animationDelay: '0.05s' }}>
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 border-green-500/30 rounded-linear-lg p-6 relative hover:border-green-500/50 hover:shadow-xl linear-transition hover:scale-[1.02] animate-slide-up flex flex-col" style={{ animationDelay: '0.05s' }}>
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-green-500 rounded-full text-xs font-medium text-white">
                   Start Here
                 </div>
@@ -188,7 +188,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                   <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-2">Then choose a plan</p>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   {trialFeatures.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
@@ -199,14 +199,14 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
 
                 <button
                   onClick={onLoginClick}
-                  className="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group shadow-md hover:shadow-lg"
+                  className="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group shadow-md hover:shadow-lg mt-auto"
                 >
                   Start Free Trial
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
                 </button>
               </div>
 
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border hover:shadow-lg linear-transition hover:scale-[1.02] animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border hover:shadow-lg linear-transition hover:scale-[1.02] animate-slide-up flex flex-col" style={{ animationDelay: '0.1s' }}>
                 <div className="mb-6">
                   <h3 className="text-xl font-medium mb-2">Standard</h3>
                   <div className="flex items-baseline gap-2">
@@ -215,7 +215,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                   </div>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   {standardFeatures.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
@@ -226,14 +226,14 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
 
                 <button
                   onClick={onLoginClick}
-                  className="w-full py-2.5 bg-linear-accent hover:bg-linear-accent-hover hover:shadow-lg hover:shadow-linear-accent/20 rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group text-linear-bg"
+                  className="w-full py-2.5 bg-linear-accent hover:bg-linear-accent-hover hover:shadow-lg hover:shadow-linear-accent/20 rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group text-linear-bg mt-auto"
                 >
                   Start Free Trial
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
                 </button>
               </div>
 
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 border-linear-accent/30 rounded-linear-lg p-6 relative hover:border-linear-accent/50 hover:shadow-xl linear-transition hover:scale-[1.02] animate-slide-up" style={{ animationDelay: '0.15s' }}>
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 border-linear-accent/30 rounded-linear-lg p-6 relative hover:border-linear-accent/50 hover:shadow-xl linear-transition hover:scale-[1.02] animate-slide-up flex flex-col" style={{ animationDelay: '0.15s' }}>
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-linear-accent rounded-full text-xs font-medium text-linear-bg">
                   Most Popular
                 </div>
@@ -246,7 +246,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                   </div>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   {eliteFeatures.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
@@ -257,14 +257,14 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
 
                 <button
                   onClick={onLoginClick}
-                  className="w-full py-2.5 bg-linear-accent hover:bg-linear-accent-hover hover:shadow-lg hover:shadow-linear-accent/20 rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group text-linear-bg"
+                  className="w-full py-2.5 bg-linear-accent hover:bg-linear-accent-hover hover:shadow-lg hover:shadow-linear-accent/20 rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group text-linear-bg mt-auto"
                 >
                   Start Free Trial
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
                 </button>
               </div>
 
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border hover:shadow-lg linear-transition hover:scale-[1.02] animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6 hover:dark:border-linear-border light:border-linear-light-border hover:shadow-lg linear-transition hover:scale-[1.02] animate-slide-up flex flex-col" style={{ animationDelay: '0.2s' }}>
                 <div className="mb-6">
                   <h3 className="text-xl font-medium mb-2">Enterprise</h3>
                   <div className="flex items-baseline gap-2">
@@ -272,7 +272,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                   </div>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   {enterpriseFeatures.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
@@ -283,7 +283,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
 
                 <button
                   onClick={onLoginClick}
-                  className="w-full py-2.5 dark:bg-linear-bg-tertiary light:bg-linear-light-bg-tertiary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:border-linear-border light:border-linear-light-border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group"
+                  className="w-full py-2.5 dark:bg-linear-bg-tertiary light:bg-linear-light-bg-tertiary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:border-linear-border light:border-linear-light-border rounded-linear text-sm font-medium linear-transition flex items-center justify-center gap-2 group mt-auto"
                 >
                   Contact Sales
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 linear-transition" strokeWidth={2} />
