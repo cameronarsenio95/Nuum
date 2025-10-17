@@ -1,19 +1,17 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background with rounded corners -->
-  <rect width="512" height="512" rx="90" fill="#1F2024"/>
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background with rounded corners (exact match) -->
+  <rect width="1080" height="1080" rx="230" fill="#2B2D31"/>
 
-  <!-- NUUM Mark Logo - Centered circle with horizontal lines -->
-  <g transform="translate(256, 256)">
-    <!-- Main circle outline -->
-    <circle cx="0" cy="-20" r="130" fill="#EFEFEF" stroke="none"/>
+  <!-- NUUM Mark - Burger/Stack Icon Design -->
+  <!-- Top bun (large rounded shape) -->
+  <path d="M 150 280 Q 150 150 280 150 L 800 150 Q 930 150 930 280 L 930 520 Q 930 580 870 580 L 210 580 Q 150 580 150 520 Z" fill="#EFEFEF"/>
 
-    <!-- Top horizontal line (thickest) -->
-    <rect x="-120" y="60" width="240" height="26" rx="13" fill="#1F2024"/>
+  <!-- First line (thick horizontal bar) -->
+  <rect x="130" y="680" width="820" height="60" rx="30" fill="#EFEFEF"/>
 
-    <!-- Middle horizontal line -->
-    <rect x="-120" y="100" width="240" height="26" rx="13" fill="#1F2024"/>
+  <!-- Second line (thick horizontal bar) -->
+  <rect x="130" y="770" width="820" height="60" rx="30" fill="#EFEFEF"/>
 
-    <!-- Bottom horizontal line (slightly thinner) -->
-    <rect x="-100" y="140" width="200" height="22" rx="11" fill="#1F2024"/>
-  </g>
+  <!-- Third line (slightly shorter and thinner) -->
+  <rect x="185" y="860" width="710" height="50" rx="25" fill="#EFEFEF"/>
 </svg>
