@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Shield, AlertCircle } from 'lucide-react';
 import { useSupportAuth } from '../contexts/SupportAuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { ThemeToggle } from '../components/ThemeToggle';
 
 export function SupportLogin() {
   const { signIn } = useSupportAuth();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -36,8 +38,15 @@ export function SupportLogin() {
 
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-linear bg-linear-error text-white mb-4">
-            <Shield className="w-8 h-8" />
+          <div className="inline-flex flex-col items-center gap-3 mb-4">
+            <img
+              src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
+              alt="NUUM"
+              className="h-12 w-auto"
+            />
+            <div className="w-10 h-10 rounded-linear bg-linear-error text-white flex items-center justify-center">
+              <Shield className="w-5 h-5" />
+            </div>
           </div>
           <h1 className="text-3xl font-medium mb-2">Support Dashboard</h1>
           <p className="dark:text-text-secondary light:text-text-light-secondary">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X, BarChart3, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeToggle } from '../ThemeToggle';
 import { TrialBanner } from './TrialBanner';
 import { supabase } from '../../lib/supabase';
@@ -20,6 +21,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ workspace, currentView, onViewChange, children }: DashboardLayoutProps) {
   const { signOut, user } = useAuth();
   const { trialInfo } = usePlanLimits();
+  const { theme } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [showTrialUpgrade, setShowTrialUpgrade] = useState(false);
@@ -84,9 +86,11 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
         <aside className={`w-64 border-r flex flex-col dark:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:dark:border-linear-border light:border-linear-light-border light:bg-linear-light-bg-secondary light:border-linear-light-border fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
           <div className="p-6 border-b dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-linear flex items-center justify-center flex-shrink-0 dark:dark:bg-linear-accent light:bg-linear-light-accent dark:dark:text-linear-bg light:text-linear-light-bg light:bg-linear-light-accent light:text-linear-light-bg">
-                <LayoutDashboard className="w-4 h-4" />
-              </div>
+              <img
+                src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
+                alt="NUUM"
+                className="h-7 w-auto flex-shrink-0"
+              />
               <div className="min-w-0 flex-1">
                 <h1 className="font-medium text-sm truncate dark:dark:text-text-primary light:text-text-light-primary light:text-text-light-primary">{profile?.company || workspace.name}</h1>
                 <span className={`text-xs px-2 py-0.5 rounded-full border capitalize inline-block ${

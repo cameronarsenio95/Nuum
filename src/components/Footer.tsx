@@ -1,4 +1,5 @@
 import { Linkedin, Twitter } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FooterProps {
   onPrivacyClick?: () => void;
@@ -6,13 +7,19 @@ interface FooterProps {
 }
 
 export function Footer({ onPrivacyClick, onTermsClick }: FooterProps) {
+  const { theme } = useTheme();
+
   return (
     <footer className="border-t py-16 px-6 dark:border-linear-border-subtle light:border-linear-light-border-subtle">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div>
             <div className="flex items-center mb-4">
-              <span className="text-base font-medium dark:text-text-primary light:text-text-light-primary">NUUM</span>
+              <img
+                src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
+                alt="NUUM"
+                className="h-6 w-auto"
+              />
             </div>
             <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
               Built for brands that grow through creators.

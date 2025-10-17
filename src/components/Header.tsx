@@ -1,4 +1,5 @@
 import { ThemeToggle } from './ThemeToggle';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface HeaderProps {
   onLoginClick?: () => void;
@@ -10,6 +11,8 @@ interface HeaderProps {
 }
 
 export function Header({ onLoginClick, onSignupClick, onBackClick, onHowItWorksClick, onPricingClick, onResourcesClick }: HeaderProps = {}) {
+  const { theme } = useTheme();
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b dark:bg-linear-bg/90 dark:border-linear-border-subtle light:bg-linear-light-bg/90 light:border-linear-light-border-subtle">
       <nav className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
@@ -17,7 +20,11 @@ export function Header({ onLoginClick, onSignupClick, onBackClick, onHowItWorksC
           onClick={onBackClick}
           className="flex items-center hover:opacity-80 linear-transition"
         >
-          <span className="text-sm md:text-base font-semibold dark:text-text-primary light:text-text-light-primary">NUUM</span>
+          <img
+            src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
+            alt="NUUM"
+            className="h-7 md:h-8 w-auto"
+          />
         </button>
 
         <div className="hidden md:flex items-center gap-8">

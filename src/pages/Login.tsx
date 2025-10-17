@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { LogIn, Chrome, Apple as AppleIcon, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -8,6 +9,7 @@ interface LoginProps {
 }
 
 export function Login({ onClose }: LoginProps = {}) {
+  const { theme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,11 +67,12 @@ export function Login({ onClose }: LoginProps = {}) {
         )}
 
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-linear flex items-center justify-center dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg">
-              <LogIn className="w-5 h-5" />
-            </div>
-            <h1 className="text-2xl font-medium dark:text-text-primary light:text-text-light-primary">NUUM</h1>
+          <div className="inline-flex flex-col items-center gap-3 mb-4">
+            <img
+              src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
+              alt="NUUM"
+              className="h-10 w-auto"
+            />
           </div>
           <p className="dark:text-text-secondary light:text-text-light-secondary">
             {isSignUp ? 'Create your workspace account' : 'Welcome back'}

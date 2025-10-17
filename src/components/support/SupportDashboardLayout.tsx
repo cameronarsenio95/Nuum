@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { LogOut, Users, Search, FileText, Settings, Shield, MessageSquare } from 'lucide-react';
 import { useSupportAuth } from '../../contexts/SupportAuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeToggle } from '../ThemeToggle';
 
 interface SupportDashboardLayoutProps {
@@ -11,6 +12,7 @@ interface SupportDashboardLayoutProps {
 
 export function SupportDashboardLayout({ currentView, onViewChange, children }: SupportDashboardLayoutProps) {
   const { supportStaff, signOut, hasPermission } = useSupportAuth();
+  const { theme } = useTheme();
 
   const navigation = [
     { name: 'Tickets', value: 'tickets' as const, icon: MessageSquare, permission: 'view' as const },
@@ -52,9 +54,11 @@ export function SupportDashboardLayout({ currentView, onViewChange, children }: 
         <aside className="w-64 border-r flex flex-col dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:border-linear-border light:border-linear-light-border">
           <div className="p-6 border-b dark:border-linear-border light:border-linear-light-border">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-linear flex items-center justify-center flex-shrink-0 bg-linear-error dark:text-linear-bg light:text-white">
-                <Shield className="w-4 h-4" />
-              </div>
+              <img
+                src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
+                alt="NUUM"
+                className="h-7 w-auto flex-shrink-0"
+              />
               <div className="min-w-0 flex-1">
                 <h1 className="font-medium text-sm truncate dark:text-text-primary light:text-text-light-primary">Support Dashboard</h1>
                 <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Customer Management</span>
