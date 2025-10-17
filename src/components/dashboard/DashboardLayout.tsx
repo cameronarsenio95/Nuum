@@ -87,9 +87,9 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
           <div className="p-6 border-b dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
             <div className="flex items-center gap-3">
               <img
-                src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
+                src={theme === 'dark' ? '/assets/members/nuum - White Mark.png' : '/assets/members/nuum - Black Mark.png'}
                 alt="NUUM"
-                className="h-7 w-auto flex-shrink-0"
+                className="h-8 w-8 flex-shrink-0"
               />
               <div className="min-w-0 flex-1">
                 <h1 className="font-medium text-sm truncate dark:dark:text-text-primary light:text-text-light-primary light:text-text-light-primary">{profile?.company || workspace.name}</h1>
