@@ -43,18 +43,7 @@ export function DNSManagementView() {
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [criticalError, setCriticalError] = useState<string | null>(null);
-
-  let showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-  try {
-    const toast = useToast();
-    showToast = toast.showToast;
-  } catch (err) {
-    console.error('Toast context error:', err);
-    showToast = (message: string, type: string) => {
-      console.log(`[${type.toUpperCase()}] ${message}`);
-      alert(`${type.toUpperCase()}: ${message}`);
-    };
-  }
+  const { showToast } = useToast();
 
   useEffect(() => {
     try {

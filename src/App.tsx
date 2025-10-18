@@ -163,11 +163,7 @@ function AppContent() {
   };
 
   if (currentPage === 'support') {
-    return (
-      <SupportAuthProvider>
-        <SupportDashboard />
-      </SupportAuthProvider>
-    );
+    return <SupportDashboard />;
   }
 
   if (loading) {
@@ -273,11 +269,13 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <AppContent />
-          </NotificationProvider>
-        </AuthProvider>
+        <SupportAuthProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
+          </AuthProvider>
+        </SupportAuthProvider>
       </ToastProvider>
     </ThemeProvider>
   );
