@@ -603,7 +603,7 @@ export function SupportOverviewView({ onViewChange, onNavigateToCustomer }: Supp
             <div className="space-y-2">
               <button
                 onClick={() => onViewChange('tickets')}
-                className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-accent light:bg-linear-light-accent dark:text-white light:text-white rounded-linear hover:opacity-90 linear-transition"
+                className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
               >
                 <Plus className="w-4 h-4" />
                 New Ticket
