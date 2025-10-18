@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSupportAuth } from '../contexts/SupportAuthContext';
 import { SupportDashboardLayout } from '../components/support/SupportDashboardLayout';
+import { SupportOverviewView } from '../components/support/SupportOverviewView';
 import { CustomerSearch } from '../components/support/CustomerSearch';
 import { CustomerDetailView } from '../components/support/CustomerDetailView';
 import { AuditLogViewer } from '../components/support/AuditLogViewer';
@@ -9,10 +10,10 @@ import { SupportLogin } from './SupportLogin';
 
 export function SupportDashboard() {
   const { user, supportStaff, loading } = useSupportAuth();
-  const [currentView, setCurrentView] = useState<'tickets' | 'customers' | 'audit-logs' | 'settings'>('tickets');
+  const [currentView, setCurrentView] = useState<'overview' | 'tickets' | 'customers' | 'audit-logs' | 'settings'>('overview');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
-  const handleViewChange = (view: 'tickets' | 'customers' | 'audit-logs' | 'settings') => {
+  const handleViewChange = (view: 'overview' | 'tickets' | 'customers' | 'audit-logs' | 'settings') => {
     setSelectedCustomerId(null);
     setCurrentView(view);
   };
@@ -34,6 +35,8 @@ export function SupportDashboard() {
 
   return (
     <SupportDashboardLayout currentView={currentView} onViewChange={handleViewChange}>
+      {currentView === 'overview' && <SupportOverviewView />}
+
       {currentView === 'tickets' && <TicketsView />}
 
       {currentView === 'customers' && (
