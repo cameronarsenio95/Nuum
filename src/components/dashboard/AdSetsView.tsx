@@ -473,12 +473,12 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
-                  <span className="font-medium text-linear-success">€{adSet.revenue.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
                   <span className="dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
                   <span className="font-medium">€{adSet.spend.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
+                  <span className="font-medium text-linear-success">€{adSet.revenue.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
