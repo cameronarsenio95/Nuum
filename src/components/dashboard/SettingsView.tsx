@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Save, User, Crown, Zap, TrendingUp, Users, HardDrive, Target } from 'lucide-react';
+import { Save, User, Crown, Zap, TrendingUp, Users, HardDrive, Target, Mail } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { UpgradeModal } from '../modals/UpgradeModal';
 import { AccountSettings } from './AccountSettings';
+import { EmailPreferences } from './EmailPreferences';
 import { WorkspaceSettings } from './WorkspaceSettings';
 import type { Database } from '../../lib/database.types';
 
@@ -15,6 +16,8 @@ interface SettingsViewProps {
   workspace: Workspace;
 }
 
+type SettingsTab = 'profile' | 'email' | 'account';
+
 export function SettingsView({ workspace }: SettingsViewProps) {
   const { user } = useAuth();
   const { usage, limits, trialInfo, getCreatorUsagePercent, getStorageUsagePercent, getTeamMemberUsagePercent, isTrialExpiringSoon } = usePlanLimits();
@@ -22,6 +25,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [profile, setProfile] = useState({
     full_name: '',
     phone: '',
@@ -172,6 +176,57 @@ export function SettingsView({ workspace }: SettingsViewProps) {
         <div className="mb-8">
           <h2 className="text-2xl font-medium mb-2">Settings</h2>
           <p className="dark:text-text-secondary light:text-text-light-secondary">Manage your profile and preferences</p>
+        </div>
+
+        <div className="flex gap-2 mb-6 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-4 py-2.5 font-medium text-sm transition-colors relative ${
+              activeTab === 'profile'
+                ? 'dark:text-text-primary light:text-text-light-primary'
+                : 'dark:text-text-tertiary light:text-text-light-tertiary hover:text-text-secondary'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </div>
+            {activeTab === 'profile' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-accent" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('email')}
+            className={`px-4 py-2.5 font-medium text-sm transition-colors relative ${
+              activeTab === 'email'
+                ? 'dark:text-text-primary light:text-text-light-primary'
+                : 'dark:text-text-tertiary light:text-text-light-tertiary hover:text-text-secondary'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email Notifications
+            </div>
+            {activeTab === 'email' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-accent" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`px-4 py-2.5 font-medium text-sm transition-colors relative ${
+              activeTab === 'account'
+                ? 'dark:text-text-primary light:text-text-light-primary'
+                : 'dark:text-text-tertiary light:text-text-light-tertiary hover:text-text-secondary'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4" />
+              Account & Security
+            </div>
+            {activeTab === 'account' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-accent" />
+            )}
+          </button>
         </div>
         {trialInfo.isActive && (
           <div className={`p-6 rounded-linear-lg mb-6 border-2 ${
@@ -382,6 +437,17 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           )}
         </div>
+
+        {activeTab === 'email' && <EmailPreferences />}
+
+        {activeTab === 'account' && (
+          <AccountSettings
+            profile={profile}
+            onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
+          />
+        )}
+
+        {activeTab === 'profile' && (
         <form onSubmit={handleSave} className="space-y-8">
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-6">
             <h3 className="text-lg font-medium mb-6 flex items-center gap-2">
@@ -512,11 +578,6 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </div>
           </div>
 
-          <AccountSettings
-            profile={profile}
-            onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
-          />
-
           {message && (
             <div className={`p-4 rounded-linear border ${
               message.type === 'success'
@@ -538,6 +599,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </button>
           </div>
         </form>
+        )}
 
         <UpgradeModal
           isOpen={showUpgradeModal}
