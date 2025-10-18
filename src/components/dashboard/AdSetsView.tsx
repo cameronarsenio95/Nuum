@@ -26,6 +26,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [currentCampaign, setCurrentCampaign] = useState<Campaign>(campaign);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAdSet, setSelectedAdSet] = useState<AdSet | null>(null);
@@ -106,35 +107,50 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
   const handleCreateAdSet = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || submitting) return;
 
-    const totalCosts = parseFloat(newAdSet.costs) || 0;
-    const performanceMetrics = {
-      costBreakdown: costBreakdown,
-    };
-
-    const { error } = await supabase.from('ad_sets').insert({
-      campaign_id: campaign.id,
-      creator_id: newAdSet.creator_id,
-      name: newAdSet.name,
-      platform: newAdSet.platform,
-      status: newAdSet.status,
-      revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
-      spend: totalCosts,
-      ad_creative_url: newAdSet.ad_creative_url || null,
-      spark_code: newAdSet.spark_code || null,
-      performance_metrics: performanceMetrics,
-    });
-
-    if (error) {
-      console.error('Error creating ad set:', error);
+    if (!newAdSet.creator_id) {
+      toast?.showToast('Please select a creator', 'error');
       return;
     }
 
-    setShowCreateModal(false);
-    resetForm();
-    loadAdSets();
-    loadCampaign();
+    try {
+      setSubmitting(true);
+      const totalCosts = parseFloat(newAdSet.costs) || 0;
+      const performanceMetrics = {
+        costBreakdown: costBreakdown,
+      };
+
+      const { error } = await supabase.from('ad_sets').insert({
+        campaign_id: campaign.id,
+        creator_id: newAdSet.creator_id,
+        name: newAdSet.name,
+        platform: newAdSet.platform,
+        status: newAdSet.status,
+        revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
+        spend: totalCosts,
+        ad_creative_url: newAdSet.ad_creative_url || null,
+        spark_code: newAdSet.spark_code || null,
+        performance_metrics: performanceMetrics,
+      });
+
+      if (error) {
+        console.error('Error creating ad set:', error);
+        toast?.showToast(`Error creating ad set: ${error.message}`, 'error');
+        return;
+      }
+
+      toast?.showToast('Ad set created successfully', 'success');
+      setShowCreateModal(false);
+      resetForm();
+      loadAdSets();
+      loadCampaign();
+    } catch (error) {
+      console.error('Unexpected error creating ad set:', error);
+      toast?.showToast('An unexpected error occurred', 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleUpdateAdSet = async (e: React.FormEvent) => {
@@ -638,9 +654,10 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create
+                  {submitting ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </form>
