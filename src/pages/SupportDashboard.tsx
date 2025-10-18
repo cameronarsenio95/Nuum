@@ -35,7 +35,12 @@ export function SupportDashboard() {
 
   return (
     <SupportDashboardLayout currentView={currentView} onViewChange={handleViewChange}>
-      {currentView === 'overview' && <SupportOverviewView />}
+      {currentView === 'overview' && (
+        <SupportOverviewView
+          onViewChange={handleViewChange}
+          onNavigateToCustomer={(customerId) => setSelectedCustomerId(customerId)}
+        />
+      )}
 
       {currentView === 'tickets' && <TicketsView />}
 

@@ -65,13 +65,22 @@ interface RecentActivity {
   color: string;
 }
 
-export function SupportOverviewView() {
+interface SupportOverviewViewProps {
+  onViewChange: (view: 'overview' | 'tickets' | 'customers' | 'audit-logs' | 'settings') => void;
+  onNavigateToCustomer?: (customerId: string) => void;
+}
+
+export function SupportOverviewView({ onViewChange, onNavigateToCustomer }: SupportOverviewViewProps) {
   const { supportStaff } = useSupportAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -290,6 +299,62 @@ export function SupportOverviewView() {
 
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     setRecentActivity(activities.slice(0, 8));
+  };
+
+  const handleSearch = async (query: string) => {
+    if (!query || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const { data: workspaces } = await supabase
+        .from('workspaces')
+        .select(`
+          id,
+          name,
+          plan,
+          subscription_status,
+          user_profiles!inner (
+            email,
+            full_name
+          )
+        `)
+        .or(`name.ilike.%${query}%,user_profiles.email.ilike.%${query}%,user_profiles.full_name.ilike.%${query}%`)
+        .limit(10);
+
+      setSearchResults(workspaces || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSelectCustomer = (workspaceId: string) => {
+    setShowSearchModal(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    if (onNavigateToCustomer) {
+      onNavigateToCustomer(workspaceId);
+    }
+    onViewChange('customers');
+  };
+
+  const handleActivityClick = (activity: RecentActivity) => {
+    switch (activity.type) {
+      case 'ticket':
+        onViewChange('tickets');
+        break;
+      case 'audit':
+        onViewChange('audit-logs');
+        break;
+      case 'dns':
+        onViewChange('settings');
+        break;
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -536,15 +601,24 @@ export function SupportOverviewView() {
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear p-6">
             <h3 className="text-lg font-medium mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              <button className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-accent light:bg-linear-light-accent dark:text-white light:text-white rounded-linear hover:opacity-90 linear-transition">
+              <button
+                onClick={() => onViewChange('tickets')}
+                className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-accent light:bg-linear-light-accent dark:text-white light:text-white rounded-linear hover:opacity-90 linear-transition"
+              >
                 <Plus className="w-4 h-4" />
                 New Ticket
               </button>
-              <button className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition">
+              <button
+                onClick={() => setShowSearchModal(true)}
+                className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
+              >
                 <Search className="w-4 h-4" />
                 Search Customer
               </button>
-              <button className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition">
+              <button
+                onClick={() => onViewChange('settings')}
+                className="w-full flex items-center gap-3 px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
+              >
                 <Globe className="w-4 h-4" />
                 DNS Management
               </button>
@@ -558,7 +632,10 @@ export function SupportOverviewView() {
             </div>
             <div className="space-y-3">
               {metrics.dns.pending > 0 && (
-                <div className="flex items-start gap-3 p-3 dark:bg-yellow-500/10 light:bg-yellow-500/20 border border-yellow-500/20 rounded-linear">
+                <button
+                  onClick={() => onViewChange('settings')}
+                  className="w-full flex items-start gap-3 p-3 dark:bg-yellow-500/10 light:bg-yellow-500/20 border border-yellow-500/20 rounded-linear hover:dark:bg-yellow-500/20 light:hover:bg-yellow-500/30 linear-transition text-left"
+                >
                   <Globe className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium mb-1">{metrics.dns.pending} Pending DNS</div>
@@ -566,10 +643,13 @@ export function SupportOverviewView() {
                       Domains awaiting verification
                     </div>
                   </div>
-                </div>
+                </button>
               )}
               {metrics.customers.past_due > 0 && (
-                <div className="flex items-start gap-3 p-3 dark:bg-red-500/10 light:bg-red-500/20 border border-red-500/20 rounded-linear">
+                <button
+                  onClick={() => onViewChange('customers')}
+                  className="w-full flex items-start gap-3 p-3 dark:bg-red-500/10 light:bg-red-500/20 border border-red-500/20 rounded-linear hover:dark:bg-red-500/20 light:hover:bg-red-500/30 linear-transition text-left"
+                >
                   <CreditCard className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium mb-1">{metrics.customers.past_due} Past Due</div>
@@ -577,10 +657,13 @@ export function SupportOverviewView() {
                       Payments requiring attention
                     </div>
                   </div>
-                </div>
+                </button>
               )}
               {metrics.tickets.urgent > 0 && (
-                <div className="flex items-start gap-3 p-3 dark:bg-red-500/10 light:bg-red-500/20 border border-red-500/20 rounded-linear">
+                <button
+                  onClick={() => onViewChange('tickets')}
+                  className="w-full flex items-start gap-3 p-3 dark:bg-red-500/10 light:bg-red-500/20 border border-red-500/20 rounded-linear hover:dark:bg-red-500/20 light:hover:bg-red-500/30 linear-transition text-left"
+                >
                   <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium mb-1">{metrics.tickets.urgent} Urgent Tickets</div>
@@ -588,7 +671,7 @@ export function SupportOverviewView() {
                       Require immediate attention
                     </div>
                   </div>
-                </div>
+                </button>
               )}
               {metrics.dns.pending === 0 && metrics.customers.past_due === 0 && metrics.tickets.urgent === 0 && (
                 <div className="text-center py-4">
@@ -610,7 +693,11 @@ export function SupportOverviewView() {
               {recentActivity.map((activity) => {
                 const Icon = activity.icon;
                 return (
-                  <div key={activity.id} className="flex items-start gap-3">
+                  <button
+                    key={activity.id}
+                    onClick={() => handleActivityClick(activity)}
+                    className="w-full flex items-start gap-3 p-2 rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition text-left"
+                  >
                     <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${activity.color}`} />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{activity.title}</div>
@@ -621,13 +708,114 @@ export function SupportOverviewView() {
                     <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary whitespace-nowrap">
                       {formatTimestamp(activity.timestamp)}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
           </div>
         </div>
       </div>
+
+      {showSearchModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b dark:border-linear-border light:border-linear-light-border">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-medium">Search Customer</h3>
+                <button
+                  onClick={() => {
+                    setShowSearchModal(false);
+                    setSearchQuery('');
+                    setSearchResults([]);
+                  }}
+                  className="dark:text-text-tertiary light:text-text-light-tertiary hover:dark:text-text-primary light:hover:text-text-light-primary linear-transition"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    handleSearch(e.target.value);
+                  }}
+                  placeholder="Search by workspace name, email, or customer name..."
+                  className="w-full pl-10 pr-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:ring-2 focus:ring-linear-accent"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {searching ? (
+                <div className="text-center py-8">
+                  <div className="inline-block w-6 h-6 border-2 border-linear-accent border-t-transparent rounded-full animate-spin"></div>
+                  <p className="mt-2 text-sm dark:text-text-secondary light:text-text-light-secondary">Searching...</p>
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="space-y-2">
+                  {searchResults.map((workspace: any) => (
+                    <button
+                      key={workspace.id}
+                      onClick={() => handleSelectCustomer(workspace.id)}
+                      className="w-full p-4 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition text-left"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium mb-1">{workspace.name}</div>
+                          <div className="text-sm dark:text-text-secondary light:text-text-light-secondary">
+                            {workspace.user_profiles?.[0]?.email || 'No email'}
+                          </div>
+                          <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">
+                            {workspace.user_profiles?.[0]?.full_name || 'No name'}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 ml-4">
+                          <span className="px-2 py-1 text-xs rounded-full dark:bg-linear-accent/10 light:bg-linear-accent/20 text-linear-accent border border-linear-accent/20">
+                            {workspace.plan}
+                          </span>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            workspace.subscription_status === 'active'
+                              ? 'dark:bg-green-500/10 light:bg-green-500/20 text-green-500 border border-green-500/20'
+                              : workspace.subscription_status === 'trialing'
+                              ? 'dark:bg-blue-500/10 light:bg-blue-500/20 text-blue-500 border border-blue-500/20'
+                              : 'dark:bg-red-500/10 light:bg-red-500/20 text-red-500 border border-red-500/20'
+                          }`}>
+                            {workspace.subscription_status}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : searchQuery.length >= 2 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-2" />
+                  <p className="dark:text-text-secondary light:text-text-light-secondary">No customers found</p>
+                  <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mt-1">
+                    Try a different search term
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Search className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-2" />
+                  <p className="dark:text-text-secondary light:text-text-light-secondary">
+                    Start typing to search customers
+                  </p>
+                  <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mt-1">
+                    Search by workspace name, email, or customer name
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
