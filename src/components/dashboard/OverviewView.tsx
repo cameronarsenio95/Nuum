@@ -203,8 +203,8 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
           className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-linear-success-subtle rounded-linear flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-linear-success" />
+            <div className="w-10 h-10 bg-red-500/10 rounded-linear flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-red-500" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Costs</span>
           </div>
@@ -221,8 +221,8 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
           className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-linear-warning" />
+            <div className="w-10 h-10 bg-green-500/10 rounded-linear flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-500" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Revenue</span>
           </div>
