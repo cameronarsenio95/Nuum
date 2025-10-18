@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, DollarSign } from 'lucide-react';
+import { X, Euro } from 'lucide-react';
 
 export interface CostBreakdown {
   fee: number;
@@ -76,7 +76,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
           <div>
             <label className="block text-sm font-medium mb-2">Fee</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">€</span>
               <input
                 type="number"
                 value={breakdown.fee || ''}
@@ -93,7 +93,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
           <div>
             <label className="block text-sm font-medium mb-2">Items</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">€</span>
               <input
                 type="number"
                 value={breakdown.items || ''}
@@ -110,7 +110,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
           <div>
             <label className="block text-sm font-medium mb-2">Advertisement</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">€</span>
               <input
                 type="number"
                 value={breakdown.advertisement || ''}
@@ -127,7 +127,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
           <div>
             <label className="block text-sm font-medium mb-2">Shipping</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">€</span>
               <input
                 type="number"
                 value={breakdown.shipping || ''}
@@ -144,7 +144,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
           <div>
             <label className="block text-sm font-medium mb-2">Production</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">€</span>
               <input
                 type="number"
                 value={breakdown.production || ''}
@@ -161,7 +161,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
           <div>
             <label className="block text-sm font-medium mb-2">Other</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-text-tertiary light:text-text-light-tertiary">€</span>
               <input
                 type="number"
                 value={breakdown.other || ''}
@@ -179,7 +179,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
             <div className="flex items-center justify-between mb-4">
               <span className="text-lg font-medium">Total Costs</span>
               <div className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 dark:text-text-tertiary light:text-text-light-tertiary" />
+                <Euro className="w-5 h-5 dark:text-text-tertiary light:text-text-light-tertiary" />
                 <span className="text-2xl font-medium">{total.toFixed(2)}</span>
               </div>
             </div>

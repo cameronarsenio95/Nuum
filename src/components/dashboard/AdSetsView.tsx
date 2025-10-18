@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, ArrowLeft, DollarSign, TrendingUp, MousePointer, Target, Edit2, Trash2, X, ExternalLink, Users } from 'lucide-react';
+import { Plus, ArrowLeft, Euro, TrendingUp, MousePointer, Target, Edit2, Trash2, X, ExternalLink, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -339,7 +339,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Costs</span>
             </div>
-            <p className="text-2xl font-medium">${(currentCampaign.total_spend || 0).toLocaleString()}</p>
+            <p className="text-2xl font-medium">€{(currentCampaign.total_spend || 0).toLocaleString()}</p>
           </div>
 
           <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
@@ -347,7 +347,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <TrendingUp className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
             </div>
-            <p className="text-2xl font-medium">${(currentCampaign.total_revenue || 0).toLocaleString()}</p>
+            <p className="text-2xl font-medium">€{(currentCampaign.total_revenue || 0).toLocaleString()}</p>
           </div>
 
           <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
@@ -458,11 +458,11 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
-                  <span className="font-medium text-linear-success">${adSet.revenue.toLocaleString()}</span>
+                  <span className="font-medium text-linear-success">€{adSet.revenue.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
-                  <span className="font-medium">${adSet.spend.toLocaleString()}</span>
+                  <span className="font-medium">€{adSet.spend.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
@@ -610,9 +610,9 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                     className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:border-linear-accent focus:outline-none focus:border-linear-accent linear-transition text-left flex items-center justify-between group"
                   >
                     <span className={newAdSet.costs ? 'dark:text-text-primary light:text-text-light-primary' : 'dark:text-text-tertiary light:text-text-light-tertiary'}>
-                      {newAdSet.costs ? `$${parseFloat(newAdSet.costs).toFixed(2)}` : 'Enter costs breakdown'}
+                      {newAdSet.costs ? `€${parseFloat(newAdSet.costs).toFixed(2)}` : 'Enter costs breakdown'}
                     </span>
-                    <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary group-hover:text-linear-accent linear-transition" />
+                    <Euro className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary group-hover:text-linear-accent linear-transition" />
                   </button>
                   <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Click to add detailed costs</p>
                 </div>
@@ -742,9 +742,9 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                     className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:border-linear-accent focus:outline-none focus:border-linear-accent linear-transition text-left flex items-center justify-between group"
                   >
                     <span className={newAdSet.costs ? 'dark:text-text-primary light:text-text-light-primary' : 'dark:text-text-tertiary light:text-text-light-tertiary'}>
-                      {newAdSet.costs ? `$${parseFloat(newAdSet.costs).toFixed(2)}` : 'Enter costs breakdown'}
+                      {newAdSet.costs ? `€${parseFloat(newAdSet.costs).toFixed(2)}` : 'Enter costs breakdown'}
                     </span>
-                    <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary group-hover:text-linear-accent linear-transition" />
+                    <Euro className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary group-hover:text-linear-accent linear-transition" />
                   </button>
                   <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Click to add detailed costs</p>
                 </div>
