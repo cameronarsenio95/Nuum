@@ -74,7 +74,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
     setError('');
 
     try {
-      const { error: signupError } = await supabase.auth.signUp({
+      const { data: authData, error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -86,6 +86,66 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
       });
 
       if (signupError) throw signupError;
+
+      if (authData.user) {
+        const userId = authData.user.id;
+
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: email,
+              full_name: email.split('@')[0],
+              company: companyName,
+              notifications_enabled: true,
+              onboarding_completed: false,
+            });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          }
+
+          const workspaceSlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + userId.substring(0, 8);
+
+          const { data: newWorkspace, error: workspaceError } = await supabase
+            .from('workspaces')
+            .insert({
+              name: companyName,
+              slug: workspaceSlug,
+              plan: 'standard',
+              owner_id: userId,
+              trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+              trial_started_at: new Date().toISOString(),
+              subscription_status: 'trialing',
+            })
+            .select()
+            .single();
+
+          if (workspaceError) {
+            console.error('Workspace creation error:', workspaceError);
+          } else if (newWorkspace) {
+            const { error: memberError } = await supabase
+              .from('workspace_members')
+              .insert({
+                workspace_id: newWorkspace.id,
+                user_id: userId,
+                role: 'owner',
+                joined_at: new Date().toISOString(),
+              });
+
+            if (memberError) {
+              console.error('Workspace member creation error:', memberError);
+            }
+          }
+        }
+      }
 
       setSuccess(true);
       setTimeout(() => {
