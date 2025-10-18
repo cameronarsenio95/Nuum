@@ -5,12 +5,11 @@ import { CustomerSearch } from '../components/support/CustomerSearch';
 import { CustomerDetailView } from '../components/support/CustomerDetailView';
 import { AuditLogViewer } from '../components/support/AuditLogViewer';
 import { TicketsView } from '../components/support/TicketsView';
-import { DNSManagementView } from '../components/support/DNSManagementView';
 import { SupportLogin } from './SupportLogin';
 
 export function SupportDashboard() {
   const { user, supportStaff, loading } = useSupportAuth();
-  const [currentView, setCurrentView] = useState<'tickets' | 'customers' | 'search' | 'audit-logs' | 'dns' | 'settings'>('tickets');
+  const [currentView, setCurrentView] = useState<'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings'>('tickets');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   if (loading) {
@@ -66,8 +65,6 @@ export function SupportDashboard() {
       )}
 
       {currentView === 'audit-logs' && <AuditLogViewer />}
-
-      {currentView === 'dns' && <DNSManagementView />}
 
       {currentView === 'settings' && (
         <div>
