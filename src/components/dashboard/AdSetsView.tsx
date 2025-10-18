@@ -391,7 +391,11 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <MousePointer className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
             </div>
-            <p className="text-2xl font-medium">{Math.round((currentCampaign.total_revenue || 0) / (currentCampaign.total_spend || 1) * 100)}%</p>
+            <p className="text-2xl font-medium">
+              {currentCampaign.total_spend > 0
+                ? `${Math.round(((currentCampaign.total_revenue || 0) - currentCampaign.total_spend) / currentCampaign.total_spend * 100)}%`
+                : '-'}
+            </p>
           </div>
         </div>
       </div>
