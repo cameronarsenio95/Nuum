@@ -542,7 +542,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
             </p>
           ) : (
             <div className="space-y-3">
-              {campaigns.slice(0, 5).map((campaign) => (
+              {campaigns.slice(0, 3).map((campaign) => (
                 <div
                   key={campaign.id}
                   onClick={() => handleCampaignClick(campaign.id)}
@@ -585,7 +585,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
             </p>
           ) : (
             <div className="space-y-3">
-              {topCreators.slice(0, 5).map((creator, index) => (
+              {topCreators.slice(0, 3).map((creator, index) => (
                 <div
                   key={creator.creator_id}
                   onClick={() => handleCreatorClick(creator.creator_id, index)}
