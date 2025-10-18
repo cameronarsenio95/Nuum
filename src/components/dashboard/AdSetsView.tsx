@@ -336,7 +336,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
           <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
             <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+              <Euro className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Costs</span>
             </div>
             <p className="text-2xl font-medium">€{(currentCampaign.total_spend || 0).toLocaleString()}</p>
