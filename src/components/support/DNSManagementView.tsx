@@ -42,10 +42,27 @@ export function DNSManagementView() {
   const [showAddDomainModal, setShowAddDomainModal] = useState(false);
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { showToast } = useToast();
+  const [criticalError, setCriticalError] = useState<string | null>(null);
+
+  let showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  try {
+    const toast = useToast();
+    showToast = toast.showToast;
+  } catch (err) {
+    console.error('Toast context error:', err);
+    showToast = (message: string, type: string) => {
+      console.log(`[${type.toUpperCase()}] ${message}`);
+      alert(`${type.toUpperCase()}: ${message}`);
+    };
+  }
 
   useEffect(() => {
-    loadDomains();
+    try {
+      loadDomains();
+    } catch (err: any) {
+      console.error('Critical error in DNSManagementView:', err);
+      setCriticalError(err.message || 'Failed to initialize DNS Management');
+    }
   }, []);
 
   useEffect(() => {
@@ -253,6 +270,26 @@ export function DNSManagementView() {
     };
     return colors[purpose] || 'bg-linear-bg-subtle text-text-secondary border-linear-border';
   };
+
+  if (criticalError) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center max-w-md">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 mb-4">
+            <AlertCircle className="w-8 h-8 text-red-500" />
+          </div>
+          <h3 className="text-xl font-medium mb-2">Critical Error</h3>
+          <p className="dark:text-text-secondary light:text-text-light-secondary mb-4">{criticalError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-linear-accent hover:bg-linear-accent-hover text-white rounded-linear linear-transition"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
