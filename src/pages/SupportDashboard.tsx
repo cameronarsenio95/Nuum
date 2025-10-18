@@ -12,6 +12,11 @@ export function SupportDashboard() {
   const [currentView, setCurrentView] = useState<'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings'>('tickets');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
+  const handleViewChange = (view: 'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings') => {
+    setSelectedCustomerId(null);
+    setCurrentView(view);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center dark:bg-linear-bg light:bg-linear-light-bg">
@@ -28,7 +33,7 @@ export function SupportDashboard() {
   }
 
   return (
-    <SupportDashboardLayout currentView={currentView} onViewChange={setCurrentView}>
+    <SupportDashboardLayout currentView={currentView} onViewChange={handleViewChange}>
       {currentView === 'tickets' && <TicketsView />}
 
       {currentView === 'search' && (
@@ -53,15 +58,24 @@ export function SupportDashboard() {
       )}
 
       {currentView === 'customers' && (
-        <div>
-          <div className="mb-6">
-            <h2 className="text-2xl font-medium mb-2">All Customers</h2>
-            <p className="dark:text-text-secondary light:text-text-light-secondary">
-              Browse all customer workspaces
-            </p>
-          </div>
-          <CustomerSearch onSelectCustomer={(customer) => setSelectedCustomerId(customer.workspace.id)} />
-        </div>
+        <>
+          {selectedCustomerId ? (
+            <CustomerDetailView
+              workspaceId={selectedCustomerId}
+              onBack={() => setSelectedCustomerId(null)}
+            />
+          ) : (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-medium mb-2">All Customers</h2>
+                <p className="dark:text-text-secondary light:text-text-light-secondary">
+                  Browse all customer workspaces
+                </p>
+              </div>
+              <CustomerSearch onSelectCustomer={(customer) => setSelectedCustomerId(customer.workspace.id)} />
+            </div>
+          )}
+        </>
       )}
 
       {currentView === 'audit-logs' && <AuditLogViewer />}
