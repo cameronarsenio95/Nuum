@@ -21,6 +21,7 @@ interface Stats {
   tasksCompleted: number;
   tasksPending: number;
   totalBudget: number;
+  totalCosts: number;
   totalRevenue: number;
 }
 
@@ -33,6 +34,7 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
     tasksCompleted: 0,
     tasksPending: 0,
     totalBudget: 0,
+    totalCosts: 0,
     totalRevenue: 0,
   });
   const [recentCampaigns, setRecentCampaigns] = useState<Campaign[]>([]);
@@ -68,19 +70,21 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
       const activeCampaigns = campaigns.filter((c) => c.status === 'active').length;
       const totalBudget = campaigns.reduce((sum, c) => sum + (Number(c.budget) || 0), 0);
 
-      // Get total revenue from ad_sets for this workspace via campaigns
+      // Get total revenue and costs from ad_sets for this workspace via campaigns
       const { data: adSetsData } = await supabase
         .from('ad_sets')
-        .select('revenue, campaigns!inner(workspace_id)')
+        .select('revenue, spend, campaigns!inner(workspace_id)')
         .eq('campaigns.workspace_id', workspace.id);
 
       const totalRevenue = adSetsData?.reduce((sum, adSet) => sum + (Number(adSet.revenue) || 0), 0) || 0;
+      const totalCosts = adSetsData?.reduce((sum, adSet) => sum + (Number(adSet.spend) || 0), 0) || 0;
 
       setStats((prev) => ({
         ...prev,
         totalCampaigns: campaigns.length,
         activeCampaigns,
         totalBudget,
+        totalCosts,
         totalRevenue,
       }));
       setRecentCampaigns(campaigns.slice(0, 5));
@@ -159,24 +163,6 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <button
-          onClick={() => onViewChange?.('campaigns')}
-          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
-              <Target className="w-5 h-5 text-linear-info" />
-            </div>
-            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
-          </div>
-          <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">{stats.totalCampaigns}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-              {stats.activeCampaigns} active
-            </div>
-          </div>
-        </button>
-
-        <button
           onClick={() => onViewChange?.('creators')}
           className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
         >
@@ -195,19 +181,37 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
         </button>
 
         <button
-          onClick={() => onViewChange?.('tasks')}
+          onClick={() => onViewChange?.('campaigns')}
+          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
+              <Target className="w-5 h-5 text-linear-info" />
+            </div>
+            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xl md:text-2xl font-medium">{stats.totalCampaigns}</div>
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+              {stats.activeCampaigns} active
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onViewChange?.('analytics')}
           className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-linear-success-subtle rounded-linear flex items-center justify-center">
-              <CheckSquare className="w-5 h-5 dark:text-linear-success light:text-linear-light-success" />
+              <TrendingUp className="w-5 h-5 text-linear-success" />
             </div>
-            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Tasks</span>
+            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Costs</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">{stats.totalTasks}</div>
+            <div className="text-xl md:text-2xl font-medium">${stats.totalCosts.toLocaleString()}</div>
             <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-              {stats.tasksCompleted} completed, {stats.tasksPending} pending
+              Across all ad sets
             </div>
           </div>
         </button>
