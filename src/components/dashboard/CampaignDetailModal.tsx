@@ -1,4 +1,4 @@
-import { X, Target, TrendingUp, DollarSign, Calendar, Users } from 'lucide-react';
+import { X, Target, TrendingUp, DollarSign, Users } from 'lucide-react';
 import type { Database } from '../../lib/database.types';
 
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
@@ -43,15 +43,6 @@ export default function CampaignDetailModal({ campaign, adSets, onClose }: Campa
 
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('nl-NL').format(num);
-  };
-
-  const formatDate = (date: string | null) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('nl-NL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
   };
 
   const getStatusColor = (status: string) => {
@@ -108,12 +99,6 @@ export default function CampaignDetailModal({ campaign, adSets, onClose }: Campa
                 <span className="text-xs px-2.5 py-1 rounded-full dark:bg-linear-accent-subtle light:bg-linear-light-accent-subtle dark:text-linear-accent light:text-linear-light-accent border dark:border-linear-accent-border light:border-linear-light-accent-border">
                   {campaign.brand}
                 </span>
-              )}
-              {campaign.start_date && (
-                <div className="flex items-center gap-1.5 text-xs dark:text-text-secondary light:text-text-light-secondary">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {formatDate(campaign.start_date)} - {formatDate(campaign.end_date)}
-                </div>
               )}
             </div>
           </div>

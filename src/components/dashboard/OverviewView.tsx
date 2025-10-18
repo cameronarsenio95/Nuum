@@ -256,9 +256,6 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{campaign.name}</div>
-                    <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">
-                      {campaign.start_date && new Date(campaign.start_date).toLocaleDateString()}
-                    </div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
                     {campaign.status}
