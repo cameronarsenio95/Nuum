@@ -1,4 +1,4 @@
-import { X, Target, TrendingUp, DollarSign, Calendar, Users, Zap } from 'lucide-react';
+import { X, Target, TrendingUp, DollarSign, Calendar, Users } from 'lucide-react';
 import type { Database } from '../../lib/database.types';
 
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
@@ -66,10 +66,6 @@ export default function CampaignDetailModal({ campaign, adSets, onClose }: Campa
         return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
     }
   };
-
-  const budgetUsedPercentage = campaign.budget && campaign.budget > 0
-    ? Math.min((campaign.total_spend / campaign.budget) * 100, 100)
-    : 0;
 
   const platformMetrics = adSets.reduce((acc, adSet) => {
     const platform = adSet.platform;
@@ -175,41 +171,16 @@ export default function CampaignDetailModal({ campaign, adSets, onClose }: Campa
             <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-linear-accent" />
+                  <DollarSign className="w-4 h-4 text-linear-accent" />
                 </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Engagement</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
               </div>
-              <div className="text-xl font-medium">{campaign.avg_ctr}%</div>
+              <div className="text-xl font-medium">{formatCurrency(campaign.total_spend)}</div>
               <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-1">
-                {formatNumber(campaign.total_clicks)} clicks
+                Total investment
               </div>
             </div>
           </div>
-
-          {campaign.budget && campaign.budget > 0 && (
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium">Budget Overview</h3>
-                <span className="text-sm dark:text-text-secondary light:text-text-light-secondary">
-                  {formatCurrency(campaign.total_spend)} / {formatCurrency(campaign.budget)}
-                </span>
-              </div>
-              <div className="w-full h-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full linear-transition ${
-                    budgetUsedPercentage > 90 ? 'bg-linear-error' :
-                    budgetUsedPercentage > 75 ? 'bg-linear-warning' :
-                    'bg-linear-success'
-                  }`}
-                  style={{ width: `${budgetUsedPercentage}%` }}
-                />
-              </div>
-              <div className="flex justify-between items-center mt-2 text-xs dark:text-text-tertiary light:text-text-light-tertiary">
-                <span>{budgetUsedPercentage.toFixed(1)}% used</span>
-                <span>{formatCurrency(campaign.budget - campaign.total_spend)} remaining</span>
-              </div>
-            </div>
-          )}
 
           {Object.keys(platformMetrics).length > 0 && (
             <div>
