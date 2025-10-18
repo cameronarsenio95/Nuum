@@ -647,7 +647,7 @@ export function FeaturesPage({ onSignupClick, onBackClick, onLoginClick, onHowIt
           <ul className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-6 text-left">
             {[
               'Two-way data sync with Shopify & GA4',
-              'Import campaign spend from Meta/TikTok',
+              'Import campaign costs from Meta/TikTok',
               'Auto-push reports to Slack or email',
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-2.5">

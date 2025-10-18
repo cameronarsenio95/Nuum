@@ -152,7 +152,7 @@ export default function CreatorDetailModal({ creator, campaigns, rank, onClose }
                 <div className="w-8 h-8 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
                   <Zap className="w-4 h-4 text-linear-accent" />
                 </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Spend</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
               </div>
               <div className="text-xl font-medium">{formatCurrency(creator.total_spend)}</div>
               <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-1">
@@ -337,7 +337,7 @@ export default function CreatorDetailModal({ creator, campaigns, rank, onClose }
                       </div>
                       <div className="grid grid-cols-3 gap-3 pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs">
                         <div>
-                          <div className="dark:text-text-tertiary light:text-text-light-tertiary mb-1">Spend</div>
+                          <div className="dark:text-text-tertiary light:text-text-light-tertiary mb-1">Costs</div>
                           <div className="font-medium">{formatCurrency(campaign.spend)}</div>
                         </div>
                         <div>

@@ -121,7 +121,7 @@ export function CostBreakdownModal({ isOpen, onClose, onSave, initialBreakdown, 
                 min="0"
               />
             </div>
-            <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Ad spend, boosting costs</p>
+            <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Ad costs, boosting costs</p>
           </div>
 
           <div>

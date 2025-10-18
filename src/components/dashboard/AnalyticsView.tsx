@@ -221,7 +221,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
   const exportToCSV = () => {
     if (!campaigns.length) return;
 
-    const headers = ['Campaign', 'Status', 'Revenue', 'Spend', 'Profit', 'ROI %', 'Conversions', 'CTR %'];
+    const headers = ['Campaign', 'Status', 'Revenue', 'Costs', 'Profit', 'ROI %', 'Conversions', 'CTR %'];
     const rows = campaigns.map(c => [
       c.name,
       c.status,
@@ -493,7 +493,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
             <div className="space-y-1">
               <div className="text-xl md:text-2xl font-medium">{summary.overall_roi}%</div>
               <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                Spend: {formatCurrency(summary.total_spend)}
+                Costs: {formatCurrency(summary.total_spend)}
               </div>
             </div>
           </div>
@@ -644,7 +644,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
                     <span className="font-medium">{formatCurrency(platform.total_revenue)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="dark:text-text-secondary light:text-text-light-secondary">Spend</span>
+                    <span className="dark:text-text-secondary light:text-text-light-secondary">Costs</span>
                     <span className="font-medium">{formatCurrency(platform.total_spend)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">

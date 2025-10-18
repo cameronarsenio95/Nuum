@@ -244,7 +244,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                       <span className="font-medium text-linear-success">{(campaign as any).active_ad_sets || 0}</span>
                     </div>
                     <div>
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Spend</span>
+                      <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Costs</span>
                       <span className="font-medium">${((campaign as any).total_spend || 0).toLocaleString()}</span>
                     </div>
                     <div>

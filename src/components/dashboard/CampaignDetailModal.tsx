@@ -151,7 +151,7 @@ export default function CampaignDetailModal({ campaign, adSets, onClose }: Campa
                 {campaign.roi_percentage > 0 ? '+' : ''}{campaign.roi_percentage}%
               </div>
               <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-1">
-                Spend: {formatCurrency(campaign.total_spend)}
+                Costs: {formatCurrency(campaign.total_spend)}
               </div>
             </div>
 
