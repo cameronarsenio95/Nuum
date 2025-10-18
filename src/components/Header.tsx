@@ -23,7 +23,7 @@ export function Header({ onLoginClick, onSignupClick, onBackClick, onHowItWorksC
           <img
             src={theme === 'dark' ? '/assets/nuum - Logo + Mark-15.png' : '/assets/nuum - Logo + Mark-12.png'}
             alt="NUUM"
-            className="h-7 md:h-8 w-auto"
+            className="h-6 md:h-7 w-auto"
           />
         </button>
 
