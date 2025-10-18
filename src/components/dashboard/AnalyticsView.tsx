@@ -228,7 +228,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
       c.total_revenue,
       c.total_spend,
       c.profit,
-      c.roi_percentage,
+      Math.round(c.roi_percentage),
       c.total_conversions,
       c.avg_ctr
     ]);
@@ -469,6 +469,36 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
+                <Target className="w-5 h-5 text-linear-warning" />
+              </div>
+              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Conversions</span>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xl md:text-2xl font-medium">{formatNumber(summary.total_conversions)}</div>
+              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                CTR: {summary.avg_ctr}%
+              </div>
+            </div>
+          </div>
+
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-linear-info" />
+              </div>
+              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xl md:text-2xl font-medium">{formatCurrency(summary.total_spend)}</div>
+              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                Total investment
+              </div>
+            </div>
+          </div>
+
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-linear-success-subtle rounded-linear flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-linear-success" />
               </div>
@@ -485,45 +515,15 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
 
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-linear-info" />
+              <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-linear-accent" />
               </div>
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
             </div>
             <div className="space-y-1">
-              <div className="text-xl md:text-2xl font-medium">{summary.overall_roi}%</div>
+              <div className="text-xl md:text-2xl font-medium">{Math.round(parseFloat(summary.overall_roi))}%</div>
               <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                Costs: {formatCurrency(summary.total_spend)}
-              </div>
-            </div>
-          </div>
-
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
-                <Target className="w-5 h-5 text-linear-warning" />
-              </div>
-              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Conversions</span>
-            </div>
-            <div className="space-y-1">
-              <div className="text-xl md:text-2xl font-medium">{formatNumber(summary.total_conversions)}</div>
-              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                CTR: {summary.avg_ctr}%
-              </div>
-            </div>
-          </div>
-
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-linear-accent" />
-              </div>
-              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
-            </div>
-            <div className="space-y-1">
-              <div className="text-xl md:text-2xl font-medium">{summary.active_campaigns}</div>
-              <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                {summary.total_creators} Creators
+                Return on investment
               </div>
             </div>
           </div>
@@ -564,7 +564,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
                   </div>
                   <div className="flex items-center justify-between text-xs dark:text-text-secondary light:text-text-light-secondary pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                     <span className={campaign.roi_percentage > 0 ? 'text-linear-success font-medium' : 'text-linear-error font-medium'}>
-                      {campaign.roi_percentage > 0 ? '+' : ''}{campaign.roi_percentage}% ROI
+                      {campaign.roi_percentage > 0 ? '+' : ''}{Math.round(campaign.roi_percentage)}% ROI
                     </span>
                     <span>{formatNumber(campaign.total_conversions)} conversions</span>
                   </div>
@@ -602,7 +602,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
                     </div>
                     <div className="flex items-center justify-between text-xs pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                       <span className={creator.roi_percentage > 0 ? 'text-linear-success font-medium' : 'text-linear-error font-medium'}>
-                        {creator.roi_percentage > 0 ? '+' : ''}{creator.roi_percentage}% ROI
+                        {creator.roi_percentage > 0 ? '+' : ''}{Math.round(creator.roi_percentage)}% ROI
                       </span>
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary">
                         {creator.campaigns_count} campaigns
@@ -635,7 +635,7 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
                       ? 'bg-linear-success-subtle text-linear-success border border-linear-success-border'
                       : 'bg-linear-error-subtle text-linear-error border border-linear-error-border'
                   }`}>
-                    {Number(platform.roi_percentage) > 0 ? '+' : ''}{platform.roi_percentage}% ROI
+                    {Number(platform.roi_percentage) > 0 ? '+' : ''}{Math.round(Number(platform.roi_percentage))}% ROI
                   </span>
                 </div>
                 <div className="space-y-2 text-xs">
