@@ -203,7 +203,7 @@ export default function CampaignDetailModal({ campaign, adSets, onClose }: Campa
                             ? 'bg-linear-success-subtle text-linear-success border border-linear-success-border'
                             : 'bg-linear-error-subtle text-linear-error border border-linear-error-border'
                         }`}>
-                          {Number(roi) > 0 ? '+' : ''}{roi}% ROI
+                          {Number(roi) > 0 ? '+' : ''}{Math.round(Number(roi))}% ROI
                         </span>
                       </div>
                       <div className="space-y-2 text-xs">

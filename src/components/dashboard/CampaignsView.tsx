@@ -261,7 +261,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                           : 'dark:text-text-secondary light:text-text-light-secondary'
                       }`}>
                         {(campaign as any).total_spend > 0
-                          ? `${((((campaign as any).total_revenue || 0) - (campaign as any).total_spend) / (campaign as any).total_spend * 100).toFixed(1)}%`
+                          ? `${Math.round(((((campaign as any).total_revenue || 0) - (campaign as any).total_spend) / (campaign as any).total_spend * 100))}%`
                           : '-'}
                       </span>
                     </div>

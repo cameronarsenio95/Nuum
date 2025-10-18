@@ -331,7 +331,7 @@ export default function CreatorDetailModal({ creator, campaigns, rank, onClose }
                         <div className="text-right flex-shrink-0">
                           <div className="font-medium">{formatCurrency(campaign.revenue)}</div>
                           <div className={`text-xs font-medium ${campaign.roi > 0 ? 'text-linear-success' : 'text-linear-error'}`}>
-                            {campaign.roi > 0 ? '+' : ''}{campaign.roi.toFixed(2)}% ROI
+                            {campaign.roi > 0 ? '+' : ''}{Math.round(campaign.roi)}% ROI
                           </div>
                         </div>
                       </div>
