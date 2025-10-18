@@ -55,7 +55,7 @@ interface AnalyticsViewProps {
   workspaceId: string;
 }
 
-type DateRange = '7d' | '30d' | '90d' | 'all';
+type DateRange = '7d' | '14d' | '30d' | 'all';
 
 export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
   const [loading, setLoading] = useState(true);
@@ -81,11 +81,11 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
       case '7d':
         start.setDate(end.getDate() - 7);
         break;
+      case '14d':
+        start.setDate(end.getDate() - 14);
+        break;
       case '30d':
         start.setDate(end.getDate() - 30);
-        break;
-      case '90d':
-        start.setDate(end.getDate() - 90);
         break;
     }
 
@@ -123,11 +123,13 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
       if (campaignsError) throw campaignsError;
       setCampaigns(campaignsData || []);
 
-      const { data: creatorsData, error: creatorsError } = await supabase
+      const { data: creatorsData, error: creatorsError} = await supabase
         .rpc('get_top_performing_creators', {
           p_workspace_id: workspaceId,
           p_limit: 10,
-          p_order_by: 'revenue'
+          p_order_by: 'revenue',
+          p_start_date: start,
+          p_end_date: end
         });
 
       if (creatorsError) {
@@ -425,6 +427,16 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
               7 Days
             </button>
             <button
+              onClick={() => setDateRange('14d')}
+              className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium linear-transition ${
+                dateRange === '14d'
+                  ? 'dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg'
+                  : 'dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover'
+              }`}
+            >
+              14 Days
+            </button>
+            <button
               onClick={() => setDateRange('30d')}
               className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium linear-transition ${
                 dateRange === '30d'
@@ -433,16 +445,6 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
               }`}
             >
               30 Days
-            </button>
-            <button
-              onClick={() => setDateRange('90d')}
-              className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium linear-transition ${
-                dateRange === '90d'
-                  ? 'dark:bg-linear-accent light:bg-linear-light-accent dark:text-linear-bg light:text-linear-light-bg'
-                  : 'dark:text-text-secondary light:text-text-light-secondary hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover'
-              }`}
-            >
-              90 Days
             </button>
             <button
               onClick={() => setDateRange('all')}

@@ -53,6 +53,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
     costs: '',
     ad_creative_url: '',
     spark_code: '',
+    duration_days: null as number | null,
   });
 
   useEffect(() => {
@@ -131,6 +132,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         spend: totalCosts,
         ad_creative_url: newAdSet.ad_creative_url || null,
         spark_code: newAdSet.spark_code || null,
+        duration_days: newAdSet.duration_days,
         performance_metrics: performanceMetrics,
       });
 
@@ -236,6 +238,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       costs: adSet.spend?.toString() || '',
       ad_creative_url: adSet.ad_creative_url || '',
       spark_code: adSet.spark_code || '',
+      duration_days: adSet.duration_days || null,
     });
     setShowEditModal(true);
   };
@@ -255,6 +258,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       costs: '',
       ad_creative_url: '',
       spark_code: '',
+      duration_days: null,
     });
     setCostBreakdown({
       fee: 0,
@@ -277,6 +281,11 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       default:
         return 'text-text-tertiary bg-text-tertiary/10 border-linear-border/20';
     }
+  };
+
+  const getPeriodBadge = (durationDays: number | null) => {
+    if (durationDays === null) return 'Unlimited';
+    return `${durationDays}d`;
   };
 
   const getPlatformColor = (platform: string) => {
@@ -436,12 +445,15 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="font-medium text-lg mb-2">{adSet.name}</h3>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className={`text-xs px-2 py-1 rounded-full border ${getPlatformColor(adSet.platform)}`}>
                       {adSet.platform}
                     </span>
                     <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(adSet.status)}`}>
                       {adSet.status}
+                    </span>
+                    <span className="text-xs px-2 py-1 rounded-full border bg-linear-accent/10 text-linear-accent border-linear-accent/20">
+                      {getPeriodBadge(adSet.duration_days)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm dark:text-text-secondary light:text-text-light-secondary">
@@ -584,18 +596,34 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Status</label>
-                <select
-                  value={newAdSet.status}
-                  onChange={(e) => setNewAdSet({ ...newAdSet, status: e.target.value as any })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="active">Active</option>
-                  <option value="paused">Paused</option>
-                  <option value="completed">Completed</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <select
+                    value={newAdSet.status}
+                    onChange={(e) => setNewAdSet({ ...newAdSet, status: e.target.value as any })}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Period</label>
+                  <select
+                    value={newAdSet.duration_days === null ? 'all' : newAdSet.duration_days}
+                    onChange={(e) => setNewAdSet({ ...newAdSet, duration_days: e.target.value === 'all' ? null : parseInt(e.target.value) })}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="7">7 Days</option>
+                    <option value="14">14 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="all">All Time</option>
+                  </select>
+                  <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Period starts when ad set becomes active</p>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Creative URL</label>
