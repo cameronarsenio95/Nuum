@@ -124,6 +124,37 @@ CREATE POLICY "Workspace owners can delete their email domains"
     )
   );
 
+-- Support staff can view all email domains
+CREATE POLICY "Support staff can view all email domains"
+  ON email_domains FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM support_staff
+      WHERE support_staff.id = auth.uid()
+      AND support_staff.is_active = true
+    )
+  );
+
+-- Support staff can manage all email domains
+CREATE POLICY "Support staff can update all email domains"
+  ON email_domains FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM support_staff
+      WHERE support_staff.id = auth.uid()
+      AND support_staff.is_active = true
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM support_staff
+      WHERE support_staff.id = auth.uid()
+      AND support_staff.is_active = true
+    )
+  );
+
 -- Policies for dns_records
 CREATE POLICY "Users can view DNS records for their workspace domains"
   ON dns_records FOR SELECT
@@ -182,6 +213,37 @@ CREATE POLICY "Workspace owners can delete DNS records"
       WHERE email_domains.id = dns_records.email_domain_id
       AND workspace_members.user_id = auth.uid()
       AND workspace_members.role = 'owner'
+    )
+  );
+
+-- Support staff can view all DNS records
+CREATE POLICY "Support staff can view all DNS records"
+  ON dns_records FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM support_staff
+      WHERE support_staff.id = auth.uid()
+      AND support_staff.is_active = true
+    )
+  );
+
+-- Support staff can manage all DNS records
+CREATE POLICY "Support staff can update all DNS records"
+  ON dns_records FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM support_staff
+      WHERE support_staff.id = auth.uid()
+      AND support_staff.is_active = true
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM support_staff
+      WHERE support_staff.id = auth.uid()
+      AND support_staff.is_active = true
     )
   );
 

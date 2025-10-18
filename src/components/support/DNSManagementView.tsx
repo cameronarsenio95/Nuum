@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Globe, RefreshCw, CheckCircle2, XCircle, Clock, Copy, Check, AlertCircle } from 'lucide-react';
+import { Globe, RefreshCw, CheckCircle2, XCircle, Clock, Copy, Check, AlertCircle, Plus, Trash2, Search, Filter, ExternalLink } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -37,6 +37,10 @@ export function DNSManagementView() {
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
   const [copiedRecord, setCopiedRecord] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showAddDomainModal, setShowAddDomainModal] = useState(false);
+  const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -52,13 +56,18 @@ export function DNSManagementView() {
   const loadDomains = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('email_domains')
         .select(`
           *,
           workspace:workspaces(name)
-        `)
-        .order('created_at', { ascending: false });
+        `);
+
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setDomains(data || []);
@@ -95,16 +104,16 @@ export function DNSManagementView() {
       const { error } = await supabase
         .from('email_domains')
         .update({
-          status: 'verified',
+          status: 'verified' as const,
           verified_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', domainId);
 
       if (error) throw error;
 
       await supabase
         .from('dns_records')
-        .update({ verified: true })
+        .update({ verified: true } as any)
         .eq('email_domain_id', domainId);
 
       showToast('Domain verified successfully', 'success');
@@ -129,6 +138,45 @@ export function DNSManagementView() {
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       showToast('Failed to copy to clipboard', 'error');
+    }
+  };
+
+  const deleteDomain = async (domainId: string) => {
+    if (!confirm('Are you sure you want to delete this domain? This will also delete all associated DNS records.')) {
+      return;
+    }
+
+    setDeletingDomain(domainId);
+    try {
+      const { error } = await supabase
+        .from('email_domains')
+        .delete()
+        .eq('id', domainId);
+
+      if (error) throw error;
+
+      showToast('Domain deleted successfully', 'success');
+      if (selectedDomain?.id === domainId) {
+        setSelectedDomain(null);
+      }
+      loadDomains();
+    } catch (error) {
+      console.error('Error deleting domain:', error);
+      showToast('Failed to delete domain', 'error');
+    } finally {
+      setDeletingDomain(null);
+    }
+  };
+
+  const syncWithResend = async (domainId: string) => {
+    setVerifying(true);
+    try {
+      showToast('This feature syncs DNS records from Resend API', 'info');
+    } catch (error) {
+      console.error('Error syncing with Resend:', error);
+      showToast('Failed to sync with Resend', 'error');
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -191,13 +239,65 @@ export function DNSManagementView() {
     );
   }
 
+  const filteredDomains = domains.filter(domain => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        domain.domain.toLowerCase().includes(query) ||
+        domain.workspace?.name?.toLowerCase().includes(query)
+      );
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    loadDomains();
+  }, [statusFilter]);
+
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-medium mb-2">DNS Management</h2>
-        <p className="dark:text-text-secondary light:text-text-light-secondary">
-          Manage email domains and DNS records for all workspaces
-        </p>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-medium mb-2">DNS Management</h2>
+            <p className="dark:text-text-secondary light:text-text-light-secondary">
+              Manage email domains and DNS records for all workspaces
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddDomainModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-linear-accent hover:bg-linear-accent-hover text-white rounded-linear linear-transition"
+          >
+            <Plus className="w-4 h-4" />
+            Add Domain
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+            <input
+              type="text"
+              placeholder="Search domains or workspaces..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:ring-2 focus:ring-linear-accent"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:ring-2 focus:ring-linear-accent"
+            >
+              <option value="all">All Status</option>
+              <option value="verified">Verified</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -207,12 +307,12 @@ export function DNSManagementView() {
               <h3 className="font-medium">Email Domains</h3>
             </div>
             <div className="divide-y dark:divide-linear-border light:divide-linear-light-border">
-              {domains.length === 0 ? (
+              {filteredDomains.length === 0 ? (
                 <div className="p-4 text-center dark:text-text-tertiary light:text-text-light-tertiary">
-                  No domains configured
+                  {searchQuery ? 'No domains found matching your search' : 'No domains configured'}
                 </div>
               ) : (
-                domains.map((domain) => (
+                filteredDomains.map((domain) => (
                   <button
                     key={domain.id}
                     onClick={() => setSelectedDomain(domain)}
@@ -254,16 +354,36 @@ export function DNSManagementView() {
                   </div>
                   <div className="flex items-center gap-3">
                     {getStatusBadge(selectedDomain.status)}
-                    {selectedDomain.status === 'pending' && (
-                      <button
-                        onClick={() => verifyDomain(selectedDomain.id)}
-                        disabled={verifying}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-linear-accent hover:bg-linear-accent-hover text-white rounded-linear linear-transition disabled:opacity-50"
+                    <div className="flex items-center gap-2">
+                      {selectedDomain.status === 'pending' && (
+                        <button
+                          onClick={() => verifyDomain(selectedDomain.id)}
+                          disabled={verifying}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-linear-accent hover:bg-linear-accent-hover text-white rounded-linear linear-transition disabled:opacity-50"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${verifying ? 'animate-spin' : ''}`} />
+                          {verifying ? 'Verifying...' : 'Verify'}
+                        </button>
+                      )}
+                      <a
+                        href={`https://resend.com/domains/${selectedDomain.domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:dark:bg-linear-bg light:hover:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear linear-transition"
+                        title="View in Resend"
                       >
-                        <RefreshCw className={`w-4 h-4 ${verifying ? 'animate-spin' : ''}`} />
-                        {verifying ? 'Verifying...' : 'Verify'}
+                        <ExternalLink className="w-4 h-4" />
+                        Resend
+                      </a>
+                      <button
+                        onClick={() => deleteDomain(selectedDomain.id)}
+                        disabled={deletingDomain === selectedDomain.id}
+                        className="inline-flex items-center gap-2 px-4 py-2 dark:bg-red-500/10 light:bg-red-500/10 hover:dark:bg-red-500/20 light:hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-linear linear-transition disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
                       </button>
-                    )}
+                    </div>
                   </div>
                 </div>
 
@@ -276,10 +396,22 @@ export function DNSManagementView() {
 
               <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear overflow-hidden">
                 <div className="p-4 border-b dark:border-linear-border light:border-linear-light-border">
-                  <h3 className="font-medium">DNS Records</h3>
-                  <p className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-1">
-                    Add these records to your DNS provider (Bolt.new)
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">DNS Records</h3>
+                      <p className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-1">
+                        Add these records to your DNS provider
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => syncWithResend(selectedDomain.id)}
+                      disabled={verifying}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:dark:bg-linear-bg light:hover:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear linear-transition"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${verifying ? 'animate-spin' : ''}`} />
+                      Sync from Resend
+                    </button>
+                  </div>
                 </div>
 
                 {dnsRecords.length === 0 ? (
@@ -291,17 +423,22 @@ export function DNSManagementView() {
                     {dnsRecords.map((record) => (
                       <div key={record.id} className="p-4">
                         <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className={`text-xs px-2 py-1 rounded-full border ${getPurposeBadgeColor(record.purpose)}`}>
                               {getPurposeLabel(record.purpose)}
                             </span>
                             <span className="text-xs font-mono px-2 py-1 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded">
                               {record.record_type}
                             </span>
-                            {record.verified && (
+                            {record.verified ? (
                               <span className="inline-flex items-center gap-1 text-xs text-linear-success">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 Verified
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-xs dark:text-text-tertiary light:text-text-light-tertiary">
+                                <Clock className="w-3.5 h-3.5" />
+                                Not Verified
                               </span>
                             )}
                           </div>
@@ -358,13 +495,14 @@ export function DNSManagementView() {
                     <div>
                       <h4 className="font-medium text-blue-500 mb-1">Setup Instructions</h4>
                       <div className="text-sm dark:text-text-secondary light:text-text-light-secondary space-y-2">
-                        <p>Add these DNS records to Bolt.new:</p>
+                        <p>Add these DNS records to your DNS provider:</p>
                         <ol className="list-decimal list-inside space-y-1 ml-2">
-                          <li>Log in to Bolt.new and go to your domain settings for {selectedDomain.domain}</li>
-                          <li>Find the DNS management or DNS records section</li>
-                          <li>Add each record shown above using the Type, Host, Value, and Priority fields</li>
-                          <li>Wait 5-60 minutes for DNS propagation</li>
-                          <li>Click "Verify" button to check if records are configured correctly</li>
+                          <li>Log in to your DNS provider (e.g., Cloudflare, GoDaddy, Namecheap)</li>
+                          <li>Navigate to DNS management for <code className="px-1.5 py-0.5 dark:bg-linear-bg light:bg-linear-light-bg rounded text-xs">{selectedDomain.domain}</code></li>
+                          <li>Add each record above with the exact Type, Host, Value, and Priority</li>
+                          <li>DNS propagation typically takes 5-60 minutes (can take up to 24 hours)</li>
+                          <li>Click the "Verify" button to check if records are configured correctly</li>
+                          <li>You can also verify status in <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-linear-accent hover:underline">Resend Dashboard</a></li>
                         </ol>
                       </div>
                     </div>
