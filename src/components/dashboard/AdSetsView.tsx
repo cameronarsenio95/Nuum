@@ -157,38 +157,49 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
   const handleUpdateAdSet = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAdSet) return;
+    if (!selectedAdSet || submitting) return;
 
-    const totalCosts = parseFloat(newAdSet.costs) || 0;
-    const performanceMetrics = {
-      ...(selectedAdSet.performance_metrics as any || {}),
-      costBreakdown: costBreakdown,
-    };
+    try {
+      setSubmitting(true);
 
-    const { error } = await supabase
-      .from('ad_sets')
-      .update({
-        name: newAdSet.name,
-        creator_id: newAdSet.creator_id,
-        platform: newAdSet.platform,
-        status: newAdSet.status,
-        revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
-        spend: totalCosts,
-        ad_creative_url: newAdSet.ad_creative_url || null,
-        spark_code: newAdSet.spark_code || null,
-        performance_metrics: performanceMetrics,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', selectedAdSet.id);
+      const totalCosts = parseFloat(newAdSet.costs) || 0;
+      const performanceMetrics = {
+        ...(selectedAdSet.performance_metrics as any || {}),
+        costBreakdown: costBreakdown,
+      };
 
-    if (error) {
-      console.error('Error updating ad set:', error);
-    } else {
-      setShowEditModal(false);
-      setSelectedAdSet(null);
-      resetForm();
-      loadAdSets();
-      loadCampaign();
+      const { error } = await supabase
+        .from('ad_sets')
+        .update({
+          name: newAdSet.name,
+          creator_id: newAdSet.creator_id,
+          platform: newAdSet.platform,
+          status: newAdSet.status,
+          revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
+          spend: totalCosts,
+          ad_creative_url: newAdSet.ad_creative_url || null,
+          spark_code: newAdSet.spark_code || null,
+          performance_metrics: performanceMetrics,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedAdSet.id);
+
+      if (error) {
+        console.error('Error updating ad set:', error);
+        toast.error('Failed to update ad set. Please try again.');
+      } else {
+        toast.success('Ad set updated successfully!');
+        setShowEditModal(false);
+        setSelectedAdSet(null);
+        resetForm();
+        await loadAdSets();
+        await loadCampaign();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -823,9 +834,10 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save
+                  {submitting ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </form>
