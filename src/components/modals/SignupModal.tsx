@@ -99,12 +99,35 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         throw new Error('No user data returned from signup');
       }
 
-      console.log('[SIGNUP] User created:', authData.user.id);
-      console.log('[SIGNUP] Waiting 1 second before checking profile...');
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       const userId = authData.user.id;
+      console.log('[SIGNUP] User created:', userId);
+
+      console.log('[SIGNUP] Waiting for user to be available in auth.users table...');
+      let userExists = false;
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      while (!userExists && attempts < maxAttempts) {
+        try {
+          const { data: authUser } = await supabase.auth.getUser();
+          if (authUser.user && authUser.user.id === userId) {
+            userExists = true;
+            console.log('[SIGNUP] User confirmed in auth.users');
+          } else {
+            attempts++;
+            console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - waiting...`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (e) {
+          attempts++;
+          console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - error checking user:`, e);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      if (!userExists) {
+        throw new Error('User creation timeout - please try again or contact support');
+      }
 
       console.log('[SIGNUP] Checking for existing profile...');
       const { data: existingProfile } = await supabase
