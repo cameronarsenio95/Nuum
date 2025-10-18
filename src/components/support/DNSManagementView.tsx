@@ -60,10 +60,7 @@ export function DNSManagementView() {
       setError(null);
       let query = supabase
         .from('email_domains')
-        .select(`
-          *,
-          workspace:workspaces(name)
-        `);
+        .select('*');
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
@@ -81,9 +78,26 @@ export function DNSManagementView() {
         setDomains([]);
         return;
       }
-      setDomains(data || []);
-      if (data && data.length > 0 && !selectedDomain) {
-        setSelectedDomain(data[0]);
+
+      // Load workspace names separately to avoid RLS issues
+      if (data && data.length > 0) {
+        const workspaceIds = [...new Set(data.map(d => d.workspace_id))];
+        const { data: workspaces } = await supabase
+          .from('workspaces')
+          .select('id, name')
+          .in('id', workspaceIds);
+
+        const workspaceMap = new Map(workspaces?.map(w => [w.id, w]) || []);
+        const domainsWithWorkspaces = data.map(d => ({
+          ...d,
+          workspace: workspaceMap.get(d.workspace_id)
+        }));
+        setDomains(domainsWithWorkspaces);
+        if (!selectedDomain) {
+          setSelectedDomain(domainsWithWorkspaces[0]);
+        }
+      } else {
+        setDomains([]);
       }
     } catch (error: any) {
       console.error('Error loading domains:', error);
