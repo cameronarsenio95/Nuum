@@ -9,10 +9,10 @@ import { SupportLogin } from './SupportLogin';
 
 export function SupportDashboard() {
   const { user, supportStaff, loading } = useSupportAuth();
-  const [currentView, setCurrentView] = useState<'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings'>('tickets');
+  const [currentView, setCurrentView] = useState<'tickets' | 'customers' | 'audit-logs' | 'settings'>('tickets');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
-  const handleViewChange = (view: 'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings') => {
+  const handleViewChange = (view: 'tickets' | 'customers' | 'audit-logs' | 'settings') => {
     setSelectedCustomerId(null);
     setCurrentView(view);
   };
@@ -35,27 +35,6 @@ export function SupportDashboard() {
   return (
     <SupportDashboardLayout currentView={currentView} onViewChange={handleViewChange}>
       {currentView === 'tickets' && <TicketsView />}
-
-      {currentView === 'search' && (
-        <>
-          {selectedCustomerId ? (
-            <CustomerDetailView
-              workspaceId={selectedCustomerId}
-              onBack={() => setSelectedCustomerId(null)}
-            />
-          ) : (
-            <>
-              <div className="mb-6">
-                <h2 className="text-2xl font-medium mb-2">Customer Search</h2>
-                <p className="dark:text-text-secondary light:text-text-light-secondary">
-                  Search and manage customer accounts, subscriptions, and settings
-                </p>
-              </div>
-              <CustomerSearch onSelectCustomer={(customer) => setSelectedCustomerId(customer.workspace.id)} />
-            </>
-          )}
-        </>
-      )}
 
       {currentView === 'customers' && (
         <>

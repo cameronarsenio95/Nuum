@@ -1,12 +1,12 @@
 import { ReactNode } from 'react';
-import { LogOut, Users, Search, FileText, Settings, Shield, MessageSquare } from 'lucide-react';
+import { LogOut, Users, FileText, Settings, Shield, MessageSquare } from 'lucide-react';
 import { useSupportAuth } from '../../contexts/SupportAuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeToggle } from '../ThemeToggle';
 
 interface SupportDashboardLayoutProps {
-  currentView: 'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings';
-  onViewChange: (view: 'tickets' | 'customers' | 'search' | 'audit-logs' | 'settings') => void;
+  currentView: 'tickets' | 'customers' | 'audit-logs' | 'settings';
+  onViewChange: (view: 'tickets' | 'customers' | 'audit-logs' | 'settings') => void;
   children: ReactNode;
 }
 
@@ -16,7 +16,6 @@ export function SupportDashboardLayout({ currentView, onViewChange, children }: 
 
   const navigation = [
     { name: 'Tickets', value: 'tickets' as const, icon: MessageSquare, permission: 'view' as const },
-    { name: 'Search', value: 'search' as const, icon: Search, permission: 'view' as const },
     { name: 'Customers', value: 'customers' as const, icon: Users, permission: 'view' as const },
     { name: 'Audit Logs', value: 'audit-logs' as const, icon: FileText, permission: 'view' as const },
     { name: 'Settings', value: 'settings' as const, icon: Settings, permission: 'admin' as const },
