@@ -73,6 +73,8 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
     setLoading(true);
     setError('');
 
+    console.log('[SIGNUP] Starting signup process for:', email);
+
     try {
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email,
@@ -85,26 +87,36 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         },
       });
 
+      console.log('[SIGNUP] Auth signup result:', { authData, signupError });
+
       if (signupError) {
-        console.error('Signup error:', signupError);
+        console.error('[SIGNUP] Signup error:', signupError);
         throw signupError;
       }
 
       if (!authData.user) {
+        console.error('[SIGNUP] No user data returned');
         throw new Error('No user data returned from signup');
       }
+
+      console.log('[SIGNUP] User created:', authData.user.id);
+      console.log('[SIGNUP] Waiting 1 second before checking profile...');
 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const userId = authData.user.id;
 
+      console.log('[SIGNUP] Checking for existing profile...');
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', userId)
         .maybeSingle();
 
+      console.log('[SIGNUP] Existing profile check:', existingProfile);
+
       if (!existingProfile) {
+        console.log('[SIGNUP] Creating profile...');
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -117,12 +129,15 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
           });
 
         if (profileError) {
-          console.error('Profile creation error:', profileError);
+          console.error('[SIGNUP] Profile creation error:', profileError);
           throw new Error('Failed to create user profile. Please contact support.');
         }
 
+        console.log('[SIGNUP] Profile created successfully');
+
         const workspaceSlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + userId.substring(0, 8);
 
+        console.log('[SIGNUP] Creating workspace with slug:', workspaceSlug);
         const { data: newWorkspace, error: workspaceError } = await supabase
           .from('workspaces')
           .insert({
@@ -138,11 +153,14 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
           .single();
 
         if (workspaceError) {
-          console.error('Workspace creation error:', workspaceError);
+          console.error('[SIGNUP] Workspace creation error:', workspaceError);
           throw new Error('Failed to create workspace. Please contact support.');
         }
 
+        console.log('[SIGNUP] Workspace created:', newWorkspace?.id);
+
         if (newWorkspace) {
+          console.log('[SIGNUP] Adding user to workspace...');
           const { error: memberError } = await supabase
             .from('workspace_members')
             .insert({
@@ -153,11 +171,17 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             });
 
           if (memberError) {
-            console.error('Workspace member creation error:', memberError);
+            console.error('[SIGNUP] Workspace member creation error:', memberError);
             throw new Error('Failed to add you to workspace. Please contact support.');
           }
+
+          console.log('[SIGNUP] User added to workspace successfully');
         }
+      } else {
+        console.log('[SIGNUP] Profile already exists, skipping creation');
       }
+
+      console.log('[SIGNUP] Signup completed successfully!');
 
       setSuccess(true);
       setTimeout(() => {
