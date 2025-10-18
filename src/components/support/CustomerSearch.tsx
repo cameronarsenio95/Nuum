@@ -32,15 +32,93 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
   });
 
   useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  useEffect(() => {
     if (searchQuery.length >= 2) {
       const timeoutId = setTimeout(() => {
         searchCustomers();
       }, 300);
       return () => clearTimeout(timeoutId);
-    } else {
-      setResults([]);
+    } else if (searchQuery.length === 0) {
+      loadCustomers();
     }
   }, [searchQuery, filters]);
+
+  const loadCustomers = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('workspaces')
+        .select('*')
+        .order('name', { ascending: true })
+        .limit(50);
+
+      if (filters.plan !== 'all') {
+        query = query.eq('plan', filters.plan);
+      }
+      if (filters.subscriptionStatus !== 'all') {
+        query = query.eq('subscription_status', filters.subscriptionStatus);
+      }
+
+      const { data: workspaces, error: workspaceError } = await query;
+
+      if (workspaceError) throw workspaceError;
+
+      if (!workspaces || workspaces.length === 0) {
+        setResults([]);
+        return;
+      }
+
+      const customerResults: CustomerResult[] = [];
+
+      for (const workspace of workspaces) {
+        const { data: ownerData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', workspace.owner_id)
+          .maybeSingle();
+
+        const { data: userData } = await supabase.auth.admin.getUserById(workspace.owner_id);
+
+        const { count: creatorCount } = await supabase
+          .from('creators')
+          .select('*', { count: 'exact', head: true })
+          .eq('workspace_id', workspace.id);
+
+        const { count: campaignCount } = await supabase
+          .from('campaigns')
+          .select('*', { count: 'exact', head: true })
+          .eq('workspace_id', workspace.id);
+
+        const { count: teamMemberCount } = await supabase
+          .from('workspace_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('workspace_id', workspace.id);
+
+        customerResults.push({
+          workspace,
+          owner: ownerData || {} as Profile,
+          ownerEmail: userData?.user?.email || 'No email',
+          creatorCount: creatorCount || 0,
+          campaignCount: campaignCount || 0,
+          teamMemberCount: (teamMemberCount || 0) + 1,
+        });
+      }
+
+      setResults(customerResults);
+
+      await logAction('view_customer', 'workspace', '', {
+        actionDetails: { results_count: customerResults.length },
+      });
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const searchCustomers = async () => {
     setLoading(true);
@@ -49,8 +127,8 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
         .from('workspaces')
         .select('*')
         .or(`name.ilike.%${searchQuery}%,slug.ilike.%${searchQuery}%`)
-        .order('created_at', { ascending: false })
-        .limit(20);
+        .order('name', { ascending: true })
+        .limit(50);
 
       if (filters.plan !== 'all') {
         query = query.eq('plan', filters.plan);
@@ -225,11 +303,13 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
         </div>
       )}
 
-      {!loading && searchQuery.length >= 2 && results.length === 0 && (
+      {!loading && results.length === 0 && (
         <div className="text-center py-12 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear">
           <AlertCircle className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No customers found</h3>
-          <p className="dark:text-text-secondary light:text-text-light-secondary">Try adjusting your search or filters</p>
+          <p className="dark:text-text-secondary light:text-text-light-secondary">
+            {searchQuery.length >= 2 ? 'Try adjusting your search or filters' : 'No workspaces available'}
+          </p>
         </div>
       )}
 
