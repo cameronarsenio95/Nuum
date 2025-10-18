@@ -216,7 +216,7 @@ export interface Database {
           creator_id: string
           name: string
           description: string | null
-          platform: 'META' | 'TikTok' | 'Google' | 'YouTube' | 'Other'
+          platform: 'META' | 'TikTok' | 'Google' | 'Snapchat' | 'Other'
           status: 'active' | 'paused' | 'completed' | 'draft'
           budget: number | null
           revenue: number
@@ -237,7 +237,7 @@ export interface Database {
           creator_id: string
           name: string
           description?: string | null
-          platform: 'META' | 'TikTok' | 'Google' | 'YouTube' | 'Other'
+          platform: 'META' | 'TikTok' | 'Google' | 'Snapchat' | 'Other'
           status?: 'active' | 'paused' | 'completed' | 'draft'
           budget?: number | null
           revenue?: number
