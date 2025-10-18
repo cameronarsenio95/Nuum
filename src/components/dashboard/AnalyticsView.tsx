@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Target, BarChart3, Download } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import CampaignDetailModal from './CampaignDetailModal';
+import CreatorDetailModal from './CreatorDetailModal';
 
 interface AnalyticsSummary {
   total_campaigns: number;
@@ -62,6 +64,12 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
   const [campaigns, setCampaigns] = useState<CampaignPerformance[]>([]);
   const [topCreators, setTopCreators] = useState<CreatorPerformance[]>([]);
   const [platformData, setPlatformData] = useState<PlatformPerformance[]>([]);
+
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [selectedCreatorId, setSelectedCreatorId] = useState<string | null>(null);
+  const [campaignDetails, setCampaignDetails] = useState<any>(null);
+  const [creatorDetails, setCreatorDetails] = useState<any>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   const getDateRangeFilter = (range: DateRange) => {
     if (range === 'all') return { start: null, end: null };
@@ -262,6 +270,131 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
     }
   };
 
+  async function loadCampaignDetails(campaignId: string) {
+    try {
+      setDetailsLoading(true);
+
+      const { data: campaignData, error: campaignError } = await supabase
+        .from('campaign_performance_summary')
+        .select('*')
+        .eq('id', campaignId)
+        .single();
+
+      if (campaignError) throw campaignError;
+
+      const { data: adSetsData, error: adSetsError } = await supabase
+        .from('ad_sets')
+        .select('*')
+        .eq('campaign_id', campaignId);
+
+      if (adSetsError) throw adSetsError;
+
+      setCampaignDetails({
+        campaign: campaignData,
+        adSets: adSetsData || []
+      });
+    } catch (error) {
+      console.error('Error loading campaign details:', error);
+    } finally {
+      setDetailsLoading(false);
+    }
+  }
+
+  async function loadCreatorDetails(creatorId: string, creatorIndex: number) {
+    try {
+      setDetailsLoading(true);
+
+      const { data: creatorData, error: creatorError } = await supabase
+        .from('creators')
+        .select('*')
+        .eq('id', creatorId)
+        .single();
+
+      if (creatorError) throw creatorError;
+
+      const { data: adSetsData, error: adSetsError } = await supabase
+        .from('ad_sets')
+        .select('*, campaign:campaigns(id, name, status)')
+        .eq('creator_id', creatorId);
+
+      if (adSetsError) throw adSetsError;
+
+      const campaignMetrics = (adSetsData || []).reduce((acc: any[], adSet: any) => {
+        const campaignId = adSet.campaign?.id;
+        if (!campaignId) return acc;
+
+        let existing = acc.find(c => c.campaign_id === campaignId);
+        if (!existing) {
+          existing = {
+            campaign_id: campaignId,
+            campaign_name: adSet.campaign.name,
+            campaign_status: adSet.campaign.status,
+            revenue: 0,
+            spend: 0,
+            conversions: 0,
+            roi: 0
+          };
+          acc.push(existing);
+        }
+
+        existing.revenue += Number(adSet.revenue) || 0;
+        existing.spend += Number(adSet.spend) || 0;
+        existing.conversions += Number(adSet.conversions) || 0;
+
+        return acc;
+      }, []);
+
+      campaignMetrics.forEach((c: any) => {
+        c.roi = c.spend > 0 ? ((c.revenue - c.spend) / c.spend) * 100 : 0;
+      });
+
+      const creatorPerformance = topCreators.find(c => c.creator_id === creatorId);
+
+      setCreatorDetails({
+        creator: {
+          ...creatorPerformance,
+          email: creatorData.email,
+          phone: creatorData.phone,
+          instagram_handle: creatorData.instagram_handle,
+          tiktok_handle: creatorData.tiktok_handle,
+          snapchat_handle: creatorData.snapchat_handle,
+          discount_code: creatorData.discount_code,
+          tags: creatorData.tags,
+          notes: creatorData.notes,
+          status: creatorData.status,
+          follower_count: creatorData.follower_count,
+          engagement_rate: creatorData.engagement_rate
+        },
+        campaigns: campaignMetrics,
+        rank: creatorIndex + 1
+      });
+    } catch (error) {
+      console.error('Error loading creator details:', error);
+    } finally {
+      setDetailsLoading(false);
+    }
+  }
+
+  function handleCampaignClick(campaignId: string) {
+    setSelectedCampaignId(campaignId);
+    loadCampaignDetails(campaignId);
+  }
+
+  function handleCreatorClick(creatorId: string, index: number) {
+    setSelectedCreatorId(creatorId);
+    loadCreatorDetails(creatorId, index);
+  }
+
+  function closeCampaignModal() {
+    setSelectedCampaignId(null);
+    setCampaignDetails(null);
+  }
+
+  function closeCreatorModal() {
+    setSelectedCreatorId(null);
+    setCreatorDetails(null);
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -412,7 +545,8 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
               {campaigns.slice(0, 5).map((campaign) => (
                 <div
                   key={campaign.id}
-                  className="p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
+                  onClick={() => handleCampaignClick(campaign.id)}
+                  className="p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
@@ -454,7 +588,8 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
               {topCreators.slice(0, 5).map((creator, index) => (
                 <div
                   key={creator.creator_id}
-                  className="p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition relative"
+                  onClick={() => handleCreatorClick(creator.creator_id, index)}
+                  className="p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition relative cursor-pointer"
                 >
                   <div className="absolute top-3 right-3 w-6 h-6 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-full flex items-center justify-center text-xs font-medium text-linear-warning border border-linear-warning-border">
                     #{index + 1}
@@ -521,6 +656,23 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
             ))}
           </div>
         </div>
+      )}
+
+      {selectedCampaignId && campaignDetails && !detailsLoading && (
+        <CampaignDetailModal
+          campaign={campaignDetails.campaign}
+          adSets={campaignDetails.adSets}
+          onClose={closeCampaignModal}
+        />
+      )}
+
+      {selectedCreatorId && creatorDetails && !detailsLoading && (
+        <CreatorDetailModal
+          creator={creatorDetails.creator}
+          campaigns={creatorDetails.campaigns}
+          rank={creatorDetails.rank}
+          onClose={closeCreatorModal}
+        />
       )}
     </div>
   );
