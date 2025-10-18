@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import type { Database } from '../../lib/database.types';
+import { CostBreakdownModal, type CostBreakdown } from './CostBreakdownModal';
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
@@ -33,13 +34,22 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
   const [filterPlatform, setFilterPlatform] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCostBreakdownModal, setShowCostBreakdownModal] = useState(false);
+  const [costBreakdown, setCostBreakdown] = useState<CostBreakdown>({
+    fee: 0,
+    items: 0,
+    advertisement: 0,
+    shipping: 0,
+    production: 0,
+    other: 0,
+  });
   const [newAdSet, setNewAdSet] = useState({
     name: '',
     creator_id: '',
     platform: 'META' as 'META' | 'TikTok' | 'Google' | 'Snapchat' | 'Other',
     status: 'draft' as 'active' | 'paused' | 'completed' | 'draft',
     revenue: '',
-    spend: '',
+    costs: '',
     ad_creative_url: '',
     spark_code: '',
   });
@@ -98,6 +108,11 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
     e.preventDefault();
     if (!user) return;
 
+    const totalCosts = parseFloat(newAdSet.costs) || 0;
+    const performanceMetrics = {
+      costBreakdown: costBreakdown,
+    };
+
     const { error } = await supabase.from('ad_sets').insert({
       campaign_id: campaign.id,
       creator_id: newAdSet.creator_id,
@@ -105,9 +120,10 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       platform: newAdSet.platform,
       status: newAdSet.status,
       revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
-      spend: newAdSet.spend ? parseFloat(newAdSet.spend) : 0,
+      spend: totalCosts,
       ad_creative_url: newAdSet.ad_creative_url || null,
       spark_code: newAdSet.spark_code || null,
+      performance_metrics: performanceMetrics,
     });
 
     if (error) {
@@ -125,6 +141,12 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
     e.preventDefault();
     if (!selectedAdSet) return;
 
+    const totalCosts = parseFloat(newAdSet.costs) || 0;
+    const performanceMetrics = {
+      ...(selectedAdSet.performance_metrics as any || {}),
+      costBreakdown: costBreakdown,
+    };
+
     const { error } = await supabase
       .from('ad_sets')
       .update({
@@ -133,9 +155,10 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         platform: newAdSet.platform,
         status: newAdSet.status,
         revenue: newAdSet.revenue ? parseFloat(newAdSet.revenue) : 0,
-        spend: newAdSet.spend ? parseFloat(newAdSet.spend) : 0,
+        spend: totalCosts,
         ad_creative_url: newAdSet.ad_creative_url || null,
         spark_code: newAdSet.spark_code || null,
+        performance_metrics: performanceMetrics,
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAdSet.id);
@@ -171,13 +194,30 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
 
   const openEditModal = (adSet: AdSet) => {
     setSelectedAdSet(adSet);
+
+    const metrics = adSet.performance_metrics as any;
+    const savedBreakdown = metrics?.costBreakdown;
+
+    if (savedBreakdown) {
+      setCostBreakdown(savedBreakdown);
+    } else {
+      setCostBreakdown({
+        fee: 0,
+        items: 0,
+        advertisement: 0,
+        shipping: 0,
+        production: 0,
+        other: 0,
+      });
+    }
+
     setNewAdSet({
       name: adSet.name,
       creator_id: adSet.creator_id,
       platform: adSet.platform,
       status: adSet.status,
       revenue: adSet.revenue?.toString() || '',
-      spend: adSet.spend?.toString() || '',
+      costs: adSet.spend?.toString() || '',
       ad_creative_url: adSet.ad_creative_url || '',
       spark_code: adSet.spark_code || '',
     });
@@ -196,9 +236,17 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       platform: 'META',
       status: 'draft',
       revenue: '',
-      spend: '',
+      costs: '',
       ad_creative_url: '',
       spark_code: '',
+    });
+    setCostBreakdown({
+      fee: 0,
+      items: 0,
+      advertisement: 0,
+      shipping: 0,
+      production: 0,
+      other: 0,
     });
   };
 
@@ -289,7 +337,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
           <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Spend</span>
+              <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Costs</span>
             </div>
             <p className="text-2xl font-medium">${(currentCampaign.total_spend || 0).toLocaleString()}</p>
           </div>
@@ -413,7 +461,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
                   <span className="font-medium text-linear-success">${adSet.revenue.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="dark:text-text-tertiary light:text-text-light-tertiary">Spend</span>
+                  <span className="dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
                   <span className="font-medium">${adSet.spend.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -555,15 +603,18 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Spend</label>
-                  <input
-                    type="number"
-                    value={newAdSet.spend}
-                    onChange={(e) => setNewAdSet({ ...newAdSet, spend: e.target.value })}
-                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                    placeholder="0.00"
-                    step="0.01"
-                  />
+                  <label className="block text-sm font-medium mb-2">Costs</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCostBreakdownModal(true)}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:border-linear-accent focus:outline-none focus:border-linear-accent linear-transition text-left flex items-center justify-between group"
+                  >
+                    <span className={newAdSet.costs ? 'dark:text-text-primary light:text-text-light-primary' : 'dark:text-text-tertiary light:text-text-light-tertiary'}>
+                      {newAdSet.costs ? `$${parseFloat(newAdSet.costs).toFixed(2)}` : 'Enter costs breakdown'}
+                    </span>
+                    <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary group-hover:text-linear-accent linear-transition" />
+                  </button>
+                  <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Click to add detailed costs</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Revenue</label>
@@ -684,15 +735,18 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Spend</label>
-                  <input
-                    type="number"
-                    value={newAdSet.spend}
-                    onChange={(e) => setNewAdSet({ ...newAdSet, spend: e.target.value })}
-                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                    placeholder="0.00"
-                    step="0.01"
-                  />
+                  <label className="block text-sm font-medium mb-2">Costs</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCostBreakdownModal(true)}
+                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear hover:border-linear-accent focus:outline-none focus:border-linear-accent linear-transition text-left flex items-center justify-between group"
+                  >
+                    <span className={newAdSet.costs ? 'dark:text-text-primary light:text-text-light-primary' : 'dark:text-text-tertiary light:text-text-light-tertiary'}>
+                      {newAdSet.costs ? `$${parseFloat(newAdSet.costs).toFixed(2)}` : 'Enter costs breakdown'}
+                    </span>
+                    <DollarSign className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary group-hover:text-linear-accent linear-transition" />
+                  </button>
+                  <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-1">Click to add detailed costs</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Revenue</label>
@@ -758,6 +812,17 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
           </div>
         </div>
       )}
+
+      <CostBreakdownModal
+        isOpen={showCostBreakdownModal}
+        onClose={() => setShowCostBreakdownModal(false)}
+        onSave={(breakdown, total) => {
+          setCostBreakdown(breakdown);
+          setNewAdSet({ ...newAdSet, costs: total.toString() });
+        }}
+        initialBreakdown={costBreakdown}
+        initialTotal={parseFloat(newAdSet.costs) || 0}
+      />
     </div>
   );
 }
