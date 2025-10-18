@@ -48,8 +48,6 @@ export function CustomerDetailView({ workspaceId, onBack }: CustomerDetailViewPr
         .eq('id', workspace.owner_id)
         .maybeSingle();
 
-      const { data: userData } = await supabase.auth.admin.getUserById(workspace.owner_id);
-
       const { data: notes } = await supabase
         .from('support_workspace_notes')
         .select('*')
@@ -57,10 +55,12 @@ export function CustomerDetailView({ workspaceId, onBack }: CustomerDetailViewPr
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
 
+      const ownerEmail = owner?.email || 'No email';
+
       setData({
         workspace,
         owner: owner || {} as Profile,
-        ownerEmail: userData?.user?.email || 'No email',
+        ownerEmail,
         notes: notes || [],
       });
 
@@ -74,7 +74,7 @@ export function CustomerDetailView({ workspaceId, onBack }: CustomerDetailViewPr
       });
 
       await logAction('view_workspace', 'workspace', workspaceId, {
-        customerEmail: userData?.user?.email,
+        customerEmail: ownerEmail,
         workspaceId: workspace.id,
         workspaceName: workspace.name,
       });

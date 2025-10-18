@@ -80,7 +80,6 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
           .eq('id', workspace.owner_id)
           .maybeSingle();
 
-        const { data: userData } = await supabase.auth.admin.getUserById(workspace.owner_id);
 
         const { count: creatorCount } = await supabase
           .from('creators')
@@ -100,7 +99,7 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
         customerResults.push({
           workspace,
           owner: ownerData || {} as Profile,
-          ownerEmail: userData?.user?.email || 'No email',
+          ownerEmail: ownerData?.email || 'No email',
           creatorCount: creatorCount || 0,
           campaignCount: campaignCount || 0,
           teamMemberCount: (teamMemberCount || 0) + 1,
@@ -155,7 +154,6 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
           .eq('id', workspace.owner_id)
           .maybeSingle();
 
-        const { data: userData } = await supabase.auth.admin.getUserById(workspace.owner_id);
 
         const { count: creatorCount } = await supabase
           .from('creators')
@@ -175,7 +173,7 @@ export function CustomerSearch({ onSelectCustomer }: CustomerSearchProps) {
         customerResults.push({
           workspace,
           owner: ownerData || {} as Profile,
-          ownerEmail: userData?.user?.email || 'No email',
+          ownerEmail: ownerData?.email || 'No email',
           creatorCount: creatorCount || 0,
           campaignCount: campaignCount || 0,
           teamMemberCount: (teamMemberCount || 0) + 1,
