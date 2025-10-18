@@ -41,6 +41,7 @@ export function DNSManagementView() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showAddDomainModal, setShowAddDomainModal] = useState(false);
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export function DNSManagementView() {
   const loadDomains = async () => {
     try {
       setLoading(true);
+      setError(null);
       let query = supabase
         .from('email_domains')
         .select(`
@@ -69,14 +71,24 @@ export function DNSManagementView() {
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading domains:', error);
+        if (error.code === '42P01') {
+          setError('Database tables not found. Please apply migrations first.');
+        } else {
+          setError(`Failed to load domains: ${error.message}`);
+        }
+        setDomains([]);
+        return;
+      }
       setDomains(data || []);
       if (data && data.length > 0 && !selectedDomain) {
         setSelectedDomain(data[0]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading domains:', error);
-      showToast('Failed to load domains', 'error');
+      setError(`Failed to load domains: ${error.message || 'Unknown error'}`);
+      setDomains([]);
     } finally {
       setLoading(false);
     }
@@ -234,6 +246,35 @@ export function DNSManagementView() {
         <div className="text-center">
           <div className="inline-block w-8 h-8 border-2 border-linear-accent border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 dark:text-text-secondary light:text-text-light-secondary">Loading DNS records...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center max-w-md">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 mb-4">
+            <AlertCircle className="w-8 h-8 text-red-500" />
+          </div>
+          <h3 className="text-xl font-medium mb-2">Unable to Load DNS Management</h3>
+          <p className="dark:text-text-secondary light:text-text-light-secondary mb-4">{error}</p>
+          <div className="space-y-2 text-sm dark:text-text-tertiary light:text-text-light-tertiary text-left bg-red-500/5 border border-red-500/20 rounded-linear p-4">
+            <p className="font-medium text-red-500">Possible Solutions:</p>
+            <ol className="list-decimal list-inside space-y-1 ml-2">
+              <li>Ensure database migrations have been applied</li>
+              <li>Check that the email_domains and dns_records tables exist</li>
+              <li>Verify your database connection in Supabase</li>
+              <li>Check the browser console for detailed error messages</li>
+            </ol>
+          </div>
+          <button
+            onClick={() => loadDomains()}
+            className="mt-4 px-4 py-2 bg-linear-accent hover:bg-linear-accent-hover text-white rounded-linear linear-transition"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
