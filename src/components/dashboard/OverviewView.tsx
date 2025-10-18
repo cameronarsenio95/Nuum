@@ -87,7 +87,7 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
         totalCosts,
         totalRevenue,
       }));
-      setRecentCampaigns(campaigns.slice(0, 5));
+      setRecentCampaigns(campaigns.slice(0, 3));
     }
 
     if (creatorsData.data) {
@@ -130,7 +130,7 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
         tasksCompleted: completed,
         tasksPending: pending,
       }));
-      setRecentTasks(tasks.slice(0, 5));
+      setRecentTasks(tasks.slice(0, 3));
     }
 
     setLoading(false);
