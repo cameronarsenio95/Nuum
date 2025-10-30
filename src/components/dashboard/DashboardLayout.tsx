@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X, BarChart3, ShoppingBag } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X, BarChart3, ShoppingBag, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -74,6 +74,11 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
     { name: 'Team', value: 'team' as const, icon: SettingsIcon },
   ];
 
+  const isNavigationDisabled = (itemValue: string) => {
+    if (!freeAccountInfo.isFrozen) return false;
+    return !['billing', 'settings', 'contact'].includes(itemValue);
+  };
+
   return (
     <div className="min-h-screen dark:dark:bg-linear-bg light:bg-linear-light-bg light:bg-linear-light-bg">
       <button
@@ -109,23 +114,34 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentView === item.value;
+                const isDisabled = isNavigationDisabled(item.value);
                 return (
-                  <li key={item.value}>
+                  <li key={item.value} className="relative group">
                     <button
                       type="button"
                       onClick={() => {
-                        onViewChange(item.value);
-                        setIsMobileMenuOpen(false);
+                        if (!isDisabled) {
+                          onViewChange(item.value);
+                          setIsMobileMenuOpen(false);
+                        }
                       }}
+                      disabled={isDisabled}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                        isActive
+                        isDisabled
+                          ? 'dark:text-text-tertiary light:text-text-light-tertiary opacity-40 cursor-not-allowed'
+                          : isActive
                           ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
                           : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
+                      {isDisabled ? <Lock className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                       {item.name}
                     </button>
+                    {isDisabled && (
+                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-500 text-white text-xs rounded-linear whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none linear-transition z-50 shadow-lg">
+                        Upgrade required to access
+                      </div>
+                    )}
                   </li>
                 );
               })}
@@ -174,13 +190,22 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
                 setIsMobileMenuOpen(false);
               }}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                currentView === 'billing'
+                freeAccountInfo.isFrozen
+                  ? currentView === 'billing'
+                    ? 'dark:bg-red-500/20 dark:text-red-400 light:bg-red-500/20 light:text-red-400 border border-red-500/30'
+                    : 'dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/10 light:text-red-400 light:hover:text-red-300 light:hover:bg-red-500/10 border border-red-500/20'
+                  : currentView === 'billing'
                   ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
                   : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
               }`}
             >
               <CreditCard className="w-4 h-4" />
               Billing
+              {freeAccountInfo.isFrozen && (
+                <span className="ml-auto text-xs px-2 py-0.5 bg-red-500 text-white rounded-full animate-pulse">
+                  Action Required
+                </span>
+              )}
             </button>
             <button
               type="button"

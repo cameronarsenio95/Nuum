@@ -32,12 +32,31 @@ function DashboardContent() {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFrozenModal, setShowFrozenModal] = useState(false);
+  const [isFrozenAccount, setIsFrozenAccount] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadWorkspace();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (workspace) {
+      const isFreePlan = workspace.plan === 'free';
+      const isFrozen = workspace.subscription_status === 'frozen';
+      setIsFrozenAccount(isFrozen);
+
+      if (isFrozen && !['billing', 'settings', 'contact'].includes(currentView)) {
+        setCurrentView('billing');
+      }
+    }
+  }, [workspace]);
+
+  useEffect(() => {
+    if (isFrozenAccount && !['billing', 'settings', 'contact'].includes(currentView)) {
+      setCurrentView('billing');
+    }
+  }, [currentView, isFrozenAccount]);
 
   useEffect(() => {
     handleShopifyCallback();
@@ -166,6 +185,10 @@ function DashboardContent() {
   }
 
   const handleCampaignClick = (campaign: Campaign) => {
+    if (isFrozenAccount) {
+      setCurrentView('billing');
+      return;
+    }
     setSelectedCampaign(campaign);
     setCurrentView('ad-sets');
   };
