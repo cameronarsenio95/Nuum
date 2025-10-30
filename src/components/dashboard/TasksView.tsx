@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Calendar, Edit2, Trash2, X, User, Check, Circle, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useWritePermission } from '../../hooks/useWritePermission';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -20,6 +21,7 @@ interface TasksViewProps {
 
 export function TasksView({ workspace }: TasksViewProps) {
   const { user } = useAuth();
+  const { checkWritePermission } = useWritePermission();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [teamMembers, setTeamMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,6 +83,11 @@ export function TasksView({ workspace }: TasksViewProps) {
     e.preventDefault();
     if (!user) return;
 
+    if (!checkWritePermission('create tasks')) {
+      setShowCreateModal(false);
+      return;
+    }
+
     const { error } = await supabase.from('tasks').insert({
       workspace_id: workspace.id,
       title: newTask.title,
@@ -104,6 +111,11 @@ export function TasksView({ workspace }: TasksViewProps) {
   const handleUpdateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTask) return;
+
+    if (!checkWritePermission('update tasks')) {
+      setShowEditModal(false);
+      return;
+    }
 
     const { error } = await supabase
       .from('tasks')

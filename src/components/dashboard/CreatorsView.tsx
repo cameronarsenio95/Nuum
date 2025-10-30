@@ -3,6 +3,7 @@ import { Plus, Instagram, Mail, Phone, Tag, Edit2, Trash2, X, Link2, User, Lock,
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
+import { useWritePermission } from '../../hooks/useWritePermission';
 import { UpgradeModal } from '../modals/UpgradeModal';
 import type { Database } from '../../lib/database.types';
 import { CreatorFormModal, CreatorDetailModal, AddToCampaignModal } from './CreatorsView-modals';
@@ -18,7 +19,8 @@ interface CreatorsViewProps {
 
 export function CreatorsView({ workspace }: CreatorsViewProps) {
   const { user } = useAuth();
-  const { canCreateCreator, limits, usage, getCreatorUsagePercent, refreshUsage } = usePlanLimits();
+  const { limits, usage, getCreatorUsagePercent, refreshUsage } = usePlanLimits();
+  const { canWrite, canCreateCreator, checkWritePermission } = useWritePermission();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [creatorRevenues, setCreatorRevenues] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -158,6 +160,12 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
   const handleUpdateCreator = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCreator) return;
+
+    if (!checkWritePermission('update creators')) {
+      setShowEditModal(false);
+      setShowUpgradeModal(true);
+      return;
+    }
 
     const { error } = await supabase
       .from('creators')
@@ -372,8 +380,18 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
           <h3 className="text-lg font-medium mb-2">No creators yet</h3>
           <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">Add your first creator to start building your database</p>
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
+            onClick={() => {
+              if (canCreateCreator()) {
+                setShowCreateModal(true);
+              } else {
+                setShowUpgradeModal(true);
+              }
+            }}
+            className={`px-4 py-2 rounded-linear linear-transition ${
+              canCreateCreator()
+                ? 'bg-white hover:bg-gray-100 text-black'
+                : 'dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-tertiary light:text-text-light-tertiary cursor-not-allowed'
+            }`}
           >
             Add Creator
           </button>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Target, Edit2, Trash2, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useWritePermission } from '../../hooks/useWritePermission';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -15,6 +16,7 @@ interface CampaignsViewProps {
 
 export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps) {
   const { user } = useAuth();
+  const { checkWritePermission } = useWritePermission();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,11 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
     e.preventDefault();
     if (!user) return;
 
+    if (!checkWritePermission('create campaigns')) {
+      setShowCreateModal(false);
+      return;
+    }
+
     const { data: campaign, error } = await supabase.from('campaigns').insert({
       workspace_id: workspace.id,
       name: newCampaign.name,
@@ -104,6 +111,11 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
   const handleUpdateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCampaign) return;
+
+    if (!checkWritePermission('update campaigns')) {
+      setShowEditModal(false);
+      return;
+    }
 
     const { error } = await supabase
       .from('campaigns')

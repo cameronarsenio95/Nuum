@@ -193,7 +193,7 @@ async function syncCustomerFromStripe(customerId: string) {
         .maybeSingle();
 
       if (workspace) {
-        await supabase.rpc('unfreeze_account', { workspace_id_input: workspace.id });
+        await supabase.rpc('unfreeze_workspace_on_upgrade', { workspace_id_input: workspace.id });
         console.info(`Unfroze account for workspace: ${workspace.id}`);
       }
     }
