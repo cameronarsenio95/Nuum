@@ -43,7 +43,7 @@ function DashboardContent() {
   useEffect(() => {
     if (workspace) {
       const isFreePlan = workspace.plan === 'free';
-      const isFrozen = workspace.subscription_status === 'frozen';
+      const isFrozen = isFreePlan && workspace.subscription_status === 'frozen';
       setIsFrozenAccount(isFrozen);
 
       if (isFrozen && !['billing', 'settings', 'contact'].includes(currentView)) {
