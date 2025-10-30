@@ -27,8 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       (async () => {
+        console.log('[AuthContext] Auth state change:', _event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
+
+        if (_event === 'SIGNED_IN' && session?.user) {
+          console.log('[AuthContext] User signed in via OAuth:', session.user.id);
+        }
+
+        if (_event === 'SIGNED_OUT') {
+          console.log('[AuthContext] User signed out');
+        }
       })();
     });
 

@@ -25,7 +25,8 @@ import { PricingPage } from './pages/PricingPage';
 import { ResourcesPage } from './pages/ResourcesPage';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
-type Page = 'landing' | 'how-it-works' | 'pricing' | 'resources' | 'login' | 'support' | 'privacy' | 'terms';
+import { AuthCallback } from './pages/AuthCallback';
+type Page = 'landing' | 'how-it-works' | 'pricing' | 'resources' | 'login' | 'support' | 'privacy' | 'terms' | 'auth-callback';
 
 function LandingPage({
   onLoginClick,
@@ -136,8 +137,12 @@ function LandingPage({
 function AppContent() {
   const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>(() => {
-    if (window.location.pathname === '/support') {
+    const path = window.location.pathname;
+    if (path === '/support') {
       return 'support';
+    }
+    if (path === '/auth/callback') {
+      return 'auth-callback';
     }
     return 'landing';
   });
@@ -146,8 +151,11 @@ function AppContent() {
 
   useEffect(() => {
     const handlePopState = () => {
-      if (window.location.pathname === '/support') {
+      const path = window.location.pathname;
+      if (path === '/support') {
         setCurrentPage('support');
+      } else if (path === '/auth/callback') {
+        setCurrentPage('auth-callback');
       }
     };
 
@@ -164,6 +172,10 @@ function AppContent() {
 
   if (currentPage === 'support') {
     return <SupportDashboard />;
+  }
+
+  if (currentPage === 'auth-callback') {
+    return <AuthCallback />;
   }
 
   if (loading) {

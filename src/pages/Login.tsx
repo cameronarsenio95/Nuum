@@ -21,17 +21,39 @@ export function Login({ onClose }: LoginProps = {}) {
     setLoading(true);
     setError('');
 
+    console.log('[Login] Starting OAuth flow with provider:', provider);
+
     try {
-      const { error: signInError } = await supabase.auth.signInWithOAuth({
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      console.log('[Login] Redirect URL:', redirectUrl);
+
+      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: false,
         },
       });
 
-      if (signInError) throw signInError;
+      if (signInError) {
+        console.error('[Login] OAuth error:', signInError);
+        throw signInError;
+      }
+
+      console.log('[Login] OAuth initiated, redirecting to provider...');
     } catch (err: any) {
-      setError(err.message || 'Social login failed. Please try again.');
+      console.error('[Login] OAuth exception:', err);
+      let errorMessage = 'Social login failed. Please try again.';
+
+      if (err.message?.includes('not enabled')) {
+        errorMessage = 'This login method is not configured. Please use email/password or contact support.';
+      } else if (err.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
       setLoading(false);
     }
   };
