@@ -241,7 +241,6 @@ function FrozenAccountChecker({
   return (
     <FrozenAccountModal
       onUpgrade={onUpgrade}
-      onClose={() => onShowModal(false)}
     />
   );
 }

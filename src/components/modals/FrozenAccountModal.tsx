@@ -1,30 +1,28 @@
-import { AlertTriangle, CreditCard, X } from 'lucide-react';
+import { AlertTriangle, CreditCard } from 'lucide-react';
 
 interface FrozenAccountModalProps {
   onUpgrade: () => void;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
-export function FrozenAccountModal({ onUpgrade, onClose }: FrozenAccountModalProps) {
+export function FrozenAccountModal({ onUpgrade }: FrozenAccountModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6 z-50">
-      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-8 w-full max-w-lg">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1 hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle rounded-linear linear-transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-50 backdrop-blur-sm">
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-2 border-red-500/50 rounded-linear-lg p-8 w-full max-w-lg shadow-2xl">
 
         <div className="flex flex-col items-center text-center">
           <div className="w-16 h-16 rounded-linear bg-red-500/20 flex items-center justify-center mb-4">
             <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
 
-          <h2 className="text-2xl font-medium mb-3">Account Frozen</h2>
+          <h2 className="text-2xl font-medium mb-3 text-red-400">Account Frozen</h2>
 
-          <p className="dark:text-text-secondary light:text-text-light-secondary mb-4">
-            Your Free plan has expired after 7 days. Your account is now frozen and you cannot create or edit any data.
+          <p className="dark:text-text-secondary light:text-text-light-secondary mb-4 text-base">
+            Your Free plan has expired after 7 days. Your account is now <strong className="text-red-400">frozen</strong> and you cannot create or edit any data.
+          </p>
+
+          <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-6 bg-red-500/10 border border-red-500/20 rounded-linear p-3">
+            This modal cannot be closed. You must upgrade to Standard plan to unlock your account and continue working.
           </p>
 
           <div className="w-full p-4 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear mb-6 text-left">
