@@ -111,7 +111,7 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
     });
 
     const isFreePlan = workspace.plan === 'free';
-    const isFrozen = workspace.subscription_status === 'frozen';
+    const isFrozen = isFreePlan && workspace.subscription_status === 'frozen';
     const createdAt = new Date(workspace.created_at);
     const freeExpiresAt = new Date(createdAt);
     freeExpiresAt.setDate(freeExpiresAt.getDate() + 7);
