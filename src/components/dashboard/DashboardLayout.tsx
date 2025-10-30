@@ -5,7 +5,6 @@ import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeToggle } from '../ThemeToggle';
 import { TrialBanner } from './TrialBanner';
-import { FrozenAccountBanner } from './FrozenAccountBanner';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
 
@@ -227,11 +226,6 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
         )}
 
         <main className="flex-1 overflow-auto lg:ml-0">
-          {freeAccountInfo.isFrozen && (
-            <FrozenAccountBanner
-              onUpgradeClick={() => onViewChange('billing')}
-            />
-          )}
           <div className="p-4 md:p-8 pt-16 lg:pt-8">
             <TrialBanner
               daysRemaining={trialInfo.daysRemaining}
