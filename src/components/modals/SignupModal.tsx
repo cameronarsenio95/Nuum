@@ -175,7 +175,13 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
         if (profileError) {
           console.error('[SIGNUP] Profile creation error:', profileError);
-          throw new Error('Failed to create user profile. Please contact support.');
+          console.error('[SIGNUP] Error details:', {
+            code: profileError.code,
+            message: profileError.message,
+            details: profileError.details,
+            hint: profileError.hint
+          });
+          throw new Error(`Failed to create profile: ${profileError.message}. Please contact support.`);
         }
 
         console.log('[SIGNUP] Profile created successfully');
@@ -199,7 +205,13 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
         if (workspaceError) {
           console.error('[SIGNUP] Workspace creation error:', workspaceError);
-          throw new Error('Failed to create workspace. Please contact support.');
+          console.error('[SIGNUP] Error details:', {
+            code: workspaceError.code,
+            message: workspaceError.message,
+            details: workspaceError.details,
+            hint: workspaceError.hint
+          });
+          throw new Error(`Failed to create workspace: ${workspaceError.message}. Please contact support.`);
         }
 
         console.log('[SIGNUP] Workspace created:', newWorkspace?.id);
@@ -217,7 +229,13 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
           if (memberError) {
             console.error('[SIGNUP] Workspace member creation error:', memberError);
-            throw new Error('Failed to add you to workspace. Please contact support.');
+            console.error('[SIGNUP] Error details:', {
+              code: memberError.code,
+              message: memberError.message,
+              details: memberError.details,
+              hint: memberError.hint
+            });
+            throw new Error(`Failed to add you to workspace: ${memberError.message}. Please contact support.`);
           }
 
           console.log('[SIGNUP] User added to workspace successfully');
