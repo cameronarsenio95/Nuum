@@ -223,19 +223,28 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         const workspaceSlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + userId.substring(0, 8);
 
         console.log('[SIGNUP] Creating workspace with slug:', workspaceSlug);
+        const workspaceInsertPayload = {
+          name: companyName,
+          slug: workspaceSlug,
+          plan: 'standard',
+          owner_id: userId,
+          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          trial_started_at: new Date().toISOString(),
+          subscription_status: 'trialing',
+        };
+        console.log('[SIGNUP] Workspace insert payload:', JSON.stringify(workspaceInsertPayload, null, 2));
+
         const { data: newWorkspace, error: workspaceError } = await supabase
           .from('workspaces')
-          .insert({
-            name: companyName,
-            slug: workspaceSlug,
-            plan: 'standard',
-            owner_id: userId,
-            trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            trial_started_at: new Date().toISOString(),
-            subscription_status: 'trialing',
-          })
+          .insert(workspaceInsertPayload)
           .select()
           .single();
+
+        console.log('[SIGNUP] Workspace creation response:', {
+          data: newWorkspace,
+          error: workspaceError,
+          fullResponse: JSON.stringify({ data: newWorkspace, error: workspaceError }, null, 2)
+        });
 
         if (workspaceError) {
           console.error('[SIGNUP] Workspace creation error:', workspaceError);
@@ -271,42 +280,94 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         if (newWorkspace) {
           console.log('[SIGNUP] Workspace owner automatically added by database trigger (ensure_workspace_owner_member)');
 
-          console.log('[SIGNUP] Verifying workspace membership was created by trigger...');
-          await new Promise(resolve => setTimeout(resolve, 100));
+          console.log('[SIGNUP] Starting polling for workspace membership (5 attempts × 300ms)...');
 
-          const { data: membership, error: checkError } = await supabase
-            .from('workspace_members')
-            .select('id, role, workspace_id, user_id')
-            .eq('workspace_id', newWorkspace.id)
-            .eq('user_id', userId)
-            .maybeSingle();
+          let membership = null;
+          let membershipFound = false;
+          const maxAttempts = 5;
+          const pollDelay = 300;
 
-          if (checkError) {
-            console.error('[SIGNUP] Error verifying workspace membership:', checkError);
-            console.error('[SIGNUP] Membership check error details:', {
-              code: checkError.code,
-              message: checkError.message,
-              details: checkError.details,
-              hint: checkError.hint
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            console.log(`[SIGNUP] Polling attempt ${attempt}/${maxAttempts} for workspace_members...`);
+
+            await new Promise(resolve => setTimeout(resolve, pollDelay));
+
+            const { data, error: checkError } = await supabase
+              .from('workspace_members')
+              .select('id, role, workspace_id, user_id, created_at')
+              .eq('workspace_id', newWorkspace.id)
+              .eq('user_id', userId)
+              .maybeSingle();
+
+            console.log(`[SIGNUP] Attempt ${attempt} result:`, {
+              found: !!data,
+              data: data,
+              error: checkError,
+              fullResponse: JSON.stringify({ data, error: checkError }, null, 2)
             });
-            throw new Error('Workspace created but membership verification failed. Please try logging in, or contact support if the issue persists.');
+
+            if (checkError) {
+              console.error(`[SIGNUP] Error on attempt ${attempt}:`, checkError);
+              console.error('[SIGNUP] Membership check error details:', {
+                code: checkError.code,
+                message: checkError.message,
+                details: checkError.details,
+                hint: checkError.hint,
+                fullError: JSON.stringify(checkError, null, 2)
+              });
+
+              if (attempt === maxAttempts) {
+                throw new Error(`Workspace created but membership verification failed after ${maxAttempts} attempts. Error: ${checkError.message || checkError.code}`);
+              }
+              continue;
+            }
+
+            if (data) {
+              membership = data;
+              membershipFound = true;
+              console.log(`[SIGNUP] ✅ Membership found on attempt ${attempt}!`);
+              break;
+            }
+
+            console.log(`[SIGNUP] Membership not found on attempt ${attempt}, will retry...`);
           }
 
-          if (!membership) {
-            console.error('[SIGNUP] Membership not found after workspace creation');
+          if (!membershipFound || !membership) {
+            console.error('[SIGNUP] ❌ Membership not found after all polling attempts');
             console.error('[SIGNUP] Expected: workspace_id =', newWorkspace.id, ', user_id =', userId);
-            throw new Error('Workspace membership was not created automatically. Please contact support with error code: TRIGGER-MEMBERSHIP-MISSING');
+
+            console.log('[SIGNUP] Running SQL diagnostic query...');
+            const { data: diagnosticData, error: diagnosticError } = await supabase.rpc('exec_sql', {
+              query: `
+                SELECT wm.id, wm.workspace_id, wm.user_id, wm.role, wm.created_at,
+                       w.name as workspace_name, w.owner_id
+                FROM public.workspace_members wm
+                JOIN public.workspaces w ON w.id = wm.workspace_id
+                WHERE w.owner_id = '${userId}'
+                ORDER BY wm.created_at DESC
+                LIMIT 3;
+              `
+            });
+
+            console.log('[SIGNUP] SQL diagnostic result:', {
+              data: diagnosticData,
+              error: diagnosticError,
+              fullResult: JSON.stringify({ data: diagnosticData, error: diagnosticError }, null, 2)
+            });
+
+            throw new Error(`Workspace membership was not created by trigger after ${maxAttempts} attempts (${maxAttempts * pollDelay}ms total). Please contact support with error code: TRIGGER-MEMBERSHIP-MISSING`);
           }
 
           if (membership.role !== 'owner') {
-            console.warn('[SIGNUP] Membership role is not owner:', membership.role);
+            console.warn('[SIGNUP] ⚠️ Membership role is not owner:', membership.role);
           }
 
-          console.log('[SIGNUP] Workspace membership verified successfully:', {
+          console.log('[SIGNUP] ✅ Workspace membership verified successfully:', {
             membershipId: membership.id,
             role: membership.role,
             workspaceId: membership.workspace_id,
-            userId: membership.user_id
+            userId: membership.user_id,
+            createdAt: membership.created_at
           });
         }
       } else {
@@ -320,8 +381,23 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         onClose();
       }, 2000);
     } catch (err: any) {
+      console.error('[SIGNUP] ❌❌❌ SIGNUP FAILED ❌❌❌');
       console.error('[SIGNUP] Full signup error:', err);
+      console.error('[SIGNUP] Error type:', typeof err);
+      console.error('[SIGNUP] Error name:', err.name);
+      console.error('[SIGNUP] Error message:', err.message);
       console.error('[SIGNUP] Error stack:', err.stack);
+      console.error('[SIGNUP] Error stringified:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+
+      if (err.code) {
+        console.error('[SIGNUP] PostgreSQL Error Code:', err.code);
+      }
+      if (err.details) {
+        console.error('[SIGNUP] Error details:', err.details);
+      }
+      if (err.hint) {
+        console.error('[SIGNUP] Error hint:', err.hint);
+      }
 
       let userMessage = err.message || 'Something went wrong during signup. Please try again.';
 

@@ -83,38 +83,80 @@ export function AuthCallback() {
               const workspaceSlug = `workspace-${session.user.id.substring(0, 8)}`;
               const workspaceName = session.user.user_metadata?.company || `${fullName}'s Workspace`;
 
+              const workspacePayload = {
+                name: workspaceName,
+                slug: workspaceSlug,
+                plan: 'standard',
+                owner_id: session.user.id,
+                trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                trial_started_at: new Date().toISOString(),
+                subscription_status: 'trialing',
+              };
+
+              console.log('[OAuth] Creating workspace with payload:', JSON.stringify(workspacePayload, null, 2));
+
               const { data: newWorkspace, error: workspaceError } = await supabase
                 .from('workspaces')
-                .insert({
-                  name: workspaceName,
-                  slug: workspaceSlug,
-                  plan: 'standard',
-                  owner_id: session.user.id,
-                  trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-                  trial_started_at: new Date().toISOString(),
-                  subscription_status: 'trialing',
-                })
+                .insert(workspacePayload)
                 .select()
                 .single();
 
+              console.log('[OAuth] Workspace creation response:', {
+                data: newWorkspace,
+                error: workspaceError,
+                fullResponse: JSON.stringify({ data: newWorkspace, error: workspaceError }, null, 2)
+              });
+
               if (workspaceError) {
-                console.error('[OAuth] Workspace creation error:', workspaceError);
+                console.error('[OAuth] ❌ Workspace creation error:', workspaceError);
+                console.error('[OAuth] Error details:', JSON.stringify(workspaceError, null, 2));
               } else if (newWorkspace) {
-                console.log('[OAuth] Workspace created, owner automatically added by database trigger');
+                console.log('[OAuth] ✅ Workspace created successfully:', newWorkspace.id);
+                console.log('[OAuth] Starting polling for workspace membership (5 attempts × 300ms)...');
 
-                await new Promise(resolve => setTimeout(resolve, 100));
+                let membershipFound = false;
+                const maxAttempts = 5;
+                const pollDelay = 300;
 
-                const { data: membership } = await supabase
-                  .from('workspace_members')
-                  .select('id, role')
-                  .eq('workspace_id', newWorkspace.id)
-                  .eq('user_id', session.user.id)
-                  .maybeSingle();
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                  console.log(`[OAuth] Polling attempt ${attempt}/${maxAttempts}...`);
 
-                if (membership) {
-                  console.log('[OAuth] Workspace membership verified:', membership);
-                } else {
-                  console.error('[OAuth] Workspace membership not found after trigger');
+                  await new Promise(resolve => setTimeout(resolve, pollDelay));
+
+                  const { data: membership, error: checkError } = await supabase
+                    .from('workspace_members')
+                    .select('id, role, created_at')
+                    .eq('workspace_id', newWorkspace.id)
+                    .eq('user_id', session.user.id)
+                    .maybeSingle();
+
+                  console.log(`[OAuth] Attempt ${attempt} result:`, {
+                    found: !!membership,
+                    data: membership,
+                    error: checkError,
+                    fullResponse: JSON.stringify({ data: membership, error: checkError }, null, 2)
+                  });
+
+                  if (checkError) {
+                    console.error(`[OAuth] ❌ Error on attempt ${attempt}:`, JSON.stringify(checkError, null, 2));
+                    if (attempt === maxAttempts) {
+                      console.error('[OAuth] All attempts failed');
+                    }
+                    continue;
+                  }
+
+                  if (membership) {
+                    membershipFound = true;
+                    console.log(`[OAuth] ✅ Membership found on attempt ${attempt}:`, membership);
+                    break;
+                  }
+
+                  console.log(`[OAuth] Membership not found on attempt ${attempt}, retrying...`);
+                }
+
+                if (!membershipFound) {
+                  console.error('[OAuth] ❌ Workspace membership not found after all attempts');
+                  console.error('[OAuth] This may indicate the trigger did not fire correctly');
                 }
               }
             }
