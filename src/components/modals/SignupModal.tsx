@@ -1,6 +1,7 @@
 import { X, Check, AlertCircle, Mail, Lock, Building, Briefcase, Chrome, Apple as AppleIcon } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { generateUniqueSlug, createWorkspaceWithOwner } from '../../utils/workspaceHelpers';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -220,156 +221,22 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
         console.log('[SIGNUP] Profile created successfully');
 
-        const workspaceSlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + userId.substring(0, 8);
+        console.log('[SIGNUP] Generating unique workspace slug...');
+        const workspaceSlug = await generateUniqueSlug(companyName, userId);
+        console.log('[SIGNUP] Using slug:', workspaceSlug);
 
-        console.log('[SIGNUP] Creating workspace with slug:', workspaceSlug);
-        const workspaceInsertPayload = {
-          name: companyName,
-          slug: workspaceSlug,
-          plan: 'standard',
-          owner_id: userId,
-          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-          trial_started_at: new Date().toISOString(),
-          subscription_status: 'trialing',
-        };
-        console.log('[SIGNUP] Workspace insert payload:', JSON.stringify(workspaceInsertPayload, null, 2));
+        console.log('[SIGNUP] Creating workspace atomically with owner membership...');
+        const result = await createWorkspaceWithOwner(
+          userId,
+          companyName,
+          workspaceSlug,
+          'standard'
+        );
 
-        const { data: newWorkspace, error: workspaceError } = await supabase
-          .from('workspaces')
-          .insert(workspaceInsertPayload)
-          .select()
-          .single();
-
-        console.log('[SIGNUP] Workspace creation response:', {
-          data: newWorkspace,
-          error: workspaceError,
-          fullResponse: JSON.stringify({ data: newWorkspace, error: workspaceError }, null, 2)
+        console.log('[SIGNUP] ✅ Workspace and membership created successfully:', {
+          workspaceId: result.workspace_id,
+          membershipId: result.membership_id
         });
-
-        if (workspaceError) {
-          console.error('[SIGNUP] Workspace creation error:', workspaceError);
-          console.error('[SIGNUP] Error details:', {
-            code: workspaceError.code,
-            message: workspaceError.message,
-            details: workspaceError.details,
-            hint: workspaceError.hint
-          });
-          console.error('[SIGNUP] Full error object:', JSON.stringify(workspaceError, null, 2));
-
-          let errorMessage = 'Failed to create your workspace';
-
-          if (workspaceError.code === '42501') {
-            errorMessage = 'Permission denied while creating workspace. Your account was created but setup is incomplete. Please contact support with error code: RLS-WORKSPACE-INSERT';
-            console.error('[SIGNUP] RLS policy denied workspace creation - Policy may be misconfigured');
-          } else if (workspaceError.code === '23505') {
-            errorMessage = 'A workspace with this name already exists. This is unusual - please try again or contact support.';
-            console.error('[SIGNUP] Duplicate workspace detected');
-          } else if (workspaceError.code === '23503') {
-            errorMessage = 'Database relationship error. Please contact support with error code: FK-WORKSPACE';
-            console.error('[SIGNUP] Foreign key constraint violation on workspace');
-          } else if (workspaceError.message) {
-            errorMessage = `Failed to create workspace: ${workspaceError.message}`;
-          }
-
-          console.error('[SIGNUP] Workspace creation failed with code:', workspaceError.code);
-          throw new Error(errorMessage);
-        }
-
-        console.log('[SIGNUP] Workspace created:', newWorkspace?.id);
-
-        if (newWorkspace) {
-          console.log('[SIGNUP] Workspace owner automatically added by database trigger (ensure_workspace_owner_member)');
-
-          console.log('[SIGNUP] Starting polling for workspace membership (5 attempts × 300ms)...');
-
-          let membership = null;
-          let membershipFound = false;
-          const maxAttempts = 5;
-          const pollDelay = 300;
-
-          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            console.log(`[SIGNUP] Polling attempt ${attempt}/${maxAttempts} for workspace_members...`);
-
-            await new Promise(resolve => setTimeout(resolve, pollDelay));
-
-            const { data, error: checkError } = await supabase
-              .from('workspace_members')
-              .select('id, role, workspace_id, user_id, created_at')
-              .eq('workspace_id', newWorkspace.id)
-              .eq('user_id', userId)
-              .maybeSingle();
-
-            console.log(`[SIGNUP] Attempt ${attempt} result:`, {
-              found: !!data,
-              data: data,
-              error: checkError,
-              fullResponse: JSON.stringify({ data, error: checkError }, null, 2)
-            });
-
-            if (checkError) {
-              console.error(`[SIGNUP] Error on attempt ${attempt}:`, checkError);
-              console.error('[SIGNUP] Membership check error details:', {
-                code: checkError.code,
-                message: checkError.message,
-                details: checkError.details,
-                hint: checkError.hint,
-                fullError: JSON.stringify(checkError, null, 2)
-              });
-
-              if (attempt === maxAttempts) {
-                throw new Error(`Workspace created but membership verification failed after ${maxAttempts} attempts. Error: ${checkError.message || checkError.code}`);
-              }
-              continue;
-            }
-
-            if (data) {
-              membership = data;
-              membershipFound = true;
-              console.log(`[SIGNUP] ✅ Membership found on attempt ${attempt}!`);
-              break;
-            }
-
-            console.log(`[SIGNUP] Membership not found on attempt ${attempt}, will retry...`);
-          }
-
-          if (!membershipFound || !membership) {
-            console.error('[SIGNUP] ❌ Membership not found after all polling attempts');
-            console.error('[SIGNUP] Expected: workspace_id =', newWorkspace.id, ', user_id =', userId);
-
-            console.log('[SIGNUP] Running SQL diagnostic query...');
-            const { data: diagnosticData, error: diagnosticError } = await supabase.rpc('exec_sql', {
-              query: `
-                SELECT wm.id, wm.workspace_id, wm.user_id, wm.role, wm.created_at,
-                       w.name as workspace_name, w.owner_id
-                FROM public.workspace_members wm
-                JOIN public.workspaces w ON w.id = wm.workspace_id
-                WHERE w.owner_id = '${userId}'
-                ORDER BY wm.created_at DESC
-                LIMIT 3;
-              `
-            });
-
-            console.log('[SIGNUP] SQL diagnostic result:', {
-              data: diagnosticData,
-              error: diagnosticError,
-              fullResult: JSON.stringify({ data: diagnosticData, error: diagnosticError }, null, 2)
-            });
-
-            throw new Error(`Workspace membership was not created by trigger after ${maxAttempts} attempts (${maxAttempts * pollDelay}ms total). Please contact support with error code: TRIGGER-MEMBERSHIP-MISSING`);
-          }
-
-          if (membership.role !== 'owner') {
-            console.warn('[SIGNUP] ⚠️ Membership role is not owner:', membership.role);
-          }
-
-          console.log('[SIGNUP] ✅ Workspace membership verified successfully:', {
-            membershipId: membership.id,
-            role: membership.role,
-            workspaceId: membership.workspace_id,
-            userId: membership.user_id,
-            createdAt: membership.created_at
-          });
-        }
       } else {
         console.log('[SIGNUP] Profile already exists, skipping creation');
       }
@@ -381,32 +248,32 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         onClose();
       }, 2000);
     } catch (err: any) {
-      console.error('[SIGNUP] ❌❌❌ SIGNUP FAILED ❌❌❌');
-      console.error('[SIGNUP] Full signup error:', err);
-      console.error('[SIGNUP] Error type:', typeof err);
-      console.error('[SIGNUP] Error name:', err.name);
-      console.error('[SIGNUP] Error message:', err.message);
-      console.error('[SIGNUP] Error stack:', err.stack);
-      console.error('[SIGNUP] Error stringified:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+      console.error('[SIGNUP] ❌ Signup failed');
+      console.error('[SIGNUP] Error:', err);
+      console.error('[SIGNUP] Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+
+      let userMessage = 'Something went wrong during signup. Please try again.';
 
       if (err.code) {
         console.error('[SIGNUP] PostgreSQL Error Code:', err.code);
-      }
-      if (err.details) {
-        console.error('[SIGNUP] Error details:', err.details);
-      }
-      if (err.hint) {
-        console.error('[SIGNUP] Error hint:', err.hint);
-      }
 
-      let userMessage = err.message || 'Something went wrong during signup. Please try again.';
-
-      if (err.message?.includes('RLS-')) {
-        userMessage += ' Our technical team has been notified.';
-      } else if (err.message?.includes('network') || err.message?.includes('fetch')) {
-        userMessage = 'Network connection issue. Please check your internet connection and try again.';
+        if (err.code === '23505') {
+          if (err.message?.includes('email') || err.message?.includes('users')) {
+            userMessage = 'This email is already registered. Try logging in.';
+          } else {
+            userMessage = 'A workspace with this name already exists. Please try again.';
+          }
+        } else if (err.code === '42501') {
+          userMessage = "We're finalizing your workspace. Please try again in a few seconds.";
+        } else if (err.code === '23503') {
+          userMessage = 'Database error. Please contact support.';
+        }
+      } else if (err.message?.includes('network') || err.message?.includes('fetch') || err.message?.includes('Failed to fetch')) {
+        userMessage = 'Connection issue. Please try again.';
       } else if (err.message?.includes('timeout')) {
-        userMessage = 'The signup process took too long. Please try again. If the problem persists, your account may have been created - try logging in instead.';
+        userMessage = 'Connection timeout. Please try again.';
+      } else if (err.message?.includes('User already registered')) {
+        userMessage = 'This email is already registered. Try logging in.';
       }
 
       setError(userMessage);
