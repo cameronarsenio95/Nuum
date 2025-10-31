@@ -127,7 +127,8 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
       console.log('[SIGNUP] Waiting for authentication session to be established...');
       let sessionReady = false;
       let attempts = 0;
-      const maxAttempts = 15;
+      const maxAttempts = 20;
+      let backoffDelay = 200;
 
       while (!sessionReady && attempts < maxAttempts) {
         try {
@@ -136,23 +137,26 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             sessionReady = true;
             console.log('[SIGNUP] Session established and verified:', {
               userId: session.user.id,
-              hasAccessToken: !!session.access_token
+              hasAccessToken: !!session.access_token,
+              attemptsTaken: attempts + 1
             });
           } else {
             attempts++;
             console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - waiting for session...`);
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, backoffDelay));
+            backoffDelay = Math.min(backoffDelay * 1.2, 500);
           }
         } catch (e) {
           attempts++;
           console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - error checking session:`, e);
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, backoffDelay));
+          backoffDelay = Math.min(backoffDelay * 1.2, 500);
         }
       }
 
       if (!sessionReady) {
-        console.error('[SIGNUP] Session establishment timeout');
-        throw new Error('Authentication session timeout. Please try logging in instead.');
+        console.error('[SIGNUP] Session establishment timeout after', maxAttempts, 'attempts');
+        throw new Error('Authentication session took too long to establish. Please try again or contact support if the issue persists.');
       }
 
       console.log('[SIGNUP] Verifying auth.uid() is available...');
@@ -194,17 +198,22 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             hint: profileError.hint
           });
 
-          let errorMessage = 'Database error saving new user';
+          let errorMessage = 'Failed to create your profile in the database';
 
           if (profileError.code === '42501') {
-            errorMessage = 'Permission denied. Please try again or contact support.';
-            console.error('[SIGNUP] RLS policy denied profile insertion');
+            errorMessage = 'Permission denied while creating profile. Your account was created but setup is incomplete. Please contact support with error code: RLS-PROFILE-INSERT';
+            console.error('[SIGNUP] RLS policy denied profile insertion - Policy may be misconfigured');
           } else if (profileError.code === '23505') {
-            errorMessage = 'An account with this email already exists. Try logging in instead.';
+            errorMessage = 'A profile already exists for this account. Try refreshing the page or logging in.';
+            console.error('[SIGNUP] Duplicate profile detected');
+          } else if (profileError.code === '23503') {
+            errorMessage = 'Database relationship error. Please contact support with error code: FK-PROFILE';
+            console.error('[SIGNUP] Foreign key constraint violation on profile');
           } else if (profileError.message) {
             errorMessage = `Failed to create profile: ${profileError.message}`;
           }
 
+          console.error('[SIGNUP] Profile creation failed with code:', profileError.code);
           throw new Error(errorMessage);
         }
 
@@ -236,17 +245,22 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             hint: workspaceError.hint
           });
 
-          let errorMessage = 'Failed to create workspace';
+          let errorMessage = 'Failed to create your workspace';
 
           if (workspaceError.code === '42501') {
-            errorMessage = 'Permission denied creating workspace. Please contact support.';
-            console.error('[SIGNUP] RLS policy denied workspace creation');
+            errorMessage = 'Permission denied while creating workspace. Your account was created but setup is incomplete. Please contact support with error code: RLS-WORKSPACE-INSERT';
+            console.error('[SIGNUP] RLS policy denied workspace creation - Policy may be misconfigured');
           } else if (workspaceError.code === '23505') {
-            errorMessage = 'Workspace already exists. Try a different company name.';
+            errorMessage = 'A workspace with this name already exists. This is unusual - please try again or contact support.';
+            console.error('[SIGNUP] Duplicate workspace detected');
+          } else if (workspaceError.code === '23503') {
+            errorMessage = 'Database relationship error. Please contact support with error code: FK-WORKSPACE';
+            console.error('[SIGNUP] Foreign key constraint violation on workspace');
           } else if (workspaceError.message) {
             errorMessage = `Failed to create workspace: ${workspaceError.message}`;
           }
 
+          console.error('[SIGNUP] Workspace creation failed with code:', workspaceError.code);
           throw new Error(errorMessage);
         }
 
@@ -272,15 +286,22 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
               hint: memberError.hint
             });
 
-            let errorMessage = 'Failed to add you to workspace';
+            let errorMessage = 'Failed to add you as a member of your workspace';
 
             if (memberError.code === '42501') {
-              errorMessage = 'Permission denied joining workspace. Please contact support.';
-              console.error('[SIGNUP] RLS policy denied workspace member insertion');
+              errorMessage = 'Permission denied while joining workspace. Your account and workspace were created but membership setup is incomplete. Please contact support with error code: RLS-MEMBER-INSERT';
+              console.error('[SIGNUP] RLS policy denied workspace member insertion - Policy may be misconfigured');
+            } else if (memberError.code === '23505') {
+              errorMessage = 'You are already a member of this workspace. This is unusual - please try logging in.';
+              console.error('[SIGNUP] Duplicate workspace member detected');
+            } else if (memberError.code === '23503') {
+              errorMessage = 'Database relationship error. Please contact support with error code: FK-MEMBER';
+              console.error('[SIGNUP] Foreign key constraint violation on workspace member');
             } else if (memberError.message) {
               errorMessage = `Failed to join workspace: ${memberError.message}`;
             }
 
+            console.error('[SIGNUP] Workspace member creation failed with code:', memberError.code);
             throw new Error(errorMessage);
           }
 
@@ -297,8 +318,20 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         onClose();
       }, 2000);
     } catch (err: any) {
-      console.error('Full signup error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      console.error('[SIGNUP] Full signup error:', err);
+      console.error('[SIGNUP] Error stack:', err.stack);
+
+      let userMessage = err.message || 'Something went wrong during signup. Please try again.';
+
+      if (err.message?.includes('RLS-')) {
+        userMessage += ' Our technical team has been notified.';
+      } else if (err.message?.includes('network') || err.message?.includes('fetch')) {
+        userMessage = 'Network connection issue. Please check your internet connection and try again.';
+      } else if (err.message?.includes('timeout')) {
+        userMessage = 'The signup process took too long. Please try again. If the problem persists, your account may have been created - try logging in instead.';
+      }
+
+      setError(userMessage);
     } finally {
       setLoading(false);
     }
