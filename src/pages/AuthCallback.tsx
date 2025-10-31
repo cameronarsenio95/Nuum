@@ -100,14 +100,22 @@ export function AuthCallback() {
               if (workspaceError) {
                 console.error('[OAuth] Workspace creation error:', workspaceError);
               } else if (newWorkspace) {
-                await supabase
+                console.log('[OAuth] Workspace created, owner automatically added by database trigger');
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const { data: membership } = await supabase
                   .from('workspace_members')
-                  .insert({
-                    workspace_id: newWorkspace.id,
-                    user_id: session.user.id,
-                    role: 'owner',
-                    joined_at: new Date().toISOString(),
-                  });
+                  .select('id, role')
+                  .eq('workspace_id', newWorkspace.id)
+                  .eq('user_id', session.user.id)
+                  .maybeSingle();
+
+                if (membership) {
+                  console.log('[OAuth] Workspace membership verified:', membership);
+                } else {
+                  console.error('[OAuth] Workspace membership not found after trigger');
+                }
               }
             }
           }
