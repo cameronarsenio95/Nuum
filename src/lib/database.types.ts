@@ -21,6 +21,8 @@ export interface Database {
           storage_used_bytes: number
           subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired' | 'frozen'
           subscription_expires_at: string | null
+          trial_started_at: string | null
+          trial_ends_at: string | null
           features: Json
           owner_id: string
           settings: Json
@@ -37,8 +39,10 @@ export interface Database {
           max_creators?: number | null
           max_storage_gb?: number | null
           storage_used_bytes?: number
-          subscription_status?: 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired'
+          subscription_status?: 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired' | 'frozen'
           subscription_expires_at?: string | null
+          trial_started_at?: string | null
+          trial_ends_at?: string | null
           features?: Json
           owner_id: string
           settings?: Json
@@ -55,8 +59,10 @@ export interface Database {
           max_creators?: number | null
           max_storage_gb?: number | null
           storage_used_bytes?: number
-          subscription_status?: 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired'
+          subscription_status?: 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired' | 'frozen'
           subscription_expires_at?: string | null
+          trial_started_at?: string | null
+          trial_ends_at?: string | null
           features?: Json
           owner_id?: string
           settings?: Json
@@ -454,6 +460,8 @@ export interface Database {
           timezone: string
           language: string
           notifications_enabled: boolean
+          theme_preference: string
+          onboarding_completed: boolean
           created_at: string
           updated_at: string
         }
@@ -469,6 +477,8 @@ export interface Database {
           timezone?: string
           language?: string
           notifications_enabled?: boolean
+          theme_preference?: string
+          onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -484,6 +494,8 @@ export interface Database {
           timezone?: string
           language?: string
           notifications_enabled?: boolean
+          theme_preference?: string
+          onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
         }
