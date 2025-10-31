@@ -124,32 +124,44 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
       const userId = authData.user.id;
       console.log('[SIGNUP] User created:', userId);
 
-      console.log('[SIGNUP] Waiting for user to be available in auth.users table...');
-      let userExists = false;
+      console.log('[SIGNUP] Waiting for authentication session to be established...');
+      let sessionReady = false;
       let attempts = 0;
-      const maxAttempts = 10;
+      const maxAttempts = 15;
 
-      while (!userExists && attempts < maxAttempts) {
+      while (!sessionReady && attempts < maxAttempts) {
         try {
-          const { data: authUser } = await supabase.auth.getUser();
-          if (authUser.user && authUser.user.id === userId) {
-            userExists = true;
-            console.log('[SIGNUP] User confirmed in auth.users');
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session && session.user && session.user.id === userId) {
+            sessionReady = true;
+            console.log('[SIGNUP] Session established and verified:', {
+              userId: session.user.id,
+              hasAccessToken: !!session.access_token
+            });
           } else {
             attempts++;
-            console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - waiting...`);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - waiting for session...`);
+            await new Promise(resolve => setTimeout(resolve, 300));
           }
         } catch (e) {
           attempts++;
-          console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - error checking user:`, e);
-          await new Promise(resolve => setTimeout(resolve, 500));
+          console.log(`[SIGNUP] Attempt ${attempts}/${maxAttempts} - error checking session:`, e);
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
       }
 
-      if (!userExists) {
-        throw new Error('User creation timeout - please try again or contact support');
+      if (!sessionReady) {
+        console.error('[SIGNUP] Session establishment timeout');
+        throw new Error('Authentication session timeout. Please try logging in instead.');
       }
+
+      console.log('[SIGNUP] Verifying auth.uid() is available...');
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser || currentUser.id !== userId) {
+        console.error('[SIGNUP] Auth user mismatch:', { expected: userId, got: currentUser?.id });
+        throw new Error('Authentication verification failed. Please try logging in.');
+      }
+      console.log('[SIGNUP] Auth.uid() confirmed:', currentUser.id);
 
       console.log('[SIGNUP] Checking for existing profile...');
       const { data: existingProfile } = await supabase
@@ -181,7 +193,19 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             details: profileError.details,
             hint: profileError.hint
           });
-          throw new Error(`Failed to create profile: ${profileError.message}. Please contact support.`);
+
+          let errorMessage = 'Database error saving new user';
+
+          if (profileError.code === '42501') {
+            errorMessage = 'Permission denied. Please try again or contact support.';
+            console.error('[SIGNUP] RLS policy denied profile insertion');
+          } else if (profileError.code === '23505') {
+            errorMessage = 'An account with this email already exists. Try logging in instead.';
+          } else if (profileError.message) {
+            errorMessage = `Failed to create profile: ${profileError.message}`;
+          }
+
+          throw new Error(errorMessage);
         }
 
         console.log('[SIGNUP] Profile created successfully');
@@ -211,7 +235,19 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             details: workspaceError.details,
             hint: workspaceError.hint
           });
-          throw new Error(`Failed to create workspace: ${workspaceError.message}. Please contact support.`);
+
+          let errorMessage = 'Failed to create workspace';
+
+          if (workspaceError.code === '42501') {
+            errorMessage = 'Permission denied creating workspace. Please contact support.';
+            console.error('[SIGNUP] RLS policy denied workspace creation');
+          } else if (workspaceError.code === '23505') {
+            errorMessage = 'Workspace already exists. Try a different company name.';
+          } else if (workspaceError.message) {
+            errorMessage = `Failed to create workspace: ${workspaceError.message}`;
+          }
+
+          throw new Error(errorMessage);
         }
 
         console.log('[SIGNUP] Workspace created:', newWorkspace?.id);
@@ -235,7 +271,17 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
               details: memberError.details,
               hint: memberError.hint
             });
-            throw new Error(`Failed to add you to workspace: ${memberError.message}. Please contact support.`);
+
+            let errorMessage = 'Failed to add you to workspace';
+
+            if (memberError.code === '42501') {
+              errorMessage = 'Permission denied joining workspace. Please contact support.';
+              console.error('[SIGNUP] RLS policy denied workspace member insertion');
+            } else if (memberError.message) {
+              errorMessage = `Failed to join workspace: ${memberError.message}`;
+            }
+
+            throw new Error(errorMessage);
           }
 
           console.log('[SIGNUP] User added to workspace successfully');
