@@ -197,6 +197,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             details: profileError.details,
             hint: profileError.hint
           });
+          console.error('[SIGNUP] Full error object:', JSON.stringify(profileError, null, 2));
 
           let errorMessage = 'Failed to create your profile in the database';
 
@@ -244,6 +245,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
             details: workspaceError.details,
             hint: workspaceError.hint
           });
+          console.error('[SIGNUP] Full error object:', JSON.stringify(workspaceError, null, 2));
 
           let errorMessage = 'Failed to create your workspace';
 
@@ -267,45 +269,45 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         console.log('[SIGNUP] Workspace created:', newWorkspace?.id);
 
         if (newWorkspace) {
-          console.log('[SIGNUP] Adding user to workspace...');
-          const { error: memberError } = await supabase
+          console.log('[SIGNUP] Workspace owner automatically added by database trigger (ensure_workspace_owner_member)');
+
+          console.log('[SIGNUP] Verifying workspace membership was created by trigger...');
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          const { data: membership, error: checkError } = await supabase
             .from('workspace_members')
-            .insert({
-              workspace_id: newWorkspace.id,
-              user_id: userId,
-              role: 'owner',
-              joined_at: new Date().toISOString(),
+            .select('id, role, workspace_id, user_id')
+            .eq('workspace_id', newWorkspace.id)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+          if (checkError) {
+            console.error('[SIGNUP] Error verifying workspace membership:', checkError);
+            console.error('[SIGNUP] Membership check error details:', {
+              code: checkError.code,
+              message: checkError.message,
+              details: checkError.details,
+              hint: checkError.hint
             });
-
-          if (memberError) {
-            console.error('[SIGNUP] Workspace member creation error:', memberError);
-            console.error('[SIGNUP] Error details:', {
-              code: memberError.code,
-              message: memberError.message,
-              details: memberError.details,
-              hint: memberError.hint
-            });
-
-            let errorMessage = 'Failed to add you as a member of your workspace';
-
-            if (memberError.code === '42501') {
-              errorMessage = 'Permission denied while joining workspace. Your account and workspace were created but membership setup is incomplete. Please contact support with error code: RLS-MEMBER-INSERT';
-              console.error('[SIGNUP] RLS policy denied workspace member insertion - Policy may be misconfigured');
-            } else if (memberError.code === '23505') {
-              errorMessage = 'You are already a member of this workspace. This is unusual - please try logging in.';
-              console.error('[SIGNUP] Duplicate workspace member detected');
-            } else if (memberError.code === '23503') {
-              errorMessage = 'Database relationship error. Please contact support with error code: FK-MEMBER';
-              console.error('[SIGNUP] Foreign key constraint violation on workspace member');
-            } else if (memberError.message) {
-              errorMessage = `Failed to join workspace: ${memberError.message}`;
-            }
-
-            console.error('[SIGNUP] Workspace member creation failed with code:', memberError.code);
-            throw new Error(errorMessage);
+            throw new Error('Workspace created but membership verification failed. Please try logging in, or contact support if the issue persists.');
           }
 
-          console.log('[SIGNUP] User added to workspace successfully');
+          if (!membership) {
+            console.error('[SIGNUP] Membership not found after workspace creation');
+            console.error('[SIGNUP] Expected: workspace_id =', newWorkspace.id, ', user_id =', userId);
+            throw new Error('Workspace membership was not created automatically. Please contact support with error code: TRIGGER-MEMBERSHIP-MISSING');
+          }
+
+          if (membership.role !== 'owner') {
+            console.warn('[SIGNUP] Membership role is not owner:', membership.role);
+          }
+
+          console.log('[SIGNUP] Workspace membership verified successfully:', {
+            membershipId: membership.id,
+            role: membership.role,
+            workspaceId: membership.workspace_id,
+            userId: membership.user_id
+          });
         }
       } else {
         console.log('[SIGNUP] Profile already exists, skipping creation');
