@@ -230,17 +230,32 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         console.log('[SIGNUP] Using slug:', workspaceSlug);
 
         console.log('[SIGNUP] Creating workspace atomically with owner membership...');
-        const result = await createWorkspaceWithOwner(
-          userId,
-          workspaceName,
-          workspaceSlug,
-          'standard'
-        );
 
-        console.log('[SIGNUP] ✅ Workspace and membership created successfully:', {
-          workspaceId: result.workspace_id,
-          membershipId: result.membership_id
-        });
+        try {
+          const result = await createWorkspaceWithOwner(
+            userId,
+            workspaceName,
+            workspaceSlug,
+            'standard'
+          );
+
+          console.log('[SIGNUP] ✅ Workspace creation result:', result);
+
+          if (!result.success) {
+            console.error('[SIGNUP] Workspace creation returned error:', result);
+            throw new Error('Something went wrong while creating your workspace. Please try again.');
+          }
+
+          console.log('[SIGNUP] ✅ Workspace and membership created successfully:', {
+            workspaceId: result.workspace_id,
+            membershipId: result.membership_id,
+            slug: result.slug
+          });
+        } catch (workspaceErr: any) {
+          console.error('[SIGNUP] Workspace creation failed:', workspaceErr);
+          console.error('[SIGNUP] Workspace error details:', JSON.stringify(workspaceErr, null, 2));
+          throw new Error('Something went wrong while creating your workspace. Please try again.');
+        }
       } else {
         console.log('[SIGNUP] Profile already exists, skipping creation');
       }
@@ -255,6 +270,7 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
       console.error('[SIGNUP] ❌ Signup failed');
       console.error('[SIGNUP] Error:', err);
       console.error('[SIGNUP] Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+      console.error('[SIGNUP] Full error object:', JSON.stringify(err, null, 2));
 
       let userMessage = 'Something went wrong during signup. Please try again.';
 

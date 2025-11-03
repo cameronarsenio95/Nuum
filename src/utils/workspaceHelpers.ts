@@ -58,7 +58,7 @@ export async function createWorkspaceWithOwner(
   name: string,
   slug: string,
   plan: string = 'standard'
-): Promise<{ workspace_id: string; membership_id: string | null }> {
+): Promise<{ workspace_id: string; membership_id: string | null; slug: string; success: boolean; error?: string }> {
   console.log('[Workspace Creation] Calling create_workspace_with_owner RPC:', {
     ownerId,
     name,
@@ -81,7 +81,7 @@ export async function createWorkspaceWithOwner(
     console.error('[Workspace Creation] Error message:', error.message);
     console.error('[Workspace Creation] Error details:', error.details);
     console.error('[Workspace Creation] Error hint:', error.hint);
-    console.error('[Workspace Creation] Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    console.error('[Workspace Creation] Full error:', JSON.stringify(error, null, 2));
     throw error;
   }
 
@@ -90,10 +90,18 @@ export async function createWorkspaceWithOwner(
     throw new Error('Failed to create workspace: no data returned');
   }
 
-  console.log('[Workspace Creation] Success:', data);
+  console.log('[Workspace Creation] Result:', data);
+
+  // Handle the new response format where the function returns error info
+  if (data.success === false) {
+    console.error('[Workspace Creation] Function returned error:', data.error);
+    throw new Error(data.error || 'Failed to create workspace');
+  }
 
   return {
     workspace_id: data.workspace_id,
-    membership_id: data.membership_id
+    membership_id: data.membership_id,
+    slug: data.slug || slug,
+    success: data.success !== false
   };
 }
