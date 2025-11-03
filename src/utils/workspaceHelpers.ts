@@ -5,7 +5,14 @@ import { supabase } from '../lib/supabase';
  * Automatically appends -2, -3, etc. if the slug is already taken
  */
 export async function generateUniqueSlug(companyName: string, userId: string): Promise<string> {
-  const baseSlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + userId.substring(0, 8);
+  // Ensure we have a valid company name
+  const safeName = (companyName || 'workspace').trim();
+  if (!safeName) {
+    console.warn('[Slug Generation] Empty company name, using default');
+  }
+
+  const baseSlug = safeName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + userId.substring(0, 8);
+  console.log('[Slug Generation] Base slug:', baseSlug);
 
   let slug = baseSlug;
   let attempt = 1;
@@ -66,9 +73,15 @@ export async function createWorkspaceWithOwner(
     p_plan: plan
   });
 
+  console.log('[Workspace Creation] RPC response:', { data, error });
+
   if (error) {
-    console.error('[Workspace Creation] RPC error:', error);
-    console.error('[Workspace Creation] Error details:', JSON.stringify(error, null, 2));
+    console.error('[Workspace Creation] ❌ RPC error:', error);
+    console.error('[Workspace Creation] Error code:', error.code);
+    console.error('[Workspace Creation] Error message:', error.message);
+    console.error('[Workspace Creation] Error details:', error.details);
+    console.error('[Workspace Creation] Error hint:', error.hint);
+    console.error('[Workspace Creation] Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
     throw error;
   }
 

@@ -221,14 +221,18 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
         console.log('[SIGNUP] Profile created successfully');
 
+        // Use a fallback name if companyName is empty
+        const workspaceName = (companyName || email.split('@')[0] + "'s Workspace").trim();
+        console.log('[SIGNUP] Workspace name:', workspaceName);
+
         console.log('[SIGNUP] Generating unique workspace slug...');
-        const workspaceSlug = await generateUniqueSlug(companyName, userId);
+        const workspaceSlug = await generateUniqueSlug(workspaceName, userId);
         console.log('[SIGNUP] Using slug:', workspaceSlug);
 
         console.log('[SIGNUP] Creating workspace atomically with owner membership...');
         const result = await createWorkspaceWithOwner(
           userId,
-          companyName,
+          workspaceName,
           workspaceSlug,
           'standard'
         );
