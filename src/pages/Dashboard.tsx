@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { PlanLimitsProvider, usePlanLimits } from '../contexts/PlanLimitsContext';
 import { OnboardingProvider, useOnboarding } from '../contexts/OnboardingContext';
 import { supabase } from '../lib/supabase';
+import { TRIAL_DURATION_DAYS } from '../utils/constants';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { OverviewView } from '../components/dashboard/OverviewView';
 import { CampaignsView } from '../components/dashboard/CampaignsView';
@@ -102,7 +103,7 @@ function DashboardContent() {
 
       const trialStartDate = new Date();
       const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 7);
+      trialEndDate.setDate(trialEndDate.getDate() + TRIAL_DURATION_DAYS);
 
       const { data: newWorkspace, error: createError } = await supabase
         .from('workspaces')

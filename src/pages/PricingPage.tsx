@@ -2,9 +2,10 @@ import { Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { TRIAL_DURATION_DAYS } from '../utils/constants';
 
 const trialFeatures = [
-  '7-day trial with Elite features',
+  `${TRIAL_DURATION_DAYS}-day trial with Elite features`,
   'Up to 3 brand workspaces',
   'Up to 50 creators',
   '25GB storage',
@@ -180,10 +181,10 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                   Start Here
                 </div>
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-2">7-Day Trial</h3>
+                  <h3 className="text-xl font-medium mb-2">{TRIAL_DURATION_DAYS}-Day Trial</h3>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-medium">€0</span>
-                    <span className="dark:text-text-secondary light:text-text-light-secondary text-sm">for 7 days</span>
+                    <span className="dark:text-text-secondary light:text-text-light-secondary text-sm">for {TRIAL_DURATION_DAYS} days</span>
                   </div>
                   <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mt-2">Then choose a plan</p>
                 </div>
@@ -292,7 +293,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
           </div>
 
           <p className="text-center text-sm dark:text-text-secondary light:text-text-light-secondary mb-24">
-              Start with a 7-day trial with full Elite access — no credit card required.
+              Start with a {TRIAL_DURATION_DAYS}-day trial with full Elite access — no credit card required.
           </p>
 
           <div id="comparison" className="mb-24 animate-slide-up" style={{ animationDelay: '0.3s' }}>
@@ -303,7 +304,7 @@ export function PricingPage({ onBackClick, onLoginClick, onSignupClick, onPricin
                   <thead>
                     <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                       <th className="text-left py-4 px-6 font-medium text-sm dark:text-text-secondary light:text-text-light-secondary">Feature</th>
-                      <th className="text-center py-4 px-6 font-medium">7-Day Trial</th>
+                      <th className="text-center py-4 px-6 font-medium">{TRIAL_DURATION_DAYS}-Day Trial</th>
                       <th className="text-center py-4 px-6 font-medium">Standard</th>
                       <th className="text-center py-4 px-6 font-medium">Elite</th>
                       <th className="text-center py-4 px-6 font-medium">Enterprise</th>

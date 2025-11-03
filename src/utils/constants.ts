@@ -16,7 +16,7 @@ export const SOCIAL_LINKS = {
   instagram: 'https://instagram.com/nuum',
 };
 
-export const TRIAL_DURATION_DAYS = 7;
+export const TRIAL_DURATION_DAYS = 14;
 export const FREE_PLAN_MAX_CREATORS = 25;
 export const FREE_PLAN_MAX_STORAGE_GB = 5;
 export const FREE_PLAN_MAX_TEAM_MEMBERS = 3;
