@@ -1,6 +1,7 @@
 import { AlertCircle, Crown, X, AlertTriangle, Calendar } from 'lucide-react';
 import { useState } from 'react';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
+import { TRIAL_DURATION_DAYS } from '../../utils/constants';
 
 interface TrialBannerProps {
   daysRemaining?: number;
@@ -113,7 +114,7 @@ export function TrialBanner({ daysRemaining, onUpgradeClick }: TrialBannerProps)
 
           <div className="flex-1">
             <h3 className="text-base font-medium mb-1">
-              {isUrgent ? 'Your Trial Expires Soon!' : '7-Day Trial Active'}
+              {isUrgent ? 'Your Trial Expires Soon!' : `${TRIAL_DURATION_DAYS}-Day Trial Active`}
             </h3>
             <p className="text-sm dark:text-text-secondary light:text-text-light-secondary mb-3">
               {isUrgent ? (
