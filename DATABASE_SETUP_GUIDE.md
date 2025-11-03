@@ -12,8 +12,10 @@
 Copy and paste the **ENTIRE** contents of this file into the Supabase SQL Editor:
 
 ```
-supabase/migrations/00_COMPLETE_BASE_SCHEMA.sql
+supabase/migrations/00_COMPLETE_BASE_SCHEMA_FIXED.sql
 ```
+
+**⚠️ IMPORTANT: Use the `_FIXED` version!** It has correct table ordering to avoid reference errors.
 
 **This will create:**
 - ✓ 11 core tables (profiles, workspaces, workspace_members, creators, campaigns, etc.)
