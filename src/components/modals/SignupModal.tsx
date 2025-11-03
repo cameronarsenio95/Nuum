@@ -1,7 +1,6 @@
 import { X, Check, AlertCircle, Mail, Lock, Building, Briefcase, Chrome, Apple as AppleIcon } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { generateUniqueSlug, createWorkspaceWithOwner } from '../../utils/workspaceHelpers';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -220,52 +219,41 @@ export function SignupModal({ isOpen, onClose }: SignupModalProps) {
         }
 
         console.log('[SIGNUP] Profile created successfully');
-
-        // Use a fallback name if companyName is empty
-        const workspaceName = (companyName || email.split('@')[0] + "'s Workspace").trim();
-        console.log('[SIGNUP] Workspace name:', workspaceName);
-
-        console.log('[SIGNUP] Generating unique workspace slug...');
-        const workspaceSlug = await generateUniqueSlug(workspaceName, userId);
-        console.log('[SIGNUP] Using slug:', workspaceSlug);
-
-        console.log('[SIGNUP] Creating workspace atomically with owner membership...');
-
-        try {
-          const result = await createWorkspaceWithOwner(
-            userId,
-            workspaceName,
-            workspaceSlug,
-            'standard'
-          );
-
-          console.log('[SIGNUP] ✅ Workspace creation result:', result);
-
-          if (!result.success) {
-            console.error('[SIGNUP] Workspace creation returned error:', result);
-            throw new Error('Something went wrong while creating your workspace. Please try again.');
-          }
-
-          console.log('[SIGNUP] ✅ Workspace and membership created successfully:', {
-            workspaceId: result.workspace_id,
-            membershipId: result.membership_id,
-            slug: result.slug
-          });
-        } catch (workspaceErr: any) {
-          console.error('[SIGNUP] Workspace creation failed:', workspaceErr);
-          console.error('[SIGNUP] Workspace error details:', JSON.stringify(workspaceErr, null, 2));
-          throw new Error('Something went wrong while creating your workspace. Please try again.');
-        }
       } else {
         console.log('[SIGNUP] Profile already exists, skipping creation');
       }
 
       console.log('[SIGNUP] Signup completed successfully!');
 
+      console.log('[SIGNUP] Creating workspace via RPC function...');
+      const workspaceName = (companyName || email.split('@')[0] + "'s Workspace").trim();
+      const workspaceSlug = workspaceName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+      console.log('[SIGNUP] Calling RPC with:', {
+        p_owner_id: userId,
+        p_name: workspaceName,
+        p_slug: workspaceSlug,
+        p_plan: 'trial'
+      });
+
+      const { data: wsData, error: rpcError } = await supabase.rpc('create_workspace_with_owner', {
+        p_owner_id: userId,
+        p_name: workspaceName,
+        p_slug: workspaceSlug,
+        p_plan: 'trial',
+      });
+
+      if (rpcError) {
+        console.error('[SIGNUP] Workspace RPC failed:', rpcError);
+        throw new Error('Workspace creation failed. Please contact support.');
+      }
+
+      console.log('[SIGNUP] Workspace created via RPC:', wsData);
+
       setSuccess(true);
       setTimeout(() => {
-        onClose();
-      }, 2000);
+        window.location.href = '/dashboard';
+      }, 1500);
     } catch (err: any) {
       console.error('[SIGNUP] ❌ Signup failed');
       console.error('[SIGNUP] Error:', err);
