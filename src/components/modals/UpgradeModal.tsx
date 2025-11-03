@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { X, Check, Lock, Crown, Zap, Building } from 'lucide-react';
 import { CheckoutButton } from '../billing/CheckoutButton';
-import { TRIAL_DURATION_DAYS } from '../../utils/constants';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -21,9 +20,9 @@ export function UpgradeModal({ isOpen, onClose, currentPlan, workspaceId, reason
 
   const plans = [
     {
-      name: isTrialActive ? `${TRIAL_DURATION_DAYS}-Day Trial` : 'Free (After Trial)',
+      name: isTrialActive ? '7-Day Trial' : 'Free (After Trial)',
       price: '€0',
-      period: isTrialActive ? ` for ${TRIAL_DURATION_DAYS} days` : '/month',
+      period: isTrialActive ? ' for 7 days' : '/month',
       icon: Lock,
       color: 'text-gray-400',
       bgColor: 'bg-gray-400/10',
@@ -209,7 +208,7 @@ export function UpgradeModal({ isOpen, onClose, currentPlan, workspaceId, reason
               {!isTrialActive && (
                 <div className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
-                  <span>{TRIAL_DURATION_DAYS}-day trial for new users</span>
+                  <span>7-day trial for new users</span>
                 </div>
               )}
               <div className="flex items-start gap-2">

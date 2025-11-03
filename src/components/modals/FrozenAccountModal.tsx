@@ -1,5 +1,4 @@
 import { AlertTriangle, CreditCard } from 'lucide-react';
-import { TRIAL_DURATION_DAYS } from '../../utils/constants';
 
 interface FrozenAccountModalProps {
   onUpgrade: () => void;
@@ -19,7 +18,7 @@ export function FrozenAccountModal({ onUpgrade }: FrozenAccountModalProps) {
           <h2 className="text-2xl font-medium mb-3 text-red-400">Account Frozen</h2>
 
           <p className="dark:text-text-secondary light:text-text-light-secondary mb-4 text-base">
-            Your Free plan has expired after {TRIAL_DURATION_DAYS} days. Your account is now <strong className="text-red-400">frozen</strong> and you cannot create or edit any data.
+            Your Free plan has expired after 7 days. Your account is now <strong className="text-red-400">frozen</strong> and you cannot create or edit any data.
           </p>
 
           <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-6 bg-red-500/10 border border-red-500/20 rounded-linear p-3">

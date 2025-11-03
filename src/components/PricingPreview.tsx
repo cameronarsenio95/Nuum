@@ -1,5 +1,4 @@
 import { Check } from 'lucide-react';
-import { TRIAL_DURATION_DAYS } from '../utils/constants';
 
 interface PricingPreviewProps {
   onSignupClick: () => void;
@@ -93,7 +92,7 @@ export function PricingPreview({ onSignupClick }: PricingPreviewProps) {
         </div>
 
         <p className="text-center text-sm dark:text-text-secondary light:text-text-light-secondary">
-          Start with {TRIAL_DURATION_DAYS}-day trial · No credit card required
+          Start with 7-day trial · No credit card required
         </p>
       </div>
     </section>

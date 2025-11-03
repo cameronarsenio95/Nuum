@@ -4,7 +4,6 @@ import { CheckoutButton } from '../billing/CheckoutButton';
 import { SubscriptionManager } from '../billing/SubscriptionManager';
 import { supabase } from '../../lib/supabase';
 import { usePlanLimits } from '../../contexts/PlanLimitsContext';
-import { TRIAL_DURATION_DAYS } from '../../utils/constants';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -63,12 +62,12 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
 
   const plans = [
     {
-      name: `${TRIAL_DURATION_DAYS}-Day Trial`,
+      name: '7-Day Trial',
       subtitle: 'Then choose a plan',
       price: 0,
-      period: `for ${TRIAL_DURATION_DAYS} days`,
+      period: 'for 7 days',
       features: [
-        `${TRIAL_DURATION_DAYS}-day trial with Elite features`,
+        '7-day trial with Elite features',
         'Up to 3 brand workspaces',
         'Up to 50 creators',
         '25GB storage',
@@ -293,7 +292,7 @@ export function BillingView({ workspace, onWorkspaceUpdate }: BillingViewProps) 
                   {freeAccountInfo.daysRemaining <= 2 ? (
                     <strong className="text-red-400">Warning: Your account will be frozen if you don't upgrade to Standard plan.</strong>
                   ) : (
-                    `After ${TRIAL_DURATION_DAYS} days, your account will be frozen until you upgrade to a paid plan.`
+                    'After 7 days, your account will be frozen until you upgrade to a paid plan.'
                   )}
                 </p>
 

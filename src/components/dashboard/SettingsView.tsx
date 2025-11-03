@@ -7,7 +7,6 @@ import { UpgradeModal } from '../modals/UpgradeModal';
 import { AccountSettings } from './AccountSettings';
 import { EmailPreferences } from './EmailPreferences';
 import { WorkspaceSettings } from './WorkspaceSettings';
-import { TRIAL_DURATION_DAYS } from '../../utils/constants';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -239,7 +238,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
               <div className="flex items-center gap-3">
                 <Crown className="w-6 h-6 text-linear-accent" />
                 <div>
-                  <h3 className="text-lg font-medium">{TRIAL_DURATION_DAYS}-Day Trial Active</h3>
+                  <h3 className="text-lg font-medium">7-Day Trial Active</h3>
                   <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
                     You're experiencing all Elite features
                   </p>
@@ -292,7 +291,7 @@ export function SettingsView({ workspace }: SettingsViewProps) {
             </h3>
             <div className="flex items-center gap-3">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPlanColor()} dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle border dark:border-linear-border light:border-linear-light-border`}>
-                {trialInfo.isActive ? `${TRIAL_DURATION_DAYS}-Day Trial` : workspace.plan.charAt(0).toUpperCase() + workspace.plan.slice(1)}
+                {trialInfo.isActive ? '7-Day Trial' : workspace.plan.charAt(0).toUpperCase() + workspace.plan.slice(1)}
               </span>
               <button
                 onClick={() => setShowUpgradeModal(true)}
