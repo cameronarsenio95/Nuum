@@ -16,7 +16,7 @@ Use this checklist to configure OAuth authentication for your NUUM application.
 
 ### 1. URL Configuration
 
-- [ ] Go to Supabase Dashboard: https://supabase.com/dashboard/project/rvhgoyehqvhntwhjluqi
+- [ ] Go to Supabase Dashboard: https://supabase.com/dashboard/project/hunrzxpemygzbgqqcakh
 - [ ] Navigate to **Authentication** > **URL Configuration**
 - [ ] Set **Site URL** to: `http://localhost:5173` (or your domain)
 - [ ] Add to **Redirect URLs**:
@@ -32,7 +32,7 @@ Use this checklist to configure OAuth authentication for your NUUM application.
 - [ ] Create OAuth 2.0 credentials (Web application)
 - [ ] Configure OAuth consent screen
 - [ ] Add authorized redirect URIs:
-  - [ ] `https://rvhgoyehqvhntwhjluqi.supabase.co/auth/v1/callback`
+  - [ ] `https://hunrzxpemygzbgqqcakh.supabase.co/auth/v1/callback`
   - [ ] `http://localhost:5173/auth/callback`
 - [ ] Copy Client ID and Client Secret
 - [ ] In Supabase Dashboard > Authentication > Providers > Google:
@@ -63,7 +63,7 @@ Use this checklist to configure OAuth authentication for your NUUM application.
 - [ ] Navigate to Azure Active Directory > App registrations
 - [ ] Register a new application
 - [ ] Add redirect URIs:
-  - [ ] `https://rvhgoyehqvhntwhjluqi.supabase.co/auth/v1/callback`
+  - [ ] `https://hunrzxpemygzbgqqcakh.supabase.co/auth/v1/callback`
   - [ ] `http://localhost:5173/auth/callback`
 - [ ] Create a client secret
 - [ ] Configure API permissions (email, openid, profile)
@@ -116,7 +116,7 @@ If OAuth doesn't work, check:
 
 ## ⚡ Quick Links
 
-- Supabase Dashboard: https://supabase.com/dashboard/project/rvhgoyehqvhntwhjluqi
+- Supabase Dashboard: https://supabase.com/dashboard/project/hunrzxpemygzbgqqcakh
 - Google Cloud Console: https://console.cloud.google.com/
 - Apple Developer: https://developer.apple.com/account/
 - Azure Portal: https://portal.azure.com/

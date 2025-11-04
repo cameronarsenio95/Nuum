@@ -23,7 +23,7 @@ The email/password login works immediately without any additional configuration.
 To enable social login, you need to configure each provider in Supabase:
 
 #### 1. Open Supabase Dashboard
-Visit: `https://supabase.com/dashboard/project/rvhgoyehqvhntwhjluqi/auth/providers`
+Visit: `https://supabase.com/dashboard/project/hunrzxpemygzbgqqcakh/auth/providers`
 
 #### 2. Set Redirect URLs
 Go to **Authentication** > **URL Configuration** and add:

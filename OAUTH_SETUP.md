@@ -61,7 +61,7 @@ Navigate to **Authentication** > **Providers** and enable each provider you want
 3. **Add Authorized Redirect URIs**
    - In your OAuth client settings, add:
    ```
-   https://rvhgoyehqvhntwhjluqi.supabase.co/auth/v1/callback
+   https://hunrzxpemygzbgqqcakh.supabase.co/auth/v1/callback
    http://localhost:5173/auth/callback
    https://yourdomain.com/auth/callback
    ```
@@ -95,8 +95,8 @@ Navigate to **Authentication** > **Providers** and enable each provider you want
    - Enable **Sign in with Apple**
    - Click **Configure**
    - Add your domains and return URLs:
-     - Domains: `rvhgoyehqvhntwhjluqi.supabase.co`, `yourdomain.com`
-     - Return URLs: `https://rvhgoyehqvhntwhjluqi.supabase.co/auth/v1/callback`
+     - Domains: `hunrzxpemygzbgqqcakh.supabase.co`, `yourdomain.com`
+     - Return URLs: `https://hunrzxpemygzbgqqcakh.supabase.co/auth/v1/callback`
 
 3. **Create a Private Key**
    - Go to **Keys** > **+** button
@@ -128,7 +128,7 @@ Navigate to **Authentication** > **Providers** and enable each provider you want
      - Supported account types: **Accounts in any organizational directory and personal Microsoft accounts**
      - Redirect URI:
        - Platform: **Web**
-       - URL: `https://rvhgoyehqvhntwhjluqi.supabase.co/auth/v1/callback`
+       - URL: `https://hunrzxpemygzbgqqcakh.supabase.co/auth/v1/callback`
    - Click **Register**
 
 2. **Add Additional Redirect URIs**
