@@ -8,6 +8,14 @@ import type { Database } from '../../lib/database.types';
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
+type AdSet = Database['public']['Tables']['ad_sets']['Row'];
+
+interface CampaignWithMetrics extends Campaign {
+  total_ad_sets: number;
+  active_ad_sets: number;
+  total_spend: number;
+  total_revenue: number;
+}
 
 interface CampaignsViewProps {
   workspace: Workspace;
@@ -17,7 +25,7 @@ interface CampaignsViewProps {
 export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps) {
   const { user } = useAuth();
   const { checkWritePermission } = useWritePermission();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignWithMetrics[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -37,7 +45,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
   }, [workspace.id]);
 
   const loadCampaigns = async () => {
-    const { data, error } = await supabase
+    const { data: campaignsData, error } = await supabase
       .from('campaigns')
       .select('*')
       .eq('workspace_id', workspace.id)
@@ -45,9 +53,40 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
     if (error) {
       console.error('Error loading campaigns:', error);
-    } else {
-      setCampaigns(data || []);
+      setLoading(false);
+      return;
     }
+
+    if (!campaignsData || campaignsData.length === 0) {
+      setCampaigns([]);
+      setLoading(false);
+      return;
+    }
+
+    // Load ad sets for all campaigns
+    const { data: adSetsData, error: adSetsError } = await supabase
+      .from('ad_sets')
+      .select('campaign_id, status, spend, revenue')
+      .in('campaign_id', campaignsData.map(c => c.id));
+
+    if (adSetsError) {
+      console.error('Error loading ad sets:', adSetsError);
+    }
+
+    // Calculate metrics for each campaign
+    const campaignsWithMetrics: CampaignWithMetrics[] = campaignsData.map(campaign => {
+      const campaignAdSets = adSetsData?.filter(ad => ad.campaign_id === campaign.id) || [];
+
+      return {
+        ...campaign,
+        total_ad_sets: campaignAdSets.length,
+        active_ad_sets: campaignAdSets.filter(ad => ad.status === 'active').length,
+        total_spend: campaignAdSets.reduce((sum, ad) => sum + (Number(ad.spend) || 0), 0),
+        total_revenue: campaignAdSets.reduce((sum, ad) => sum + (Number(ad.revenue) || 0), 0),
+      };
+    });
+
+    setCampaigns(campaignsWithMetrics);
     setLoading(false);
   };
 
@@ -244,36 +283,36 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                 </div>
               </div>
 
-              {(campaign as any).total_ad_sets > 0 && (
+              {campaign.total_ad_sets > 0 && (
                 <div className="mb-4 pb-4 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Ad Sets</span>
-                      <span className="font-medium">{(campaign as any).total_ad_sets}</span>
+                      <span className="font-medium">{campaign.total_ad_sets}</span>
                     </div>
                     <div>
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Active</span>
-                      <span className="font-medium text-linear-success">{(campaign as any).active_ad_sets || 0}</span>
+                      <span className="font-medium text-linear-success">{campaign.active_ad_sets}</span>
                     </div>
                     <div>
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Costs</span>
-                      <span className="font-medium">${((campaign as any).total_spend || 0).toLocaleString()}</span>
+                      <span className="font-medium">€{campaign.total_spend.toLocaleString()}</span>
                     </div>
                     <div>
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Revenue</span>
-                      <span className="font-medium text-linear-success">${((campaign as any).total_revenue || 0).toLocaleString()}</span>
+                      <span className="font-medium text-linear-success">€{campaign.total_revenue.toLocaleString()}</span>
                     </div>
                     <div className="col-span-2">
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">ROI</span>
                       <span className={`font-medium ${
-                        (campaign as any).total_spend > 0
-                          ? ((((campaign as any).total_revenue || 0) - (campaign as any).total_spend) / (campaign as any).total_spend) * 100 >= 0
+                        campaign.total_spend > 0
+                          ? ((campaign.total_revenue - campaign.total_spend) / campaign.total_spend) * 100 >= 0
                             ? 'text-linear-success'
                             : 'text-linear-error'
                           : 'dark:text-text-secondary light:text-text-light-secondary'
                       }`}>
-                        {(campaign as any).total_spend > 0
-                          ? `${Math.round(((((campaign as any).total_revenue || 0) - (campaign as any).total_spend) / (campaign as any).total_spend * 100))}%`
+                        {campaign.total_spend > 0
+                          ? `${Math.round(((campaign.total_revenue - campaign.total_spend) / campaign.total_spend * 100))}%`
                           : '-'}
                       </span>
                     </div>
