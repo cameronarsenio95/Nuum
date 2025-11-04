@@ -89,6 +89,61 @@ function DashboardContent() {
 
     console.log('[DASHBOARD] Loading workspace for user:', user.id);
 
+    // First, try to load workspace by membership (includes owned and invited workspaces)
+    const { data: membershipData, error: membershipError } = await supabase
+      .from('workspace_members')
+      .select('workspace_id, workspaces(*)')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (membershipError) {
+      console.error('[DASHBOARD] Error loading membership:', membershipError);
+    }
+
+    // If user has a membership, use that workspace
+    if (membershipData && membershipData.workspaces) {
+      const workspaceData = Array.isArray(membershipData.workspaces)
+        ? membershipData.workspaces[0]
+        : membershipData.workspaces;
+      console.log('[DASHBOARD] Workspace loaded via membership:', workspaceData.id);
+
+      // Update workspace name if needed
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileData?.full_name && workspaceData.owner_id === user.id) {
+        const displayName = profileData.full_name;
+        const expectedWorkspaceName = `${displayName}'s Workspace`;
+
+        if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
+          const { data: updatedWorkspace } = await supabase
+            .from('workspaces')
+            .update({ name: expectedWorkspaceName })
+            .eq('id', workspaceData.id)
+            .select()
+            .single();
+
+          if (updatedWorkspace) {
+            setWorkspace(updatedWorkspace);
+          } else {
+            setWorkspace(workspaceData as Workspace);
+          }
+        } else {
+          setWorkspace(workspaceData as Workspace);
+        }
+      } else {
+        setWorkspace(workspaceData as Workspace);
+      }
+
+      setLoading(false);
+      return;
+    }
+
+    // Fallback: Load user's owned workspace if no membership exists
     const { data: workspaceData, error: workspaceError } = await supabase
       .from('workspaces')
       .select('*')
