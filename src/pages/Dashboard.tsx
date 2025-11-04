@@ -150,18 +150,30 @@ function DashboardContent() {
         return;
       }
 
-      // Add user as owner in workspace_members
+      // Add user as owner in workspace_members (check if not exists first)
       if (newWorkspace) {
-        const { error: memberError } = await supabase
+        const { data: existing } = await supabase
           .from('workspace_members')
-          .insert({
-            workspace_id: newWorkspace.id,
-            user_id: user.id,
-            role: 'owner'
-          });
+          .select('id')
+          .eq('workspace_id', newWorkspace.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (memberError) {
-          console.error('[DASHBOARD] Error adding workspace member:', memberError);
+        if (!existing) {
+          console.log('[DASHBOARD] Creating workspace_members entry for new workspace');
+          const { error: memberError } = await supabase
+            .from('workspace_members')
+            .insert({
+              workspace_id: newWorkspace.id,
+              user_id: user.id,
+              role: 'owner'
+            });
+
+          if (memberError) {
+            console.error('[DASHBOARD] Error adding workspace member:', memberError);
+          }
+        } else {
+          console.log('[DASHBOARD] Workspace member already exists, skipping insert');
         }
 
         setWorkspace(newWorkspace);
