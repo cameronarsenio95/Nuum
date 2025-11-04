@@ -95,18 +95,43 @@ export function TeamView({ workspace }: TeamViewProps) {
     setInviting(true);
 
     try {
+      // Normalize email: trim and lowercase
+      const normalizedEmail = inviteEmail.trim().toLowerCase();
+      console.log('[INVITE] Attempting to invite email:', normalizedEmail);
+
+      // Case-insensitive lookup in profiles table
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('email', inviteEmail)
+        .select('id, email')
+        .ilike('email', normalizedEmail)
         .maybeSingle();
 
+      console.log('[INVITE] Profile lookup result:', { found: !!profileData, email: profileData?.email, error: profileError });
+
       if (profileError || !profileData) {
+        console.log('[INVITE] User not found - normalized email:', normalizedEmail);
+        console.log('[INVITE] Query result:', { data: profileData, error: profileError });
         alert('User not found. They must create an account first with this email address.');
         setInviting(false);
         return;
       }
 
+      // Check if user is already a member (prevent duplicates)
+      const { data: existing } = await supabase
+        .from('workspace_members')
+        .select('id')
+        .eq('workspace_id', workspace.id)
+        .eq('user_id', profileData.id)
+        .maybeSingle();
+
+      if (existing) {
+        console.log('[INVITE] User is already a member, skipping insert');
+        alert('This user is already a member of this workspace.');
+        setInviting(false);
+        return;
+      }
+
+      // Insert new workspace member
       const { error } = await supabase.from('workspace_members').insert({
         workspace_id: workspace.id,
         user_id: profileData.id,
@@ -115,21 +140,18 @@ export function TeamView({ workspace }: TeamViewProps) {
       });
 
       if (error) {
-        console.error('Error inviting member:', error);
-        if (error.code === '23505') {
-          alert('This user is already a member of this workspace.');
-        } else {
-          alert('Failed to invite member. Please try again.');
-        }
+        console.error('[INVITE] Error inserting workspace member:', error);
+        alert('Failed to invite member. Please try again.');
       } else {
+        console.log('[INVITE] Successfully invited member:', profileData.email);
         setShowInviteModal(false);
         setInviteEmail('');
         setInviteRole('member');
         await refreshUsage();
-        loadMembers();
+        await loadMembers();
       }
     } catch (error) {
-      console.error('Error inviting member:', error);
+      console.error('[INVITE] Unexpected error:', error);
       alert('Failed to invite member. Please try again.');
     } finally {
       setInviting(false);
