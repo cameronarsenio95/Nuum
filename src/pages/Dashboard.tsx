@@ -26,7 +26,7 @@ type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 
 function DashboardContent() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { showOnboarding, completeOnboarding, skipOnboarding } = useOnboarding();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [currentView, setCurrentView] = useState<'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'ad-sets' | 'analytics' | 'shopify'>('overview');
@@ -36,10 +36,18 @@ function DashboardContent() {
   const [isFrozenAccount, setIsFrozenAccount] = useState(false);
 
   useEffect(() => {
+    console.log('[DASHBOARD] Auth state:', { user: user?.id, authLoading });
+
+    if (!authLoading && !user) {
+      console.log('[DASHBOARD] No user session, redirecting to login...');
+      window.location.href = '/login';
+      return;
+    }
+
     if (user) {
       loadWorkspace();
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     if (workspace) {
@@ -79,6 +87,8 @@ function DashboardContent() {
   const loadWorkspace = async () => {
     if (!user) return;
 
+    console.log('[DASHBOARD] Loading workspace for user:', user.id);
+
     const { data: workspaceData, error: workspaceError } = await supabase
       .from('workspaces')
       .select('*')
@@ -86,10 +96,12 @@ function DashboardContent() {
       .maybeSingle();
 
     if (workspaceError) {
-      console.error('Error loading workspace:', workspaceError);
+      console.error('[DASHBOARD] Error loading workspace:', workspaceError);
       setLoading(false);
       return;
     }
+
+    console.log('[DASHBOARD] Workspace loaded:', workspaceData?.id);
 
     if (!workspaceData) {
       const { data: profileData } = await supabase
@@ -169,18 +181,27 @@ function DashboardContent() {
     setLoading(false);
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg flex items-center justify-center">
-        <div className="dark:text-text-secondary light:text-text-light-secondary">Loading workspace...</div>
+      <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-linear-border border-t-linear-accent rounded-full animate-spin"></div>
+        <div className="dark:text-text-secondary light:text-text-light-secondary">
+          {authLoading ? 'Checking authentication...' : 'Loading workspace...'}
+        </div>
       </div>
     );
   }
 
   if (!workspace) {
     return (
-      <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg flex items-center justify-center">
+      <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg flex flex-col items-center justify-center gap-4">
         <div className="dark:text-text-secondary light:text-text-light-secondary">No workspace found</div>
+        <button
+          onClick={() => window.location.href = '/'}
+          className="px-4 py-2 bg-linear-accent text-white rounded-linear hover:opacity-90 linear-transition"
+        >
+          Return to Home
+        </button>
       </div>
     );
   }
