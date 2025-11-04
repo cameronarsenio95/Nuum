@@ -1,3 +1,4 @@
+// IMPORTANT: All data in this module comes from Supabase. Do not use any Bolt-local database as a source of truth.
 /**
  * useCurrentWorkspace Hook
  *
@@ -54,27 +55,39 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
 
       console.log('[useCurrentWorkspace] Loading workspace for user:', user.id);
 
-      // Load user's workspace (assuming user is owner or member)
-      const { data: workspaceData, error: workspaceError } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('owner_id', user.id)
+      // Load workspace via workspace_members (works for owners AND invited members)
+      const { data: membershipData, error: membershipError } = await supabase
+        .from('workspace_members')
+        .select(`
+          workspace_id,
+          workspaces (
+            id, name, slug, plan, owner_id, max_team_members, max_creators, max_storage_gb,
+            subscription_status, stripe_customer_id, stripe_subscription_id, trial_started_at,
+            trial_ends_at, features, created_at, updated_at
+          )
+        `)
+        .eq('user_id', user.id)
+        .limit(1)
         .maybeSingle();
 
-      if (workspaceError) {
-        console.error('[useCurrentWorkspace] Error loading workspace:', workspaceError);
+      if (membershipError) {
+        console.error('[useCurrentWorkspace] Error loading membership:', membershipError);
         setError('Failed to load workspace');
         return;
       }
 
-      if (!workspaceData) {
+      if (!membershipData || !membershipData.workspaces) {
         console.warn('[useCurrentWorkspace] No workspace found for user');
         setError('No workspace found');
         return;
       }
 
+      const workspaceData = Array.isArray(membershipData.workspaces)
+        ? membershipData.workspaces[0]
+        : membershipData.workspaces;
+
       console.log('[useCurrentWorkspace] Workspace loaded:', workspaceData.id);
-      setWorkspace(workspaceData);
+      setWorkspace(workspaceData as Workspace);
     } catch (err: any) {
       console.error('[useCurrentWorkspace] Unexpected error:', err);
       setError(err.message || 'An unexpected error occurred');

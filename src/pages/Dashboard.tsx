@@ -1,3 +1,4 @@
+// IMPORTANT: All data in this module comes from Supabase. Do not use any Bolt-local database as a source of truth.
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { PlanLimitsProvider, usePlanLimits } from '../contexts/PlanLimitsContext';
@@ -89,20 +90,68 @@ function DashboardContent() {
 
     console.log('[DASHBOARD] Loading workspace for user:', user.id);
 
-    const { data: workspaceData, error: workspaceError } = await supabase
-      .from('workspaces')
-      .select('*')
-      .eq('owner_id', user.id)
+    // Load workspace via workspace_members (works for owners AND invited members)
+    const { data: membershipData, error: membershipError } = await supabase
+      .from('workspace_members')
+      .select('workspace_id, workspaces(*)')
+      .eq('user_id', user.id)
+      .limit(1)
       .maybeSingle();
 
-    if (workspaceError) {
-      console.error('[DASHBOARD] Error loading workspace:', workspaceError);
+    if (membershipError) {
+      console.error('[DASHBOARD] Error loading membership:', membershipError);
       setLoading(false);
       return;
     }
 
-    console.log('[DASHBOARD] Workspace loaded:', workspaceData?.id);
+    // If user has a membership, use that workspace
+    if (membershipData && membershipData.workspaces) {
+      const workspaceData = Array.isArray(membershipData.workspaces)
+        ? membershipData.workspaces[0]
+        : membershipData.workspaces;
 
+      console.log('[DASHBOARD] Workspace loaded via membership:', workspaceData.id);
+
+      // Update workspace name if needed (only for owners)
+      if (workspaceData.owner_id === user.id) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileData?.full_name) {
+          const displayName = profileData.full_name;
+          const expectedWorkspaceName = `${displayName}'s Workspace`;
+
+          if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
+            const { data: updatedWorkspace } = await supabase
+              .from('workspaces')
+              .update({ name: expectedWorkspaceName })
+              .eq('id', workspaceData.id)
+              .select()
+              .single();
+
+            if (updatedWorkspace) {
+              setWorkspace(updatedWorkspace);
+            } else {
+              setWorkspace(workspaceData as Workspace);
+            }
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      setWorkspace(workspaceData as Workspace);
+      setLoading(false);
+      return;
+    }
+
+    // No membership found - create a new workspace for this user
+    console.log('[DASHBOARD] No membership found, creating new workspace');
+
+    const workspaceData = null;
     if (!workspaceData) {
       const { data: profileData } = await supabase
         .from('profiles')
