@@ -133,7 +133,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       return;
     }
 
-    const { error } = await supabase.from('creators').insert({
+    const { data, error } = await supabase.from('creators').insert({
       workspace_id: workspace.id,
       name: newCreator.name,
       email: newCreator.email || null,
@@ -146,11 +146,13 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
       status: newCreator.status,
       tags: newCreator.tags.length > 0 ? newCreator.tags : null,
       discount_code: newCreator.discount_code || null,
-    });
+    }).select();
 
     if (error) {
       console.error('Error creating creator:', error);
+      alert(`Failed to create creator: ${error.message}`);
     } else {
+      console.log('Creator created successfully:', data);
       setShowCreateModal(false);
       resetForm();
       loadCreators();

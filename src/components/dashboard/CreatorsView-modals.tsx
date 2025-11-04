@@ -83,26 +83,26 @@ export function CreatorFormModal({
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Email <span className="text-linear-error">*</span>
+                Email
               </label>
               <input
                 type="email"
                 value={newCreator.email}
                 onChange={(e) => setNewCreator({ ...newCreator, email: e.target.value })}
                 className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                required
+                placeholder="creator@example.com"
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                Phone <span className="text-linear-error">*</span>
+                Phone
               </label>
               <input
                 type="tel"
                 value={newCreator.phone}
                 onChange={(e) => setNewCreator({ ...newCreator, phone: e.target.value })}
                 className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
-                required
+                placeholder="+31 6 12345678"
               />
             </div>
           </div>
