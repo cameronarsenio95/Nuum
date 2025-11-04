@@ -91,6 +91,13 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
     setLoading(false);
   };
 
+  // Calculate campaign metrics from ad sets
+  const campaignMetrics = {
+    total_ad_sets: adSets.length,
+    total_spend: adSets.reduce((sum, adSet) => sum + (Number(adSet.spend) || 0), 0),
+    total_revenue: adSets.reduce((sum, adSet) => sum + (Number(adSet.revenue) || 0), 0),
+  };
+
   const loadCreators = async () => {
     const { data, error } = await supabase
       .from('creators')
@@ -367,7 +374,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <Target className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Ad Sets</span>
             </div>
-            <p className="text-2xl font-medium">{currentCampaign.total_ad_sets || 0}</p>
+            <p className="text-2xl font-medium">{campaignMetrics.total_ad_sets}</p>
           </div>
 
           <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
@@ -375,7 +382,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <Euro className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Costs</span>
             </div>
-            <p className="text-2xl font-medium">€{(currentCampaign.total_spend || 0).toLocaleString()}</p>
+            <p className="text-2xl font-medium">€{campaignMetrics.total_spend.toLocaleString()}</p>
           </div>
 
           <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
@@ -383,7 +390,7 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <TrendingUp className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
             </div>
-            <p className="text-2xl font-medium">€{(currentCampaign.total_revenue || 0).toLocaleString()}</p>
+            <p className="text-2xl font-medium">€{campaignMetrics.total_revenue.toLocaleString()}</p>
           </div>
 
           <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
@@ -392,8 +399,8 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
               <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
             </div>
             <p className="text-2xl font-medium">
-              {currentCampaign.total_spend > 0
-                ? `${Math.round(((currentCampaign.total_revenue || 0) - currentCampaign.total_spend) / currentCampaign.total_spend * 100)}%`
+              {campaignMetrics.total_spend > 0
+                ? `${Math.round(((campaignMetrics.total_revenue - campaignMetrics.total_spend) / campaignMetrics.total_spend * 100))}%`
                 : '-'}
             </p>
           </div>
