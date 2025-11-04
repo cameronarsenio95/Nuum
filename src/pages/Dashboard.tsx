@@ -87,13 +87,16 @@ function DashboardContent() {
   const loadWorkspace = async () => {
     if (!user) return;
 
-    console.log('[DASHBOARD] Loading workspace for user:', user.id);
+    console.log('[DASHBOARD] Loading workspace via membership for user:', user.id);
 
-    const { data: workspaceData, error: workspaceError } = await supabase
+    // Load ALL workspaces where user is a member (owner, admin, member, or viewer)
+    const { data: workspacesData, error: workspaceError } = await supabase
       .from('workspaces')
-      .select('*')
-      .eq('owner_id', user.id)
-      .maybeSingle();
+      .select('*, workspace_members!inner(role, user_id)')
+      .eq('workspace_members.user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    console.log('[DASHBOARD] Memberships result:', { data: workspacesData, error: workspaceError });
 
     if (workspaceError) {
       console.error('[DASHBOARD] Error loading workspace:', workspaceError);
@@ -101,9 +104,9 @@ function DashboardContent() {
       return;
     }
 
-    console.log('[DASHBOARD] Workspace loaded:', workspaceData?.id);
+    console.log('[DASHBOARD] Found workspaces:', workspacesData?.length);
 
-    if (!workspaceData) {
+    if (!workspacesData || workspacesData.length === 0) {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name')
@@ -143,38 +146,58 @@ function DashboardContent() {
 
       if (createError) {
         console.error('Error creating workspace:', createError);
-      } else {
+        setLoading(false);
+        return;
+      }
+
+      // Add user as owner in workspace_members
+      if (newWorkspace) {
+        const { error: memberError } = await supabase
+          .from('workspace_members')
+          .insert({
+            workspace_id: newWorkspace.id,
+            user_id: user.id,
+            role: 'owner'
+          });
+
+        if (memberError) {
+          console.error('[DASHBOARD] Error adding workspace member:', memberError);
+        }
+
         setWorkspace(newWorkspace);
       }
     } else {
+      // User has existing workspace(s), use the first one
+      const firstWorkspace = workspacesData[0];
+
       const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profileData?.full_name) {
+      if (profileData?.full_name && firstWorkspace.owner_id === user.id) {
         const displayName = profileData.full_name;
         const expectedWorkspaceName = `${displayName}'s Workspace`;
 
-        if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
+        if (firstWorkspace.name !== expectedWorkspaceName && firstWorkspace.name.includes('@')) {
           const { data: updatedWorkspace } = await supabase
             .from('workspaces')
             .update({ name: expectedWorkspaceName })
-            .eq('id', workspaceData.id)
+            .eq('id', firstWorkspace.id)
             .select()
             .single();
 
           if (updatedWorkspace) {
             setWorkspace(updatedWorkspace);
           } else {
-            setWorkspace(workspaceData);
+            setWorkspace(firstWorkspace);
           }
         } else {
-          setWorkspace(workspaceData);
+          setWorkspace(firstWorkspace);
         }
       } else {
-        setWorkspace(workspaceData);
+        setWorkspace(firstWorkspace);
       }
     }
 

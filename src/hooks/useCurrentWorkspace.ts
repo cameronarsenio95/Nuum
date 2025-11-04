@@ -26,10 +26,16 @@ import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
+type WorkspaceMember = Database['public']['Tables']['workspace_members']['Row'];
+
+interface WorkspaceWithRole extends Workspace {
+  role?: string;
+}
 
 interface UseCurrentWorkspaceReturn {
-  workspace: Workspace | null;
+  workspace: WorkspaceWithRole | null;
   workspaceId: string | null;
+  role: string | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -37,13 +43,15 @@ interface UseCurrentWorkspaceReturn {
 
 export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
   const { user } = useAuth();
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [workspace, setWorkspace] = useState<WorkspaceWithRole | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadWorkspace = async () => {
     if (!user) {
       setWorkspace(null);
+      setRole(null);
       setLoading(false);
       return;
     }
@@ -52,29 +60,47 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
       setLoading(true);
       setError(null);
 
-      console.log('[useCurrentWorkspace] Loading workspace for user:', user.id);
+      console.log('[useCurrentWorkspace] Loading workspaces via membership for user:', user.id);
 
-      // Load user's workspace (assuming user is owner or member)
-      const { data: workspaceData, error: workspaceError } = await supabase
+      // Load ALL workspaces where user is a member (owner, admin, member, or viewer)
+      // Using inner join to ensure we only get workspaces with active membership
+      const { data: workspacesData, error: workspaceError } = await supabase
         .from('workspaces')
-        .select('*')
-        .eq('owner_id', user.id)
-        .maybeSingle();
+        .select('*, workspace_members!inner(role, user_id)')
+        .eq('workspace_members.user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      console.log('[useCurrentWorkspace] Memberships result:', { data: workspacesData, error: workspaceError });
 
       if (workspaceError) {
-        console.error('[useCurrentWorkspace] Error loading workspace:', workspaceError);
-        setError('Failed to load workspace');
+        console.error('[useCurrentWorkspace] Error loading workspaces:', workspaceError);
+        setError('Failed to load workspaces');
         return;
       }
 
-      if (!workspaceData) {
-        console.warn('[useCurrentWorkspace] No workspace found for user');
+      if (!workspacesData || workspacesData.length === 0) {
+        console.warn('[useCurrentWorkspace] No workspace memberships found for user');
         setError('No workspace found');
         return;
       }
 
-      console.log('[useCurrentWorkspace] Workspace loaded:', workspaceData.id);
-      setWorkspace(workspaceData);
+      // Take the first workspace (or could be enhanced to use URL slug later)
+      const firstWorkspace = workspacesData[0];
+      const membership = Array.isArray(firstWorkspace.workspace_members)
+        ? firstWorkspace.workspace_members[0]
+        : firstWorkspace.workspace_members;
+
+      const userRole = membership?.role || 'member';
+
+      console.log('[useCurrentWorkspace] Selected workspace:', {
+        id: firstWorkspace.id,
+        name: firstWorkspace.name,
+        role: userRole,
+        totalWorkspaces: workspacesData.length
+      });
+
+      setWorkspace({ ...firstWorkspace, role: userRole });
+      setRole(userRole);
     } catch (err: any) {
       console.error('[useCurrentWorkspace] Unexpected error:', err);
       setError(err.message || 'An unexpected error occurred');
@@ -90,6 +116,7 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
   return {
     workspace,
     workspaceId: workspace?.id || null,
+    role,
     loading,
     error,
     refetch: loadWorkspace,
