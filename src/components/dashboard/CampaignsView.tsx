@@ -3,6 +3,7 @@ import { Plus, Target, Edit2, Trash2, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWritePermission } from '../../hooks/useWritePermission';
+import { handleSupabaseError, logOperationStart, logOperationSuccess } from '../../utils/errorHandler';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -114,6 +115,8 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
       return;
     }
 
+    logOperationStart('CREATE_CAMPAIGN', { name: newCampaign.name, workspace_id: workspace.id });
+
     const { data: campaign, error } = await supabase.from('campaigns').insert({
       workspace_id: workspace.id,
       name: newCampaign.name,
@@ -122,9 +125,12 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
     }).select().single();
 
     if (error) {
-      console.error('Error creating campaign:', error);
+      const appError = handleSupabaseError(error, 'CREATE_CAMPAIGN');
+      alert(appError.userMessage);
       return;
     }
+
+    logOperationSuccess('CREATE_CAMPAIGN', { campaign_id: campaign.id });
 
     if (campaign && selectedCreators.length > 0) {
       const campaignCreators = selectedCreators.map(creatorId => ({
@@ -133,12 +139,17 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
         status: 'invited' as const,
       }));
 
+      logOperationStart('LINK_CAMPAIGN_CREATORS', { campaign_id: campaign.id, creators: selectedCreators.length });
+
       const { error: linkError } = await supabase
         .from('campaign_creators')
         .insert(campaignCreators);
 
       if (linkError) {
-        console.error('Error linking creators to campaign:', linkError);
+        const appError = handleSupabaseError(linkError, 'LINK_CAMPAIGN_CREATORS');
+        console.warn('[LINK_CAMPAIGN_CREATORS] Non-fatal error:', appError.userMessage);
+      } else {
+        logOperationSuccess('LINK_CAMPAIGN_CREATORS');
       }
     }
 

@@ -3,6 +3,7 @@ import { Plus, ArrowLeft, Euro, TrendingUp, MousePointer, Target, Edit2, Trash2,
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import { handleSupabaseError, logOperationStart, logOperationSuccess } from '../../utils/errorHandler';
 import type { Database } from '../../lib/database.types';
 import { CostBreakdownModal, type CostBreakdown } from './CostBreakdownModal';
 
@@ -129,6 +130,13 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
         costBreakdown: costBreakdown,
       };
 
+      logOperationStart('CREATE_AD_SET', {
+        name: newAdSet.name,
+        campaign_id: campaign.id,
+        creator_id: newAdSet.creator_id,
+        platform: newAdSet.platform
+      });
+
       const { error } = await supabase.from('ad_sets').insert({
         campaign_id: campaign.id,
         creator_id: newAdSet.creator_id,
@@ -144,19 +152,20 @@ export function AdSetsView({ campaign, onBack }: AdSetsViewProps) {
       });
 
       if (error) {
-        console.error('Error creating ad set:', error);
-        toast?.showToast(`Error creating ad set: ${error.message}`, 'error');
+        const appError = handleSupabaseError(error, 'CREATE_AD_SET');
+        toast?.showToast(appError.userMessage, 'error');
         return;
       }
 
+      logOperationSuccess('CREATE_AD_SET', { name: newAdSet.name });
       toast?.showToast('Ad set created successfully', 'success');
       setShowCreateModal(false);
       resetForm();
       loadAdSets();
       loadCampaign();
-    } catch (error) {
-      console.error('Unexpected error creating ad set:', error);
-      toast?.showToast('An unexpected error occurred', 'error');
+    } catch (error: any) {
+      console.error('[CREATE_AD_SET] Unexpected error:', error);
+      toast?.showToast('An unexpected error occurred. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }
