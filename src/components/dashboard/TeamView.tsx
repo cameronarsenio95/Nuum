@@ -213,43 +213,56 @@ export function TeamView({ workspace }: TeamViewProps) {
 
       <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-linear-lg overflow-hidden">
         <div className="divide-y divide-linear-border-subtle">
-          {members.map((member) => {
-            const isCurrentUser = member.user_id === user?.id;
-            const isMemberOwner = member.role === 'owner';
-            return (
-              <div key={member.id} className={`p-4 ${isMemberOwner ? 'bg-linear-bg-subtle' : ''}`}>
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isMemberOwner ? 'bg-linear-accent' : 'bg-linear-bg-subtle'}`}>
-                    <span className={`text-sm font-medium ${isMemberOwner ? 'text-black' : 'text-text-secondary'}`}>
-                      {member.user_name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">
-                        {member.user_name}
-                        {isCurrentUser && ' (You)'}
-                      </h3>
-                      {getRoleIcon(member.role)}
-                    </div>
-                    <p className="text-sm text-text-secondary">
-                      Joined {new Date(member.joined_at).toLocaleDateString()}
-                    </p>
-                  </div>
+          <div className="p-4 bg-linear-bg-subtle">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-linear-accent rounded-full flex items-center justify-center text-linear-bg">
+                <span className="text-sm font-medium text-black">
+                  {currentUserName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium">{currentUserName}</h3>
+                  <Crown className="w-4 h-4 text-linear-warning" />
+                </div>
+                <p className="text-sm text-text-secondary">Workspace Owner</p>
+              </div>
+              <span className={`text-xs px-2 py-1 rounded-full border ${getRoleColor('owner')}`}>
+                owner
+              </span>
+            </div>
+          </div>
+
+          {members.map((member) => (
+            <div key={member.id} className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-linear-bg-subtle rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-text-secondary">
+                    {member.user_name?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-1 rounded-full border ${getRoleColor(member.role)}`}>
-                      {member.role}
-                    </span>
-                    <TeamManagement
-                      member={member}
-                      isOwner={isOwner}
-                      onMemberUpdated={loadMembers}
-                    />
+                    <h3 className="font-medium">{member.user_name}</h3>
+                    {getRoleIcon(member.role)}
                   </div>
+                  <p className="text-sm text-text-secondary">
+                    Joined {new Date(member.joined_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-1 rounded-full border ${getRoleColor(member.role)}`}>
+                    {member.role}
+                  </span>
+                  <TeamManagement
+                    member={member}
+                    isOwner={isOwner}
+                    onMemberUpdated={loadMembers}
+                  />
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
 

@@ -54,30 +54,7 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
 
       console.log('[useCurrentWorkspace] Loading workspace for user:', user.id);
 
-      // First, try to load workspace by membership (includes owned and invited workspaces)
-      const { data: membershipData, error: membershipError } = await supabase
-        .from('workspace_members')
-        .select('workspace_id, workspaces(*)')
-        .eq('user_id', user.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (membershipError) {
-        console.error('[useCurrentWorkspace] Error loading membership:', membershipError);
-      }
-
-      // If user has a membership, use that workspace
-      if (membershipData && membershipData.workspaces) {
-        const workspaceData = Array.isArray(membershipData.workspaces)
-          ? membershipData.workspaces[0]
-          : membershipData.workspaces;
-        console.log('[useCurrentWorkspace] Workspace loaded via membership:', workspaceData.id);
-        setWorkspace(workspaceData as Workspace);
-        setLoading(false);
-        return;
-      }
-
-      // Fallback: Load user's owned workspace if no membership exists
+      // Load user's workspace (assuming user is owner or member)
       const { data: workspaceData, error: workspaceError } = await supabase
         .from('workspaces')
         .select('*')
