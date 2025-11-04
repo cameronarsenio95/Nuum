@@ -87,16 +87,13 @@ function DashboardContent() {
   const loadWorkspace = async () => {
     if (!user) return;
 
-    console.log('[DASHBOARD] Loading workspace via membership for user:', user.id);
+    console.log('[DASHBOARD] Loading workspace for user:', user.id);
 
-    // Load ALL workspaces where user is a member (owner, admin, member, or viewer)
-    const { data: workspacesData, error: workspaceError } = await supabase
+    const { data: workspaceData, error: workspaceError } = await supabase
       .from('workspaces')
-      .select('*, workspace_members!inner(role, user_id)')
-      .eq('workspace_members.user_id', user.id)
-      .order('created_at', { ascending: true });
-
-    console.log('[DASHBOARD] Memberships result:', { data: workspacesData, error: workspaceError });
+      .select('*')
+      .eq('owner_id', user.id)
+      .maybeSingle();
 
     if (workspaceError) {
       console.error('[DASHBOARD] Error loading workspace:', workspaceError);
@@ -104,9 +101,9 @@ function DashboardContent() {
       return;
     }
 
-    console.log('[DASHBOARD] Found workspaces:', workspacesData?.length);
+    console.log('[DASHBOARD] Workspace loaded:', workspaceData?.id);
 
-    if (!workspacesData || workspacesData.length === 0) {
+    if (!workspaceData) {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name')
@@ -146,70 +143,38 @@ function DashboardContent() {
 
       if (createError) {
         console.error('Error creating workspace:', createError);
-        setLoading(false);
-        return;
-      }
-
-      // Add user as owner in workspace_members (check if not exists first)
-      if (newWorkspace) {
-        const { data: existing } = await supabase
-          .from('workspace_members')
-          .select('id')
-          .eq('workspace_id', newWorkspace.id)
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (!existing) {
-          console.log('[DASHBOARD] Creating workspace_members entry for new workspace');
-          const { error: memberError } = await supabase
-            .from('workspace_members')
-            .insert({
-              workspace_id: newWorkspace.id,
-              user_id: user.id,
-              role: 'owner'
-            });
-
-          if (memberError) {
-            console.error('[DASHBOARD] Error adding workspace member:', memberError);
-          }
-        } else {
-          console.log('[DASHBOARD] Workspace member already exists, skipping insert');
-        }
-
+      } else {
         setWorkspace(newWorkspace);
       }
     } else {
-      // User has existing workspace(s), use the first one
-      const firstWorkspace = workspacesData[0];
-
       const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profileData?.full_name && firstWorkspace.owner_id === user.id) {
+      if (profileData?.full_name) {
         const displayName = profileData.full_name;
         const expectedWorkspaceName = `${displayName}'s Workspace`;
 
-        if (firstWorkspace.name !== expectedWorkspaceName && firstWorkspace.name.includes('@')) {
+        if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
           const { data: updatedWorkspace } = await supabase
             .from('workspaces')
             .update({ name: expectedWorkspaceName })
-            .eq('id', firstWorkspace.id)
+            .eq('id', workspaceData.id)
             .select()
             .single();
 
           if (updatedWorkspace) {
             setWorkspace(updatedWorkspace);
           } else {
-            setWorkspace(firstWorkspace);
+            setWorkspace(workspaceData);
           }
         } else {
-          setWorkspace(firstWorkspace);
+          setWorkspace(workspaceData);
         }
       } else {
-        setWorkspace(firstWorkspace);
+        setWorkspace(workspaceData);
       }
     }
 

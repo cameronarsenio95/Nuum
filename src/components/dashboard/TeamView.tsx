@@ -49,7 +49,6 @@ export function TeamView({ workspace }: TeamViewProps) {
   };
 
   const loadMembers = async () => {
-    console.log('[Load Members] Fetching workspace members from Supabase...');
     const { data, error } = await supabase
       .from('workspace_members')
       .select('*')
@@ -57,37 +56,15 @@ export function TeamView({ workspace }: TeamViewProps) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('[Load Members] Error loading members:', error);
+      console.error('Error loading members:', error);
     } else {
-      console.log('[Load Members] Found workspace members:', data?.length || 0);
-
       const membersWithEmails = await Promise.all(
         (data || []).map(async (member) => {
-          // First, try to get profile data
           const { data: profileData } = await supabase
             .from('profiles')
             .select('full_name, email')
             .eq('id', member.user_id)
             .maybeSingle();
-
-          // If no profile found, fall back to auth.users (source of truth)
-          if (!profileData) {
-            console.log('[Load Members] No profile found for user:', member.user_id, '- checking auth.users');
-            const { data: authUserData } = await supabase
-              .from('auth.users')
-              .select('email')
-              .eq('id', member.user_id)
-              .maybeSingle();
-
-            if (authUserData) {
-              console.log('[Load Members] Found user in auth.users:', authUserData.email);
-              return {
-                ...member,
-                user_email: authUserData.email,
-                user_name: authUserData.email,
-              };
-            }
-          }
 
           const email = profileData?.email || 'Unknown';
           const name = profileData?.full_name || email;
@@ -99,18 +76,9 @@ export function TeamView({ workspace }: TeamViewProps) {
           };
         })
       );
-
-      console.log('[Load Members] Members with emails loaded:', membersWithEmails.length);
       setMembers(membersWithEmails);
     }
-
-    // Safely refresh usage (ignore errors from missing functions)
-    try {
-      await refreshUsage();
-    } catch (error) {
-      console.warn('[Load Members] Could not refresh usage:', error);
-    }
-
+    await refreshUsage();
     setLoading(false);
   };
 
@@ -127,156 +95,42 @@ export function TeamView({ workspace }: TeamViewProps) {
     setInviting(true);
 
     try {
-      // Normalize email: trim and lowercase
-      const normalizedEmail = inviteEmail.trim().toLowerCase();
-      console.log('[Invite Member] Starting invite flow for email:', normalizedEmail);
-      console.log('[Invite Member] Current workspace ID:', workspace.id);
-      console.log('[Invite Member] Current user ID:', user.id);
-      console.log('[Invite Member] Selected role:', inviteRole);
-
-      // STEP 1: Look up user in auth.users (the ONLY source of truth for users)
-      const { data: authUserData, error: authUserError } = await supabase
-        .from('auth.users')
-        .select('id, email')
-        .eq('email', normalizedEmail)
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', inviteEmail)
         .maybeSingle();
 
-      console.log('[Invite Member] Auth user lookup complete:', {
-        found: !!authUserData,
-        email: authUserData?.email,
-        userId: authUserData?.id,
-        error: authUserError
-      });
-
-      if (authUserError) {
-        console.error('[Invite Member] Auth user lookup error:', authUserError);
-        console.error('[Invite Member] Error details:', {
-          code: authUserError.code,
-          message: authUserError.message,
-          details: authUserError.details,
-          hint: authUserError.hint,
-        });
-
-        // Check if it's a "no rows found" error (PGRST116)
-        if (authUserError.code === 'PGRST116') {
-          console.log('[Invite Member] User not found in auth.users - normalized email:', normalizedEmail);
-          alert('User not found. They must create an account first with this email address.');
-          setInviting(false);
-          return;
-        }
-
-        alert(`Error looking up user: ${authUserError.message}`);
-        setInviting(false);
-        return;
-      }
-
-      if (!authUserData) {
-        console.log('[Invite Member] User not found in auth.users - normalized email:', normalizedEmail);
+      if (profileError || !profileData) {
         alert('User not found. They must create an account first with this email address.');
         setInviting(false);
         return;
       }
 
-      // Use the auth user ID for workspace membership
-      const targetUserId = authUserData.id;
-      console.log('[Invite Member] Target user ID from auth.users:', targetUserId);
+      const { error } = await supabase.from('workspace_members').insert({
+        workspace_id: workspace.id,
+        user_id: profileData.id,
+        role: inviteRole,
+        invited_by: user.id,
+      });
 
-      // STEP 2: Check if user is already a member (prevent duplicates)
-      console.log('[Invite Member] Checking for existing membership...');
-      const { data: existingMember, error: existingError } = await supabase
-        .from('workspace_members')
-        .select('id, role')
-        .eq('workspace_id', workspace.id)
-        .eq('user_id', targetUserId)
-        .maybeSingle();
-
-      if (existingError) {
-        console.error('[Invite Member] existing membership check failed:', existingError);
-        console.error('[Invite Member] Error details:', {
-          code: existingError.code,
-          message: existingError.message,
-          details: existingError.details,
-          hint: existingError.hint,
-        });
-        throw existingError;
-      }
-
-      if (existingMember) {
-        console.log('[Invite Member] user is already a member of this workspace');
-        console.log('[Invite Member] Existing role:', existingMember.role);
-        alert(`${authUserData.email} is already a member of this workspace with role: ${existingMember.role}`);
-
-        // Close modal and refresh list to show current state
+      if (error) {
+        console.error('Error inviting member:', error);
+        if (error.code === '23505') {
+          alert('This user is already a member of this workspace.');
+        } else {
+          alert('Failed to invite member. Please try again.');
+        }
+      } else {
         setShowInviteModal(false);
         setInviteEmail('');
         setInviteRole('member');
-        await loadMembers();
-        setInviting(false);
-        return;
-      }
-
-      // STEP 3: Insert new workspace member using auth user ID
-      console.log('[Invite Member] Attempting to insert new member...');
-      const { data: insertData, error: insertError } = await supabase
-        .from('workspace_members')
-        .insert([{
-          workspace_id: workspace.id,
-          user_id: targetUserId,
-          role: inviteRole,
-          invited_by: user.id,
-        }])
-        .select();
-
-      if (insertError) {
-        console.error('[Invite Member] insert error:', insertError);
-        console.error('[Invite Member] Full error details:', {
-          code: insertError.code,
-          message: insertError.message,
-          details: insertError.details,
-          hint: insertError.hint,
-        });
-        throw insertError;
-      }
-
-      console.log('[Invite Member] Successfully invited member:', authUserData.email);
-      console.log('[Invite Member] Insert result:', insertData);
-
-      // Success - close modal and refresh
-      setShowInviteModal(false);
-      setInviteEmail('');
-      setInviteRole('member');
-
-      // Safely refresh usage (non-critical)
-      try {
         await refreshUsage();
-      } catch (usageError) {
-        console.warn('[Invite Member] Could not refresh usage (non-critical):', usageError);
+        loadMembers();
       }
-
-      // Refresh team list
-      await loadMembers();
-    } catch (err: any) {
-      console.error('[Invite Member] Unexpected error:', err);
-      console.error('[Invite Member] Error type:', typeof err);
-      console.error('[Invite Member] Error name:', err?.name);
-      console.error('[Invite Member] Error message:', err?.message);
-      console.error('[Invite Member] Error stack:', err?.stack);
-
-      // Try to extract useful error info
-      let errorMessage = 'Failed to invite member. ';
-
-      if (err?.message) {
-        errorMessage += err.message;
-      } else {
-        errorMessage += 'Please try again.';
-      }
-
-      // Add hint if available
-      if (err?.hint) {
-        errorMessage += ` (Hint: ${err.hint})`;
-      }
-
-      alert(errorMessage);
+    } catch (error) {
+      console.error('Error inviting member:', error);
+      alert('Failed to invite member. Please try again.');
     } finally {
       setInviting(false);
     }

@@ -109,16 +109,13 @@ export function SettingsView({ workspace }: SettingsViewProps) {
       setMessage({ type: 'error', text: 'Failed to save profile. Please try again.' });
     } else {
       if (profile.full_name) {
-        // Get user's workspace via membership
         const { data: workspaceData } = await supabase
           .from('workspaces')
-          .select('id, name, owner_id, workspace_members!inner(user_id, role)')
-          .eq('workspace_members.user_id', user.id)
-          .limit(1)
+          .select('id, name')
+          .eq('owner_id', user.id)
           .maybeSingle();
 
-        // Only update workspace name if user is the owner
-        if (workspaceData && workspaceData.owner_id === user.id && workspaceData.name.includes('@')) {
+        if (workspaceData && workspaceData.name.includes('@')) {
           await supabase
             .from('workspaces')
             .update({ name: `${profile.full_name}'s Workspace` })
