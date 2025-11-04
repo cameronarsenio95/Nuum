@@ -101,118 +101,177 @@ export default function AnalyticsView({ workspaceId }: AnalyticsViewProps) {
       setLoading(true);
       const { start, end } = getDateRangeFilter(dateRange);
 
-      const { data: analyticsData, error: analyticsError } = await supabase
-        .rpc('get_workspace_analytics', {
-          p_workspace_id: workspaceId,
-          p_start_date: start,
-          p_end_date: end
-        });
+      console.log('[ANALYTICS] Loading analytics for workspace:', workspaceId);
+      console.log('[ANALYTICS] Date range:', { start, end, dateRange });
 
-      if (analyticsError) throw analyticsError;
-      if (analyticsData?.summary) {
-        setSummary(analyticsData.summary);
-      }
-
-      const { data: campaignsData, error: campaignsError } = await supabase
-        .from('campaign_performance_summary')
-        .select('*')
-        .eq('workspace_id', workspaceId)
-        .order('total_revenue', { ascending: false })
-        .limit(10);
-
-      if (campaignsError) throw campaignsError;
-      setCampaigns(campaignsData || []);
-
-      const { data: creatorsData, error: creatorsError} = await supabase
-        .rpc('get_top_performing_creators', {
-          p_workspace_id: workspaceId,
-          p_limit: 10,
-          p_order_by: 'revenue',
-          p_start_date: start,
-          p_end_date: end
-        });
-
-      if (creatorsError) {
-        console.error('Error loading top creators via RPC:', creatorsError);
-
-        const { data: fallbackCreators, error: fallbackError } = await supabase
-          .from('creators')
-          .select('id, name')
-          .eq('workspace_id', workspaceId);
-
-        if (fallbackError) {
-          console.error('Error loading creators fallback:', fallbackError);
-          setTopCreators([]);
-        } else {
-          const creatorsWithMetrics = await Promise.all(
-            (fallbackCreators || []).map(async (creator) => {
-              const { data: adSetsData } = await supabase
-                .from('ad_sets')
-                .select('revenue, spend, conversions, campaign_id')
-                .eq('creator_id', creator.id);
-
-              const totalRevenue = adSetsData?.reduce((sum, ad) => sum + (Number(ad.revenue) || 0), 0) || 0;
-              const totalSpend = adSetsData?.reduce((sum, ad) => sum + (Number(ad.spend) || 0), 0) || 0;
-              const totalConversions = adSetsData?.reduce((sum, ad) => sum + (Number(ad.conversions) || 0), 0) || 0;
-              const profit = totalRevenue - totalSpend;
-              const roiPercentage = totalSpend > 0 ? Number(((profit / totalSpend) * 100).toFixed(2)) : 0;
-
-              const uniqueCampaigns = new Set(adSetsData?.map(ad => ad.campaign_id) || []);
-
-              return {
-                creator_id: creator.id,
-                creator_name: creator.name,
-                total_revenue: totalRevenue,
-                total_spend: totalSpend,
-                profit,
-                roi_percentage: roiPercentage,
-                conversions: totalConversions,
-                campaigns_count: uniqueCampaigns.size,
-                ad_sets_count: adSetsData?.length || 0
-              };
-            })
-          );
-
-          const sortedCreators = creatorsWithMetrics
-            .filter(c => c.total_revenue > 0 || c.campaigns_count > 0)
-            .sort((a, b) => b.total_revenue - a.total_revenue)
-            .slice(0, 10);
-
-          console.log('Fallback creators data:', sortedCreators);
-          setTopCreators(sortedCreators);
-        }
-      } else {
-        console.log('Top creators data:', creatorsData);
-        setTopCreators(creatorsData || []);
-      }
-
-      const { data: platformsData, error: platformsError } = await supabase
-        .from('platform_performance_summary')
+      // Load all campaigns for this workspace
+      const { data: allCampaigns, error: campaignsError } = await supabase
+        .from('campaigns')
         .select('*')
         .eq('workspace_id', workspaceId);
 
-      if (platformsError) throw platformsError;
+      if (campaignsError) {
+        console.error('[ANALYTICS] Error loading campaigns:', campaignsError);
+      }
 
-      const aggregated = (platformsData || []).reduce((acc: any[], curr: any) => {
-        const existing = acc.find(p => p.platform === curr.platform);
+      console.log('[ANALYTICS] Found campaigns:', allCampaigns?.length);
+
+      // Load all ad sets for these campaigns
+      let adSetsQuery = supabase
+        .from('ad_sets')
+        .select('*, campaign:campaigns!inner(id, name, status, workspace_id), creator:creators(id, name)')
+        .eq('campaign.workspace_id', workspaceId);
+
+      // Apply date filter if specified
+      if (start) {
+        adSetsQuery = adSetsQuery.gte('created_at', start);
+      }
+      if (end) {
+        adSetsQuery = adSetsQuery.lte('created_at', end);
+      }
+
+      const { data: adSetsData, error: adSetsError } = await adSetsQuery;
+
+      if (adSetsError) {
+        console.error('[ANALYTICS] Error loading ad sets:', adSetsError);
+      }
+
+      console.log('[ANALYTICS] Found ad sets:', adSetsData?.length);
+
+      // Calculate summary metrics
+      const totalRevenue = adSetsData?.reduce((sum, ad) => sum + (Number(ad.revenue) || 0), 0) || 0;
+      const totalSpend = adSetsData?.reduce((sum, ad) => sum + (Number(ad.spend) || 0), 0) || 0;
+      const totalProfit = totalRevenue - totalSpend;
+      const overallROI = totalSpend > 0 ? ((totalProfit / totalSpend) * 100) : 0;
+      const totalConversions = adSetsData?.reduce((sum, ad) => sum + (Number(ad.conversions) || 0), 0) || 0;
+      const totalClicks = adSetsData?.reduce((sum, ad) => sum + (Number(ad.clicks) || 0), 0) || 0;
+      const totalImpressions = adSetsData?.reduce((sum, ad) => sum + (Number(ad.impressions) || 0), 0) || 0;
+      const avgCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100) : 0;
+
+      setSummary({
+        total_campaigns: allCampaigns?.length || 0,
+        active_campaigns: allCampaigns?.filter(c => c.status === 'active').length || 0,
+        total_creators: new Set(adSetsData?.map(ad => ad.creator_id) || []).size,
+        total_ad_sets: adSetsData?.length || 0,
+        total_revenue: totalRevenue,
+        total_spend: totalSpend,
+        total_profit: totalProfit,
+        overall_roi: overallROI,
+        total_conversions: totalConversions,
+        total_clicks: totalClicks,
+        total_impressions: totalImpressions,
+        avg_ctr: avgCTR
+      });
+
+      console.log('[ANALYTICS] Summary:', { totalRevenue, totalSpend, totalProfit, overallROI });
+
+      // Calculate campaign performance
+      const campaignMetrics = (allCampaigns || []).map(campaign => {
+        const campaignAdSets = adSetsData?.filter(ad => ad.campaign_id === campaign.id) || [];
+        const revenue = campaignAdSets.reduce((sum, ad) => sum + (Number(ad.revenue) || 0), 0);
+        const spend = campaignAdSets.reduce((sum, ad) => sum + (Number(ad.spend) || 0), 0);
+        const profit = revenue - spend;
+        const roi = spend > 0 ? ((profit / spend) * 100) : 0;
+        const conversions = campaignAdSets.reduce((sum, ad) => sum + (Number(ad.conversions) || 0), 0);
+        const clicks = campaignAdSets.reduce((sum, ad) => sum + (Number(ad.clicks) || 0), 0);
+        const impressions = campaignAdSets.reduce((sum, ad) => sum + (Number(ad.impressions) || 0), 0);
+        const ctr = impressions > 0 ? ((clicks / impressions) * 100) : 0;
+
+        return {
+          id: campaign.id,
+          name: campaign.name,
+          status: campaign.status,
+          total_revenue: revenue,
+          total_spend: spend,
+          profit: profit,
+          roi_percentage: roi,
+          total_conversions: conversions,
+          avg_ctr: ctr
+        };
+      });
+
+      const sortedCampaigns = campaignMetrics
+        .filter(c => c.total_revenue > 0 || c.total_spend > 0)
+        .sort((a, b) => b.total_revenue - a.total_revenue)
+        .slice(0, 10);
+
+      console.log('[ANALYTICS] Campaign metrics:', sortedCampaigns);
+      setCampaigns(sortedCampaigns);
+
+      // Calculate creator performance directly from ad sets
+      const { data: allCreators, error: creatorsLoadError } = await supabase
+        .from('creators')
+        .select('id, name')
+        .eq('workspace_id', workspaceId);
+
+      if (creatorsLoadError) {
+        console.error('[ANALYTICS] Error loading creators:', creatorsLoadError);
+        setTopCreators([]);
+      } else {
+        const creatorMetrics = (allCreators || []).map(creator => {
+          const creatorAdSets = adSetsData?.filter(ad => ad.creator_id === creator.id) || [];
+          const revenue = creatorAdSets.reduce((sum, ad) => sum + (Number(ad.revenue) || 0), 0);
+          const spend = creatorAdSets.reduce((sum, ad) => sum + (Number(ad.spend) || 0), 0);
+          const profit = revenue - spend;
+          const roi = spend > 0 ? ((profit / spend) * 100) : 0;
+          const conversions = creatorAdSets.reduce((sum, ad) => sum + (Number(ad.conversions) || 0), 0);
+          const uniqueCampaigns = new Set(creatorAdSets.map(ad => ad.campaign_id));
+
+          return {
+            creator_id: creator.id,
+            creator_name: creator.name,
+            total_revenue: revenue,
+            total_spend: spend,
+            profit: profit,
+            roi_percentage: roi,
+            conversions: conversions,
+            campaigns_count: uniqueCampaigns.size
+          };
+        });
+
+        const sortedCreators = creatorMetrics
+          .filter(c => c.total_revenue > 0 || c.campaigns_count > 0)
+          .sort((a, b) => b.total_revenue - a.total_revenue)
+          .slice(0, 10);
+
+        console.log('[ANALYTICS] Creator metrics:', sortedCreators);
+        setTopCreators(sortedCreators);
+      }
+
+      // Calculate platform performance directly from ad sets
+      const platformMetrics = (adSetsData || []).reduce((acc: any[], ad: any) => {
+        const platform = ad.platform || 'Unknown';
+        const existing = acc.find(p => p.platform === platform);
+
+        const revenue = Number(ad.revenue) || 0;
+        const spend = Number(ad.spend) || 0;
+        const conversions = Number(ad.conversions) || 0;
+
         if (existing) {
-          existing.total_revenue += curr.total_revenue;
-          existing.total_spend += curr.total_spend;
-          existing.profit += curr.profit;
-          existing.total_conversions += curr.total_conversions;
+          existing.total_revenue += revenue;
+          existing.total_spend += spend;
+          existing.total_conversions += conversions;
         } else {
-          acc.push({ ...curr });
+          acc.push({
+            platform: platform,
+            total_revenue: revenue,
+            total_spend: spend,
+            total_conversions: conversions
+          });
         }
         return acc;
       }, []);
 
-      aggregated.forEach(p => {
+      // Calculate profit and ROI for each platform
+      platformMetrics.forEach(p => {
+        p.profit = p.total_revenue - p.total_spend;
         p.roi_percentage = p.total_spend > 0
-          ? ((p.profit / p.total_spend) * 100).toFixed(2)
+          ? Number(((p.profit / p.total_spend) * 100).toFixed(2))
           : 0;
       });
 
-      setPlatformData(aggregated);
+      console.log('[ANALYTICS] Platform metrics:', platformMetrics);
+      setPlatformData(platformMetrics);
     } catch (error) {
       console.error('Error loading analytics:', error);
     } finally {
