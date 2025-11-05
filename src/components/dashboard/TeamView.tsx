@@ -34,37 +34,52 @@ export function TeamView({ workspace }: TeamViewProps) {
   useEffect(() => {
     loadMembers();
     loadCurrentUserName();
-  }, [workspace.id, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace.id, user?.id]);
 
   const loadCurrentUserName = async () => {
     if (!user) return;
 
-    const { data: profileData } = await supabase
+    const { data: profileData, error } = await supabase
       .from('profiles')
       .select('full_name')
       .eq('id', user.id)
       .maybeSingle();
 
+    if (error) {
+      console.error('[TeamView] Error loading current user name:', error);
+    }
+
     setCurrentUserName(profileData?.full_name || user.email || 'You');
   };
 
   const loadMembers = async () => {
-    const { data, error } = await supabase
-      .from('workspace_members')
-      .select('*')
-      .eq('workspace_id', workspace.id)
-      .order('created_at', { ascending: false });
+    try {
+      setLoading(true);
 
-    if (error) {
-      console.error('Error loading members:', error);
-    } else {
-      const membersWithEmails = await Promise.all(
+      const { data, error } = await supabase
+        .from('workspace_members')
+        .select('*')
+        .eq('workspace_id', workspace.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('[TeamView] Error loading members:', error);
+        setMembers([]);
+        return;
+      }
+
+      const membersWithEmails: MemberWithEmail[] = await Promise.all(
         (data || []).map(async (member) => {
-          const { data: profileData } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('full_name, email')
             .eq('id', member.user_id)
             .maybeSingle();
+
+          if (profileError) {
+            console.error('[TeamView] Error loading profile for member:', profileError);
+          }
 
           const email = profileData?.email || 'Unknown';
           const name = profileData?.full_name || email;
@@ -76,10 +91,21 @@ export function TeamView({ workspace }: TeamViewProps) {
           };
         })
       );
-      setMembers(membersWithEmails);
+
+      // Filter de owner uit de members-lijst, die tonen we al apart bovenaan.
+      const filteredMembers = membersWithEmails.filter(
+        (member) =>
+          member.user_id !== workspace.owner_id && member.role !== 'owner'
+      );
+
+      setMembers(filteredMembers);
+    } catch (err) {
+      console.error('[TeamView] Unexpected error while loading members:', err);
+      setMembers([]);
+    } finally {
+      await refreshUsage();
+      setLoading(false);
     }
-    await refreshUsage();
-    setLoading(false);
   };
 
   const handleInviteMember = async (e: React.FormEvent) => {
@@ -102,6 +128,7 @@ export function TeamView({ workspace }: TeamViewProps) {
         .maybeSingle();
 
       if (profileError || !profileData) {
+        console.error('[TeamView] Error finding profile by email:', profileError);
         alert('User not found. They must create an account first with this email address.');
         setInviting(false);
         return;
@@ -115,7 +142,7 @@ export function TeamView({ workspace }: TeamViewProps) {
       });
 
       if (error) {
-        console.error('Error inviting member:', error);
+        console.error('[TeamView] Error inviting member:', error);
         if (error.code === '23505') {
           alert('This user is already a member of this workspace.');
         } else {
@@ -129,7 +156,7 @@ export function TeamView({ workspace }: TeamViewProps) {
         loadMembers();
       }
     } catch (error) {
-      console.error('Error inviting member:', error);
+      console.error('[TeamView] Unexpected error inviting member:', error);
       alert('Failed to invite member. Please try again.');
     } finally {
       setInviting(false);
@@ -166,7 +193,8 @@ export function TeamView({ workspace }: TeamViewProps) {
 
   const isOwner = workspace.owner_id === user?.id;
   const memberLimit = workspace.max_team_members;
-  const canAddMore = workspace.plan === 'elite' || !memberLimit || members.length + 1 < memberLimit;
+  const canAddMore =
+    workspace.plan === 'elite' || !memberLimit || members.length + 1 < memberLimit;
 
   return (
     <div>
@@ -206,23 +234,29 @@ export function TeamView({ workspace }: TeamViewProps) {
       {!canAddMore && workspace.plan === 'standard' && (
         <div className="mb-6 p-4 bg-linear-warning/10 border border-linear-warning-border/20 rounded-linear-lg">
           <p className="text-sm text-linear-warning">
-            You've reached the team member limit for the Standard plan. Upgrade to Elite for unlimited members.
+            You've reached the team member limit for the Standard plan. Upgrade to Elite for
+            unlimited members.
           </p>
         </div>
       )}
 
       <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-linear-lg overflow-hidden">
         <div className="divide-y divide-linear-border-subtle">
+          {/* Owner card */}
           <div className="p-4 bg-linear-bg-subtle">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-linear-accent rounded-full flex items-center justify-center text-linear-bg">
                 <span className="text-sm font-medium text-black">
-                  {currentUserName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+                  {currentUserName?.charAt(0).toUpperCase() ||
+                    user?.email?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{currentUserName}</h3>
+                  <h3 className="font-medium">
+                    {currentUserName}
+                    {isOwner && ' (You)'}
+                  </h3>
                   <Crown className="w-4 h-4 text-linear-warning" />
                 </div>
                 <p className="text-sm text-text-secondary">Workspace Owner</p>
@@ -233,6 +267,7 @@ export function TeamView({ workspace }: TeamViewProps) {
             </div>
           </div>
 
+          {/* Other members */}
           {members.map((member) => (
             <div key={member.id} className="p-4">
               <div className="flex items-center gap-4">
@@ -243,15 +278,25 @@ export function TeamView({ workspace }: TeamViewProps) {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{member.user_name}</h3>
+                    <h3 className="font-medium">
+                      {member.user_name}
+                      {member.user_id === user?.id && ' (You)'}
+                    </h3>
                     {getRoleIcon(member.role)}
                   </div>
                   <p className="text-sm text-text-secondary">
-                    Joined {new Date(member.joined_at).toLocaleDateString()}
+                    Joined{' '}
+                    {member.joined_at
+                      ? new Date(member.joined_at).toLocaleDateString()
+                      : '—'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-1 rounded-full border ${getRoleColor(member.role)}`}>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full border ${getRoleColor(
+                      member.role
+                    )}`}
+                  >
                     {member.role}
                   </span>
                   <TeamManagement
@@ -263,6 +308,12 @@ export function TeamView({ workspace }: TeamViewProps) {
               </div>
             </div>
           ))}
+
+          {members.length === 0 && (
+            <div className="p-4 text-sm text-text-secondary">
+              No additional team members yet. Invite your first member to collaborate.
+            </div>
+          )}
         </div>
       </div>
 
@@ -324,7 +375,13 @@ export function TeamView({ workspace }: TeamViewProps) {
         currentPlan={workspace.plan}
         workspaceId={workspace.id}
         reason="You've reached your team member limit. Upgrade to add more team members to your workspace."
-        suggestedPlan={workspace.plan === 'free' ? 'standard' : workspace.plan === 'standard' ? 'elite' : 'enterprise'}
+        suggestedPlan={
+          workspace.plan === 'free'
+            ? 'standard'
+            : workspace.plan === 'standard'
+            ? 'elite'
+            : 'enterprise'
+        }
       />
     </div>
   );
