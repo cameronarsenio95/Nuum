@@ -1,6 +1,9 @@
 /**
  * useCurrentWorkspace Hook
  *
+ * IMPORTANT: All data in this module comes from Supabase.
+ * Do NOT use Bolt database or any local DB as a source of truth.
+ *
  * Centralizes workspace resolution logic across the entire app.
  * All components should use this instead of manually loading workspace.
  *
@@ -54,27 +57,30 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
 
       console.log('[useCurrentWorkspace] Loading workspace for user:', user.id);
 
-      // Load user's workspace (assuming user is owner or member)
-      const { data: workspaceData, error: workspaceError } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('owner_id', user.id)
-        .maybeSingle();
+      // Load all workspaces where user is a member (any role)
+      const { data, error: workspaceError } = await supabase
+        .from('workspace_members')
+        .select('workspaces(*)')
+        .eq('user_id', user.id);
 
       if (workspaceError) {
-        console.error('[useCurrentWorkspace] Error loading workspace:', workspaceError);
+        console.error('[useCurrentWorkspace]', workspaceError);
         setError('Failed to load workspace');
         return;
       }
 
-      if (!workspaceData) {
+      const workspaces = data?.map(row => row.workspaces).filter(Boolean) ?? [];
+
+      console.log('[useCurrentWorkspace] Loaded from Supabase:', workspaces);
+
+      if (workspaces.length === 0) {
         console.warn('[useCurrentWorkspace] No workspace found for user');
         setError('No workspace found');
         return;
       }
 
-      console.log('[useCurrentWorkspace] Workspace loaded:', workspaceData.id);
-      setWorkspace(workspaceData);
+      // Set the first workspace as the current workspace
+      setWorkspace(workspaces[0] as Workspace);
     } catch (err: any) {
       console.error('[useCurrentWorkspace] Unexpected error:', err);
       setError(err.message || 'An unexpected error occurred');
