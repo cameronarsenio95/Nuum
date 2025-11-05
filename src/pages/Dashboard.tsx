@@ -29,21 +29,7 @@ function DashboardContent() {
   const { user, loading: authLoading } = useAuth();
   const { showOnboarding, completeOnboarding, skipOnboarding } = useOnboarding();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [currentView, setCurrentView] = useState<
-    | 'overview'
-    | 'campaigns'
-    | 'creators'
-    | 'tasks'
-    | 'team'
-    | 'content'
-    | 'notions'
-    | 'contact'
-    | 'settings'
-    | 'billing'
-    | 'ad-sets'
-    | 'analytics'
-    | 'shopify'
-  >('overview');
+  const [currentView, setCurrentView] = useState<'overview' | 'campaigns' | 'creators' | 'tasks' | 'team' | 'content' | 'notions' | 'contact' | 'settings' | 'billing' | 'ad-sets' | 'analytics' | 'shopify'>('overview');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFrozenModal, setShowFrozenModal] = useState(false);
@@ -61,7 +47,6 @@ function DashboardContent() {
     if (user) {
       loadWorkspace();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
   useEffect(() => {
@@ -102,149 +87,98 @@ function DashboardContent() {
   const loadWorkspace = async () => {
     if (!user) return;
 
-    try {
-      setLoading(true);
-      console.log('[DASHBOARD] Loading workspace for user:', user.id);
+    console.log('[DASHBOARD] Loading workspace for user:', user.id);
 
-      // 1) PROBEER EERST: alle workspaces via workspace_members (owner, admin, member, viewer)
-      const {
-        data: membershipData,
-        error: membershipError,
-      } = await supabase
-        .from('workspace_members')
-        .select('workspaces(*)')
-        .eq('user_id', user.id);
+    const { data: workspaceData, error: workspaceError } = await supabase
+      .from('workspaces')
+      .select('*')
+      .eq('owner_id', user.id)
+      .maybeSingle();
 
-      if (membershipError) {
-        console.error(
-          '[DASHBOARD] Error loading memberships (will fallback to owner):',
-          membershipError
-        );
+    if (workspaceError) {
+      console.error('[DASHBOARD] Error loading workspace:', workspaceError);
+      setLoading(false);
+      return;
+    }
+
+    console.log('[DASHBOARD] Workspace loaded:', workspaceData?.id);
+
+    if (!workspaceData) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const displayName = profileData?.full_name || user.email;
+      const slug = user.email?.split('@')[0] || 'workspace';
+
+      const trialStartDate = new Date();
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + TRIAL_DURATION_DAYS);
+
+      const { data: newWorkspace, error: createError } = await supabase
+        .from('workspaces')
+        .insert({
+          name: `${displayName}'s Workspace`,
+          slug: slug,
+          plan: 'free',
+          max_team_members: 3,
+          max_creators: 25,
+          max_storage_gb: 5,
+          subscription_status: 'trialing',
+          trial_started_at: trialStartDate.toISOString(),
+          trial_ends_at: trialEndDate.toISOString(),
+          features: {
+            revenue_tracking: false,
+            advanced_analytics: false,
+            team_collaboration: true,
+            priority_support: false,
+            task_assignment: false,
+          },
+          owner_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating workspace:', createError);
+      } else {
+        setWorkspace(newWorkspace);
       }
+    } else {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle();
 
-      let resolvedWorkspace: Workspace | null = null;
+      if (profileData?.full_name) {
+        const displayName = profileData.full_name;
+        const expectedWorkspaceName = `${displayName}'s Workspace`;
 
-      if (membershipData && membershipData.length > 0) {
-        const workspacesFromMembership = membershipData
-          .map((row: any) => row.workspaces as Workspace | null)
-          .filter(Boolean) as Workspace[];
-
-        if (workspacesFromMembership.length > 0) {
-          // Voor nu: pak de eerste workspace waar de user lid van is
-          resolvedWorkspace = workspacesFromMembership[0];
-          console.log(
-            '[DASHBOARD] Workspace resolved via workspace_members:',
-            resolvedWorkspace.id
-          );
-        }
-      }
-
-      // 2) FALLBACK: als er geen membership-workspace is gevonden, gebruik de oude owner_id-logica
-      if (!resolvedWorkspace) {
-        const {
-          data: workspaceData,
-          error: workspaceError,
-        } = await supabase
-          .from('workspaces')
-          .select('*')
-          .eq('owner_id', user.id)
-          .maybeSingle();
-
-        if (workspaceError) {
-          console.error(
-            '[DASHBOARD] Error loading workspace by owner_id:',
-            workspaceError
-          );
-          setWorkspace(null);
-          return;
-        }
-
-        console.log('[DASHBOARD] Workspace loaded via owner_id:', workspaceData?.id);
-
-        if (!workspaceData) {
-          // Geen workspace → auto-create zoals voorheen
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          const displayName = profileData?.full_name || user.email;
-          const slug = user.email?.split('@')[0] || 'workspace';
-
-          const trialStartDate = new Date();
-          const trialEndDate = new Date();
-          trialEndDate.setDate(trialEndDate.getDate() + TRIAL_DURATION_DAYS);
-
-          const { data: newWorkspace, error: createError } = await supabase
+        if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
+          const { data: updatedWorkspace } = await supabase
             .from('workspaces')
-            .insert({
-              name: `${displayName}'s Workspace`,
-              slug: slug,
-              plan: 'free',
-              max_team_members: 3,
-              max_creators: 25,
-              max_storage_gb: 5,
-              subscription_status: 'trialing',
-              trial_started_at: trialStartDate.toISOString(),
-              trial_ends_at: trialEndDate.toISOString(),
-              features: {
-                revenue_tracking: false,
-                advanced_analytics: false,
-                team_collaboration: true,
-                priority_support: false,
-                task_assignment: false,
-              },
-              owner_id: user.id,
-            })
+            .update({ name: expectedWorkspaceName })
+            .eq('id', workspaceData.id)
             .select()
             .single();
 
-          if (createError) {
-            console.error('[DASHBOARD] Error creating workspace:', createError);
-            setWorkspace(null);
-            return;
-          }
-
-          console.log('[DASHBOARD] New workspace created:', newWorkspace.id);
-          resolvedWorkspace = newWorkspace as Workspace;
-        } else {
-          // Bestaande owner-workspace + naam-update logica
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (profileData?.full_name) {
-            const displayName = profileData.full_name;
-            const expectedWorkspaceName = `${displayName}'s Workspace`;
-
-            if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
-              const { data: updatedWorkspace } = await supabase
-                .from('workspaces')
-                .update({ name: expectedWorkspaceName })
-                .eq('id', workspaceData.id)
-                .select()
-                .single();
-
-              resolvedWorkspace = (updatedWorkspace || workspaceData) as Workspace;
-            } else {
-              resolvedWorkspace = workspaceData as Workspace;
-            }
+          if (updatedWorkspace) {
+            setWorkspace(updatedWorkspace);
           } else {
-            resolvedWorkspace = workspaceData as Workspace;
+            setWorkspace(workspaceData);
           }
+        } else {
+          setWorkspace(workspaceData);
         }
+      } else {
+        setWorkspace(workspaceData);
       }
-
-      setWorkspace(resolvedWorkspace);
-    } catch (err) {
-      console.error('[DASHBOARD] Unexpected error in loadWorkspace:', err);
-      setWorkspace(null);
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   if (authLoading || loading) {
@@ -263,7 +197,7 @@ function DashboardContent() {
       <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg flex flex-col items-center justify-center gap-4">
         <div className="dark:text-text-secondary light:text-text-light-secondary">No workspace found</div>
         <button
-          onClick={() => (window.location.href = '/')}
+          onClick={() => window.location.href = '/'}
           className="px-4 py-2 bg-linear-accent text-white rounded-linear hover:opacity-90 linear-transition"
         >
           Return to Home
@@ -298,29 +232,20 @@ function DashboardContent() {
         }}
       />
       {showOnboarding && (
-        <OnboardingWizard onComplete={completeOnboarding} onSkip={skipOnboarding} />
+        <OnboardingWizard
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
+        />
       )}
       <DashboardLayout
         workspace={workspace}
-        currentView={
-          currentView === 'ad-sets'
-            ? 'campaigns'
-            : currentView === 'shopify'
-            ? 'shopify'
-            : currentView
-        }
+        currentView={currentView === 'ad-sets' ? 'campaigns' : currentView === 'shopify' ? 'shopify' : currentView}
         onViewChange={setCurrentView}
       >
-        {currentView === 'overview' && (
-          <OverviewView workspace={workspace} onViewChange={setCurrentView} />
-        )}
+        {currentView === 'overview' && <OverviewView workspace={workspace} onViewChange={setCurrentView} />}
         {currentView === 'analytics' && <AnalyticsView workspaceId={workspace.id} />}
-        {currentView === 'campaigns' && (
-          <CampaignsView workspace={workspace} onCampaignClick={handleCampaignClick} />
-        )}
-        {currentView === 'ad-sets' && selectedCampaign && (
-          <AdSetsView campaign={selectedCampaign} onBack={handleBackToCampaigns} />
-        )}
+        {currentView === 'campaigns' && <CampaignsView workspace={workspace} onCampaignClick={handleCampaignClick} />}
+        {currentView === 'ad-sets' && selectedCampaign && <AdSetsView campaign={selectedCampaign} onBack={handleBackToCampaigns} />}
         {currentView === 'creators' && <CreatorsView workspace={workspace} />}
         {currentView === 'tasks' && <TasksView workspace={workspace} />}
         {currentView === 'team' && <TeamView workspace={workspace} />}
@@ -328,9 +253,7 @@ function DashboardContent() {
         {currentView === 'notions' && <NotionsView workspace={workspace} />}
         {currentView === 'contact' && <ContactView />}
         {currentView === 'settings' && <SettingsView workspace={workspace} />}
-        {currentView === 'billing' && (
-          <BillingView workspace={workspace} onWorkspaceUpdate={loadWorkspace} />
-        )}
+        {currentView === 'billing' && <BillingView workspace={workspace} onWorkspaceUpdate={loadWorkspace} />}
         {currentView === 'shopify' && <ShopifyIntegrationView workspace={workspace} />}
       </DashboardLayout>
     </PlanLimitsProvider>
@@ -341,7 +264,7 @@ function FrozenAccountChecker({
   workspace,
   showModal,
   onShowModal,
-  onUpgrade,
+  onUpgrade
 }: {
   workspace: Workspace;
   showModal: boolean;
@@ -360,7 +283,11 @@ function FrozenAccountChecker({
     return null;
   }
 
-  return <FrozenAccountModal onUpgrade={onUpgrade} />;
+  return (
+    <FrozenAccountModal
+      onUpgrade={onUpgrade}
+    />
+  );
 }
 
 export function Dashboard() {
