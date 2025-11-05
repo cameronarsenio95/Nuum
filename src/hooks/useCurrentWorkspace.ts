@@ -54,30 +54,81 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
 
       console.log('[useCurrentWorkspace] Loading workspace for user:', user.id);
 
-      // Load user's workspace (assuming user is owner or member)
-      const { data: workspaceData, error: workspaceError } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('owner_id', user.id)
-        .maybeSingle();
+      // 1) EERST: probeer via workspace_members (owner, admin, member, viewer)
+      const {
+        data: membershipData,
+        error: membershipError,
+      } = await supabase
+        .from('workspace_members')
+        .select('workspaces(*)')
+        .eq('user_id', user.id);
 
-      if (workspaceError) {
-        console.error('[useCurrentWorkspace] Error loading workspace:', workspaceError);
-        setError('Failed to load workspace');
-        return;
+      if (membershipError) {
+        console.error(
+          '[useCurrentWorkspace] Error loading memberships, falling back to owner query:',
+          membershipError
+        );
       }
 
-      if (!workspaceData) {
-        console.warn('[useCurrentWorkspace] No workspace found for user');
-        setError('No workspace found');
-        return;
+      let resolvedWorkspace: Workspace | null = null;
+
+      if (membershipData && membershipData.length > 0) {
+        const workspacesFromMembership = membershipData
+          .map((row: any) => row.workspaces as Workspace | null)
+          .filter(Boolean) as Workspace[];
+
+        if (workspacesFromMembership.length > 0) {
+          resolvedWorkspace = workspacesFromMembership[0];
+          console.log(
+            '[useCurrentWorkspace] Workspace resolved via workspace_members:',
+            resolvedWorkspace.id
+          );
+        }
       }
 
-      console.log('[useCurrentWorkspace] Workspace loaded:', workspaceData.id);
-      setWorkspace(workspaceData);
+      // 2) FALLBACK: als er geen membership-werkspace is gevonden,
+      // gebruik de oude owner_id-query (voor legacy situaties)
+      if (!resolvedWorkspace) {
+        const {
+          data: workspaceData,
+          error: workspaceError,
+        } = await supabase
+          .from('workspaces')
+          .select('*')
+          .eq('owner_id', user.id)
+          .maybeSingle();
+
+        if (workspaceError) {
+          console.error(
+            '[useCurrentWorkspace] Error loading workspace by owner_id:',
+            workspaceError
+          );
+          setError('Failed to load workspace');
+          setWorkspace(null);
+          return;
+        }
+
+        if (!workspaceData) {
+          console.warn(
+            '[useCurrentWorkspace] No workspace found for user (no membership, no owner)'
+          );
+          setError('No workspace found');
+          setWorkspace(null);
+          return;
+        }
+
+        console.log(
+          '[useCurrentWorkspace] Workspace resolved via owner_id fallback:',
+          workspaceData.id
+        );
+        resolvedWorkspace = workspaceData as Workspace;
+      }
+
+      setWorkspace(resolvedWorkspace);
     } catch (err: any) {
       console.error('[useCurrentWorkspace] Unexpected error:', err);
       setError(err.message || 'An unexpected error occurred');
+      setWorkspace(null);
     } finally {
       setLoading(false);
     }
@@ -85,6 +136,7 @@ export function useCurrentWorkspace(): UseCurrentWorkspaceReturn {
 
   useEffect(() => {
     loadWorkspace();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   return {
