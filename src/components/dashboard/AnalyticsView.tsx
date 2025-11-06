@@ -890,6 +890,118 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               </div>
             </div>
           </div>
+
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="mb-4">
+              <h3 className="text-sm md:text-base font-medium mb-1">Creator Data</h3>
+              <p className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+                Creators ranked by total revenue within the current filters
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs md:text-sm">
+                <thead className="dark:text-text-secondary light:text-text-light-secondary">
+                  <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+                    <th className="py-2 pr-4 font-medium">#</th>
+                    <th className="py-2 pr-4 font-medium">Creator</th>
+                    <th className="py-2 pr-4 font-medium">Handle</th>
+                    <th className="py-2 pr-4 font-medium">Primary platform</th>
+                    <th className="py-2 pr-4 text-right font-medium">Total revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topCreators.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-4 text-xs dark:text-text-secondary light:text-text-light-secondary">
+                        No creator data for the selected filters
+                      </td>
+                    </tr>
+                  ) : (
+                    topCreators.map((creator, index) => {
+                      const platform = getPrimaryPlatform(creator);
+                      const revenue = creatorRevenue[creator.id] || 0;
+                      const handle = creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle || null;
+
+                      return (
+                        <tr
+                          key={creator.id}
+                          className="border-b last:border-b-0 dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-subtle/40 hover:light:bg-gray-50"
+                        >
+                          <td className="py-3 pr-4 align-middle text-xs dark:text-text-secondary light:text-text-light-secondary">
+                            {index + 1}
+                          </td>
+                          <td className="py-3 pr-4 align-middle dark:text-text-primary light:text-gray-900">
+                            {creator.name || 'Unnamed creator'}
+                          </td>
+                          <td className="py-3 pr-4 align-middle dark:text-text-secondary light:text-text-light-secondary">
+                            {handle ? `@${handle}` : '—'}
+                          </td>
+                          <td className="py-3 pr-4 align-middle dark:text-text-secondary light:text-text-light-secondary">
+                            {platform || '—'}
+                          </td>
+                          <td className="py-3 pl-4 align-middle text-right font-medium dark:text-text-primary light:text-gray-900">
+                            {formatCurrency(revenue)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+            <div className="mb-4">
+              <h3 className="text-sm md:text-base font-medium mb-1">Platform Data</h3>
+              <p className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+                Creator and revenue distribution across social platforms
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs md:text-sm">
+                <thead className="dark:text-text-secondary light:text-text-light-secondary">
+                  <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+                    <th className="py-2 pr-4 font-medium">Platform</th>
+                    <th className="py-2 pr-4 font-medium">Creators</th>
+                    <th className="py-2 pr-4 text-right font-medium">Total revenue</th>
+                    <th className="py-2 pr-4 text-right font-medium">Share</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {platformStats.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-4 text-xs dark:text-text-secondary light:text-text-light-secondary">
+                        No platform data for the selected filters
+                      </td>
+                    </tr>
+                  ) : (
+                    platformStats.map(({ platform, count, revenue, percentage }) => (
+                      <tr
+                        key={platform}
+                        className="border-b last:border-b-0 dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-subtle/40 hover:light:bg-gray-50"
+                      >
+                        <td className="py-3 pr-4 align-middle dark:text-text-primary light:text-gray-900">
+                          {platform}
+                        </td>
+                        <td className="py-3 pr-4 align-middle dark:text-text-secondary light:text-text-light-secondary">
+                          {count} {count === 1 ? 'creator' : 'creators'}
+                        </td>
+                        <td className="py-3 pl-4 align-middle text-right font-medium dark:text-text-primary light:text-gray-900">
+                          {formatCurrency(revenue)}
+                        </td>
+                        <td className="py-3 pl-4 align-middle text-right dark:text-text-secondary light:text-text-light-secondary">
+                          {percentage}%
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       ) : (
         <div className={`transition-opacity duration-300 ${hasMounted ? 'opacity-100' : 'opacity-0'}`}>
