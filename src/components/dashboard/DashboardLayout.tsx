@@ -1,4 +1,4 @@
-import { NotificationBell } from '../components/NotificationBell'; // pad eventueel aanpassen
+import { NotificationBell } from '../NotificationBell';
 import { useState, useEffect } from 'react';
 import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X, BarChart3, ShoppingBag, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
