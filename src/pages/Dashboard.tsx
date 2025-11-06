@@ -334,7 +334,7 @@ function DashboardContent() {
         {currentView === 'overview' && (
           <OverviewView workspace={workspace} onViewChange={setCurrentView} />
         )}
-        {currentView === 'analytics' && <AnalyticsView workspaceId={workspace.id} />}
+        {currentView === 'analytics' && <AnalyticsView workspace={workspace} />}
         {currentView === 'campaigns' && (
           <CampaignsView workspace={workspace} onCampaignClick={handleCampaignClick} />
         )}
