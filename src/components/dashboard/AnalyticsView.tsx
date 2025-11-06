@@ -1158,7 +1158,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:col-span-2">
               <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-5 md:p-6">
-                <div className="flex items-center gap-2.5 mb-6">
+                <div className="flex items-center gap-2.5 mb-4">
                   <Users className="w-5 h-5 dark:text-text-secondary light:text-gray-600" />
                   <h3 className="text-base font-medium dark:text-text-primary light:text-gray-900">Top Creators</h3>
                 </div>
@@ -1170,40 +1170,38 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                     <div className="text-xs text-center mt-1 dark:text-text-tertiary light:text-gray-500">Add creators to see them highlighted here</div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {topCreators.map((creator, index) => {
                       const platform = getPrimaryPlatform(creator);
                       const revenue = creatorRevenue[creator.id] || 0;
+                      const handle = creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle || 'unknown';
 
                       return (
                         <div
                           key={creator.id}
-                          className="flex items-start justify-between gap-4 dark:bg-linear-bg-tertiary/40 light:bg-gray-50 rounded-linear-lg p-4 hover:dark:bg-linear-bg-tertiary/60 linear-transition cursor-pointer"
+                          className="flex items-center justify-between py-3 px-4 dark:bg-[#0a0e1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#0d1221] linear-transition cursor-pointer"
                           onClick={() => {
                             console.log('Navigate to creator:', creator.id);
                           }}
                         >
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <div className="flex-shrink-0 w-9 h-9 rounded-full dark:bg-linear-warning/10 light:bg-amber-100 flex items-center justify-center border dark:border-linear-warning/20 light:border-amber-200">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full dark:bg-linear-warning/10 light:bg-amber-100 flex items-center justify-center border dark:border-linear-warning/20 light:border-amber-200">
                               <span className="text-xs font-semibold dark:text-linear-warning light:text-amber-700">#{index + 1}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium dark:text-text-primary light:text-gray-900 mb-1">
+                              <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
                                 {creator.name}
                               </div>
-                              <div className="text-xs dark:text-text-tertiary light:text-gray-500">
-                                @{creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle || 'unknown'}
-                              </div>
-                              <div className="text-xs dark:text-text-tertiary light:text-gray-500 mt-1">
-                                {creator.tiktok_handle ? 'creator@email.com' : creator.instagram_handle ? 'creator@email.com' : 'creator@email.com'}
+                              <div className="text-xs dark:text-text-secondary light:text-gray-500">
+                                @{handle}
                               </div>
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">
+                            <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-0.5">
                               Total Revenue
                             </div>
-                            <div className="text-lg font-semibold dark:text-linear-success light:text-green-600">
+                            <div className="text-base font-semibold dark:text-linear-success light:text-green-600">
                               {formatCurrency(revenue)}
                             </div>
                           </div>
@@ -1215,7 +1213,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               </div>
 
               <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-5 md:p-6">
-                <div className="flex items-center gap-2.5 mb-6">
+                <div className="flex items-center gap-2.5 mb-4">
                   <Zap className="w-5 h-5 dark:text-text-secondary light:text-gray-600" />
                   <h3 className="text-base font-medium dark:text-text-primary light:text-gray-900">Platform Performance</h3>
                 </div>
@@ -1229,13 +1227,11 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {platformStats.map(({ platform, count, revenue, percentage }) => (
-                      <div key={platform} className="flex items-center justify-between dark:bg-linear-bg-tertiary/40 light:bg-gray-50 rounded-linear-lg p-4 hover:dark:bg-linear-bg-tertiary/60 linear-transition">
-                        <div className="flex items-center gap-3">
-                          <div className="text-base font-medium dark:text-text-primary light:text-gray-900">
-                            {platform}
-                          </div>
+                      <div key={platform} className="flex items-center justify-between py-3 px-4 dark:bg-[#0a0e1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#0d1221] linear-transition">
+                        <div className="text-base font-medium dark:text-text-primary light:text-gray-900">
+                          {platform}
                         </div>
                         <div className="flex items-center gap-6">
                           <div className="text-sm dark:text-text-secondary light:text-gray-600">
