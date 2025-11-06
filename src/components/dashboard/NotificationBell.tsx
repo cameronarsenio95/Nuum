@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import type { Database } from '../lib/database.types';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
+import type { Database } from '../../lib/database.types';
 
 type Notification = Database['public']['Tables']['notifications']['Row'];
 
@@ -32,12 +32,17 @@ export function NotificationBell() {
 
     loadNotifications();
 
-    // Optional: realtime subscription
+    // Realtime updates
     const channel = supabase
       .channel('notifications-realtime')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
         payload => {
           setNotifications(prev => [payload.new as Notification, ...prev]);
         }
@@ -79,7 +84,7 @@ export function NotificationBell() {
                 No notifications yet.
               </div>
             ) : (
-              notifications.map((n) => (
+              notifications.map(n => (
                 <div
                   key={n.id}
                   className="px-4 py-3 text-sm border-b last:border-b-0 dark:border-linear-border-subtle light:border-linear-light-border-subtle"
