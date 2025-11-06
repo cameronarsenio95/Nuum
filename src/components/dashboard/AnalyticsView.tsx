@@ -250,45 +250,55 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       )}
 
       {campaignsWithMetrics.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-4 flex-wrap items-start">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-            <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
-              Time:
-            </span>
-            <div className="flex gap-1">
-              <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>
-                All time
-              </FilterButton>
-              <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>
-                Last 30 days
-              </FilterButton>
-              <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>
-                Last 7 days
-              </FilterButton>
+        <div className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg px-4 md:px-6 py-3 md:py-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+              <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+                Filters
+              </span>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
-              Status:
-            </span>
-            <div className="flex gap-1 flex-wrap">
-              <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
-                All statuses
-              </FilterButton>
-              <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>
-                Active
-              </FilterButton>
-              <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
-                Completed
-              </FilterButton>
-              <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>
-                Draft
-              </FilterButton>
-              <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
-                Archived
-              </FilterButton>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-wrap items-start sm:items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+                  Time:
+                </span>
+                <div className="flex gap-1">
+                  <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>
+                    All time
+                  </FilterButton>
+                  <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>
+                    Last 30 days
+                  </FilterButton>
+                  <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>
+                    Last 7 days
+                  </FilterButton>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+                  Status:
+                </span>
+                <div className="flex gap-1 flex-wrap">
+                  <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                    All statuses
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>
+                    Active
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
+                    Completed
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>
+                    Draft
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
+                    Archived
+                  </FilterButton>
+                </div>
+              </div>
             </div>
           </div>
         </div>
