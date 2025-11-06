@@ -277,6 +277,21 @@ export function CreatorDetailModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-red-500/10 rounded-linear flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-red-500" />
+                </div>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
+              </div>
+              <div className="space-y-1">
+                <div className="text-xl md:text-2xl font-medium">{formatCurrency(totalSpend)}</div>
+                <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                  Total investment
+                </div>
+              </div>
+            </div>
+
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+              <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 bg-green-500/10 rounded-linear flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-green-500" />
                 </div>
@@ -318,21 +333,6 @@ export function CreatorDetailModal({
                 <div className="text-xl md:text-2xl font-medium">{adSets.length}</div>
                 <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
                   Active campaigns
-                </div>
-              </div>
-            </div>
-
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 bg-red-500/10 rounded-linear flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-red-500" />
-                </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
-              </div>
-              <div className="space-y-1">
-                <div className="text-xl md:text-2xl font-medium">{formatCurrency(totalSpend)}</div>
-                <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                  Total investment
                 </div>
               </div>
             </div>
