@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Database } from '../../lib/database.types';
@@ -58,11 +58,43 @@ export function NotificationBell() {
 
   const unreadCount = notifications.filter(n => !n.read_at).length;
 
+  const markAllAsRead = async () => {
+    if (!user) return;
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read_at: now })
+      .eq('user_id', user.id)
+      .is('read_at', null);
+
+    if (error) {
+      console.error('Error marking notifications as read', error);
+      return;
+    }
+
+    // Lokale state updaten zodat badge direct verdwijnt
+    setNotifications(prev =>
+      prev.map(n => (n.read_at ? n : { ...n, read_at: now }))
+    );
+  };
+
+  const handleBellClick = () => {
+    if (!open) {
+      setOpen(true);
+      // Alles als gelezen markeren bij openen
+      void markAllAsRead();
+    } else {
+      // Als je wilt dat alleen het kruisje sluit, kun je deze regel weglaten
+      setOpen(false);
+    }
+  };
+
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen(prev => !prev)}
+        onClick={handleBellClick}
         className="relative p-2 rounded-full hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
       >
         <Bell className="w-5 h-5" />
@@ -77,6 +109,13 @@ export function NotificationBell() {
         <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-linear-lg border dark:border-linear-border light:border-linear-light-border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary shadow-lg z-50">
           <div className="px-4 py-3 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle flex items-center justify-between">
             <span className="text-sm font-medium">Notifications</span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="p-1 rounded-full hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
           <div className="py-2">
             {notifications.length === 0 ? (
