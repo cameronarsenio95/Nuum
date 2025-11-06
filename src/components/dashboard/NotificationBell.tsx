@@ -37,6 +37,7 @@ export function NotificationBell() {
     const channel = supabase
       .channel('notifications-realtime')
       .on(
+        'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
@@ -90,9 +91,10 @@ export function NotificationBell() {
 
   const closeModal = () => setOpen(false);
 
-  const modal =
-    open &&
-    createPortal(
+  // Modal via portal zodat hij boven het hele workspace-gedeelte hangt
+  let modal: React.ReactNode = null;
+  if (open && typeof document !== 'undefined') {
+    modal = createPortal(
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         {/* Donkere overlay over het hele scherm */}
         <div
@@ -100,7 +102,7 @@ export function NotificationBell() {
           onClick={closeModal}
         />
 
-        {/* Gecentreerde modal in het midden van het scherm */}
+        {/* Gecentreerde modal in het midden */}
         <div className="relative z-10 w-full max-w-md mx-4 rounded-linear-lg border dark:border-linear-border light:border-linear-light-border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary shadow-xl max-h-[80vh] flex flex-col">
           <div className="px-4 py-3 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle flex items-center justify-between">
             <span className="text-sm font-medium">Notifications</span>
@@ -144,6 +146,7 @@ export function NotificationBell() {
       </div>,
       document.body
     );
+  }
 
   return (
     <>
