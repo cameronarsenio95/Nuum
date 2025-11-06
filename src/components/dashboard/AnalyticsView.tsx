@@ -614,7 +614,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     <div className="space-y-6 md:space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl md:text-2xl mb-2">Campaign Performance</h2>
+          <h2 className="text-xl md:text-2xl font-medium mb-2">Campaign Performance</h2>
           <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">
             Comprehensive performance insights for your campaigns
           </p>
@@ -659,52 +659,52 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       )}
 
       {campaignsWithMetrics.length > 0 && (
-        <div className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg px-4 md:px-6 py-3 md:py-4">
-          <div className="flex flex-wrap items-center gap-3 md:gap-4">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-              <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                Filters
-              </span>
+              <span className="text-sm md:text-base font-medium">Filters</span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                Time:
-              </span>
-              <div className="flex gap-1">
-                <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>
-                  All time
-                </FilterButton>
-                <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>
-                  Last 30 days
-                </FilterButton>
-                <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>
-                  Last 7 days
-                </FilterButton>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                  Time:
+                </span>
+                <div className="flex gap-1">
+                  <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>
+                    All time
+                  </FilterButton>
+                  <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>
+                    Last 30 days
+                  </FilterButton>
+                  <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>
+                    Last 7 days
+                  </FilterButton>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
-                Status:
-              </span>
-              <div className="flex gap-1 flex-wrap">
-                <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
-                  All statuses
-                </FilterButton>
-                <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>
-                  Active
-                </FilterButton>
-                <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
-                  Completed
-                </FilterButton>
-                <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>
-                  Draft
-                </FilterButton>
-                <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
-                  Archived
-                </FilterButton>
+              <div className="flex items-center gap-2">
+                <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                  Status:
+                </span>
+                <div className="flex gap-1 flex-wrap">
+                  <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                    All statuses
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>
+                    Active
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
+                    Completed
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>
+                    Draft
+                  </FilterButton>
+                  <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
+                    Archived
+                  </FilterButton>
+                </div>
               </div>
             </div>
           </div>
@@ -724,7 +724,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       )}
 
       {!filterLoading && campaignsFiltered.length > 0 && (
-        <div className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg px-4 md:px-6 py-3 md:py-4 mb-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-linear-accent/10 rounded-linear flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -780,69 +780,69 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
       {!filterLoading && (
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 transition-opacity duration-300 ${hasMounted ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="group relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Sum of all ad set spend within selected filters">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Sum of all ad set spend within selected filters">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-red-500/10 rounded-linear flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-red-500/80" />
+            <div className="w-10 h-10 bg-red-500/10 rounded-linear flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-red-500" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl md:text-3xl font-semibold">
+            <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={totalSpend} prefix="€" />
             </div>
-            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Total investment
             </div>
           </div>
         </div>
 
-        <div className="group relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Total revenue generated by campaigns within selected filters">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Total revenue generated by campaigns within selected filters">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-500/10 rounded-linear flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-green-500/80" />
+            <div className="w-10 h-10 bg-green-500/10 rounded-linear flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-500" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl md:text-3xl font-semibold">
+            <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={totalRevenue} prefix="€" />
             </div>
-            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Total generated
             </div>
           </div>
         </div>
 
-        <div className="group relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Average return on investment = (Revenue − Costs) ÷ Costs">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Average return on investment = (Revenue − Costs) ÷ Costs">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-linear-accent/10 rounded-linear flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-linear-accent/80" />
+            <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-linear-accent" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl md:text-3xl font-semibold">
+            <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={isNaN(averageRoi) ? 0 : averageRoi} suffix="%" />
             </div>
-            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Average return
             </div>
           </div>
         </div>
 
-        <div className="group relative dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Number of campaigns currently active within selected filters">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Number of campaigns currently active within selected filters">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-linear-warning/10 rounded-linear flex items-center justify-center">
-              <Target className="w-5 h-5 text-linear-warning/80" />
+            <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
+              <Target className="w-5 h-5 text-linear-info" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl md:text-3xl font-semibold">
+            <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={activeCampaigns} />
             </div>
-            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Active campaigns
             </div>
           </div>
@@ -878,7 +878,10 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           </div>
 
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-            <h3 className="text-sm md:text-base mb-4">Campaign Data</h3>
+            <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Campaign Data
+            </h3>
             <div className="overflow-x-auto">
               <div className="min-w-full">
                 <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-secondary light:text-text-light-secondary">
@@ -932,7 +935,10 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <div className="mb-4">
-              <h3 className="text-sm md:text-base font-medium mb-1">Creator Data</h3>
+              <h3 className="text-sm md:text-base font-medium mb-1 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Creator Data
+              </h3>
               <p className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                 Creators ranked by total revenue within the current filters
               </p>
@@ -993,7 +999,10 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <div className="mb-4">
-              <h3 className="text-sm md:text-base font-medium mb-1">Platform Data</h3>
+              <h3 className="text-sm md:text-base font-medium mb-1 flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                Platform Data
+              </h3>
               <p className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                 Creator and revenue distribution across social platforms
               </p>
@@ -1057,7 +1066,10 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-              <h3 className="text-sm md:text-base mb-4">Spend vs Revenue by Campaign</h3>
+              <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Spend vs Revenue
+              </h3>
               {chartData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
                   <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
@@ -1119,7 +1131,10 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </div>
 
             <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-              <h3 className="text-sm md:text-base mb-4">Campaign Breakdown</h3>
+              <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Campaign Breakdown
+              </h3>
               <div className="overflow-x-auto">
                 <div className="min-w-full">
                   <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-secondary light:text-text-light-secondary">
