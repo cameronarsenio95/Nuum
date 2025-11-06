@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Target, DollarSign, TrendingUp, BarChart3, Filter } from 'lucide-react';
+import { Target, DollarSign, TrendingUp, BarChart3, Filter, Lightbulb } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -36,6 +38,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [campaignsWithMetrics, setCampaignsWithMetrics] = useState<CampaignWithMetrics[]>([]);
+  const [adSetsData, setAdSetsData] = useState<AdSet[]>([]);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
@@ -69,7 +72,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
       const { data: adSetsData, error: adSetsError } = await supabase
         .from('ad_sets')
-        .select('campaign_id, status, spend, revenue')
+        .select('campaign_id, status, spend, revenue, created_at')
         .in('campaign_id', campaignsData.map(c => c.id));
 
       if (adSetsError) {
@@ -96,6 +99,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       });
 
       setCampaignsWithMetrics(campaignsWithMetrics);
+      setAdSetsData(adSetsData || []);
     } catch (err) {
       console.error('Unexpected error loading analytics:', err);
       setError('Failed to load analytics data.');
@@ -153,6 +157,58 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       revenue: c.total_revenue,
       roi: c.roi,
     }));
+
+  const topCampaignByRoi = campaignsFiltered.length > 0
+    ? campaignsFiltered.reduce((prev, current) => (current.roi > prev.roi ? current : prev))
+    : null;
+
+  const topCampaignByRevenue = campaignsFiltered.length > 0
+    ? campaignsFiltered.reduce((prev, current) => (current.total_revenue > prev.total_revenue ? current : prev))
+    : null;
+
+  const roiChartData = campaignsFiltered
+    .filter(c => c.total_spend > 0)
+    .map(c => ({
+      name: c.name.length > 15 ? c.name.substring(0, 15) + '...' : c.name,
+      roi: Math.round(c.roi),
+    }));
+
+  const timeSeriesData = (() => {
+    const filteredCampaignIds = campaignsFiltered.map(c => c.id);
+    const relevantAdSets = adSetsData.filter(ad => filteredCampaignIds.includes(ad.campaign_id));
+
+    if (relevantAdSets.length === 0 || !relevantAdSets[0].created_at) {
+      return campaignsFiltered
+        .filter(c => c.total_spend > 0 || c.total_revenue > 0)
+        .slice(0, 10)
+        .map((c, idx) => ({
+          date: `Week ${idx + 1}`,
+          spend: c.total_spend,
+          revenue: c.total_revenue,
+        }));
+    }
+
+    const dataByDate: Record<string, { spend: number; revenue: number }> = {};
+
+    relevantAdSets.forEach(ad => {
+      if (ad.created_at) {
+        const date = new Date(ad.created_at).toISOString().split('T')[0];
+        if (!dataByDate[date]) {
+          dataByDate[date] = { spend: 0, revenue: 0 };
+        }
+        dataByDate[date].spend += Number(ad.spend) || 0;
+        dataByDate[date].revenue += Number(ad.revenue) || 0;
+      }
+    });
+
+    return Object.entries(dataByDate)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, data]) => ({
+        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        spend: data.spend,
+        revenue: data.revenue,
+      }));
+  })();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
@@ -300,6 +356,61 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {campaignsFiltered.length > 0 && (
+        <div className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg px-4 md:px-6 py-3 md:py-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-linear-accent/10 rounded-linear flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Lightbulb className="w-5 h-5 text-linear-accent" />
+              </div>
+              <div className="flex-1">
+                <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-1">
+                  Key Insight
+                </div>
+                <p className="text-sm dark:text-text-primary light:text-text-light-primary">
+                  {campaignsFiltered.length > 0
+                    ? `Your campaigns generated ${formatCurrency(totalRevenue)} in revenue with an average ROI of ${Math.round(averageRoi)}%. ${
+                        topCampaignByRoi ? topCampaignByRoi.name : 'No campaign'
+                      } is currently your best performing campaign.`
+                    : 'No campaign data available for this selection. Adjust your filters or launch a campaign to see insights here.'}
+                </p>
+              </div>
+            </div>
+
+            {topCampaignByRoi && topCampaignByRevenue && (
+              <div className="flex flex-col gap-2 md:border-l md:dark:border-linear-border-subtle md:light:border-linear-light-border-subtle md:pl-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+                    Top ROI:
+                  </span>
+                  <span className="text-sm font-medium dark:text-text-primary light:text-text-light-primary">
+                    {topCampaignByRoi.name.length > 20
+                      ? topCampaignByRoi.name.substring(0, 20) + '...'
+                      : topCampaignByRoi.name}
+                  </span>
+                  <span className={`text-sm font-medium ${getRoiColor(topCampaignByRoi.roi)}`}>
+                    {Math.round(topCampaignByRoi.roi)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+                    Top Revenue:
+                  </span>
+                  <span className="text-sm font-medium dark:text-text-primary light:text-text-light-primary">
+                    {topCampaignByRevenue.name.length > 20
+                      ? topCampaignByRevenue.name.substring(0, 20) + '...'
+                      : topCampaignByRevenue.name}
+                  </span>
+                  <span className="text-sm font-medium text-linear-success">
+                    {formatCurrency(topCampaignByRevenue.total_revenue)}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -494,6 +605,114 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+              <h3 className="text-sm md:text-base mb-4">Performance Over Time</h3>
+              {timeSeriesData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
+                  <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
+                  <div className="text-sm">No time series data available</div>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={timeSeriesData}>
+                    <CartesianGrid strokeOpacity={0.08} vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={{ fontSize: 12 }}
+                      className="dark:fill-text-secondary light:fill-text-light-secondary"
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={{ fontSize: 12 }}
+                      className="dark:fill-text-secondary light:fill-text-light-secondary"
+                    />
+                    <Tooltip
+                      formatter={(value: any, name: any) => [
+                        typeof value === 'number' ? `€${value.toLocaleString('nl-NL')}` : value,
+                        name === 'revenue' ? 'Revenue' : name === 'spend' ? 'Spend' : name,
+                      ]}
+                      contentStyle={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      name="Revenue"
+                      stroke="#22c55e"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="spend"
+                      name="Spend"
+                      stroke="#ef4444"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+              <h3 className="text-sm md:text-base mb-4">ROI by Campaign</h3>
+              {roiChartData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
+                  <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
+                  <div className="text-sm">No ROI data available</div>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={roiChartData}>
+                    <CartesianGrid strokeOpacity={0.08} vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={{ fontSize: 12 }}
+                      className="dark:fill-text-secondary light:fill-text-light-secondary"
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={{ fontSize: 12 }}
+                      className="dark:fill-text-secondary light:fill-text-light-secondary"
+                      label={{ value: 'ROI %', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+                    />
+                    <Tooltip
+                      formatter={(value: any) => [`${value}%`, 'ROI']}
+                      contentStyle={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Bar
+                      dataKey="roi"
+                      fill="#3b82f6"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
