@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Target, DollarSign, TrendingUp, BarChart3 } from 'lucide-react';
+import { Target, DollarSign, TrendingUp, BarChart3, Filter } from 'lucide-react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -9,6 +9,8 @@ import {
   Tooltip,
   Legend,
   CartesianGrid,
+  LineChart,
+  Line,
 } from 'recharts';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
@@ -29,10 +31,15 @@ interface AnalyticsViewProps {
   workspace: Workspace;
 }
 
+type TimeFilter = 'all' | '30d' | '7d';
+type StatusFilter = 'all' | 'active' | 'completed' | 'draft' | 'archived';
+
 export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [campaignsWithMetrics, setCampaignsWithMetrics] = useState<CampaignWithMetrics[]>([]);
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   useEffect(() => {
     loadAnalytics();
@@ -99,15 +106,52 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     }
   };
 
-  const totalSpend = campaignsWithMetrics.reduce((sum, c) => sum + c.total_spend, 0);
-  const totalRevenue = campaignsWithMetrics.reduce((sum, c) => sum + c.total_revenue, 0);
-  const campaignsWithSpend = campaignsWithMetrics.filter(c => c.total_spend > 0);
+  const applyFilters = (campaigns: CampaignWithMetrics[]): CampaignWithMetrics[] => {
+    let filtered = [...campaigns];
+
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      const cutoff = new Date();
+
+      if (timeFilter === '7d') {
+        cutoff.setDate(now.getDate() - 7);
+      } else if (timeFilter === '30d') {
+        cutoff.setDate(now.getDate() - 30);
+      }
+
+      filtered = filtered.filter(campaign => {
+        if (!campaign.created_at) {
+          return timeFilter === 'all';
+        }
+        const createdAt = new Date(campaign.created_at);
+        return createdAt >= cutoff;
+      });
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(campaign =>
+        campaign.status?.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    return filtered;
+  };
+
+  const campaignsFiltered = applyFilters(campaignsWithMetrics);
+
+  const totalSpend = campaignsFiltered.reduce((sum, c) => sum + c.total_spend, 0);
+  const totalRevenue = campaignsFiltered.reduce((sum, c) => sum + c.total_revenue, 0);
+  const campaignsWithSpend = campaignsFiltered.filter(c => c.total_spend > 0);
   const averageRoi = campaignsWithSpend.length > 0
     ? campaignsWithSpend.reduce((sum, c) => sum + c.roi, 0) / campaignsWithSpend.length
     : 0;
-  const activeCampaigns = campaignsWithMetrics.filter(c => c.status === 'active').length;
+  const activeCampaigns = campaignsFiltered.filter(c => c.status === 'active').length;
 
-  const chartData = campaignsWithMetrics
+  const roiTrend = campaignsWithMetrics
+    .filter(c => c.total_spend > 0)
+    .map((c, index) => ({ index, roi: c.roi }));
+
+  const chartData = campaignsFiltered
     .filter(c => c.total_spend > 0 || c.total_revenue > 0)
     .map(c => ({
       name: c.name,
@@ -126,7 +170,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'active':
         return 'text-linear-success bg-linear-success/10 border-linear-success-border/20';
       case 'completed':
@@ -136,6 +180,12 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       default:
         return 'text-linear-warning bg-linear-warning/10 border-linear-warning-border/20';
     }
+  };
+
+  const getRoiColor = (roi: number) => {
+    if (roi > 0) return 'text-linear-success';
+    if (roi < 0) return 'text-linear-error';
+    return 'dark:text-text-secondary light:text-text-light-secondary';
   };
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -150,7 +200,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
             Revenue: {formatCurrency(data.revenue)}
           </p>
-          <p className={`text-sm font-medium ${data.roi >= 0 ? 'text-linear-success' : 'text-linear-error'}`}>
+          <p className={`text-sm font-medium ${getRoiColor(data.roi)}`}>
             ROI: {Math.round(data.roi)}%
           </p>
         </div>
@@ -158,6 +208,27 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     }
     return null;
   };
+
+  const FilterButton = ({
+    active,
+    onClick,
+    children
+  }: {
+    active: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+  }) => (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium border linear-transition ${
+        active
+          ? 'dark:bg-linear-bg-subtle dark:border-linear-border dark:text-text-primary light:bg-linear-light-bg-subtle light:border-linear-light-border light:text-text-light-primary'
+          : 'dark:bg-transparent dark:border-transparent dark:text-text-secondary dark:hover:bg-linear-bg-subtle/60 light:bg-transparent light:border-transparent light:text-text-light-secondary light:hover:bg-linear-light-bg-subtle/60'
+      }`}
+    >
+      {children}
+    </button>
+  );
 
   if (loading) {
     return (
@@ -184,89 +255,155 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
         </div>
       )}
 
+      {campaignsWithMetrics.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-4 flex-wrap items-start">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+            <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+              Time:
+            </span>
+            <div className="flex gap-1">
+              <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>
+                All time
+              </FilterButton>
+              <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>
+                Last 30 days
+              </FilterButton>
+              <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>
+                Last 7 days
+              </FilterButton>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+              Status:
+            </span>
+            <div className="flex gap-1 flex-wrap">
+              <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                All statuses
+              </FilterButton>
+              <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>
+                Active
+              </FilterButton>
+              <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
+                Completed
+              </FilterButton>
+              <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>
+                Draft
+              </FilterButton>
+              <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
+                Archived
+              </FilterButton>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-red-500/10 rounded-linear flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-red-500" />
+            <div className="w-12 h-12 bg-red-500/10 rounded-linear flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-red-500/80" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">{formatCurrency(totalSpend)}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-2xl md:text-3xl font-semibold">{formatCurrency(totalSpend)}</div>
+            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Total investment
             </div>
           </div>
         </div>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-green-500/10 rounded-linear flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-green-500" />
+            <div className="w-12 h-12 bg-green-500/10 rounded-linear flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-500/80" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">{formatCurrency(totalRevenue)}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-2xl md:text-3xl font-semibold">{formatCurrency(totalRevenue)}</div>
+            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Total generated
             </div>
           </div>
         </div>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-linear-accent" />
+            <div className="w-12 h-12 bg-linear-accent/10 rounded-linear flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-linear-accent/80" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">
+            <div className="text-2xl md:text-3xl font-semibold">
               {isNaN(averageRoi) ? '0' : Math.round(averageRoi)}%
             </div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mb-2">
               Average return
             </div>
+            {roiTrend.length >= 2 && (
+              <div className="mt-2 -mb-2">
+                <ResponsiveContainer width="100%" height={30}>
+                  <LineChart data={roiTrend}>
+                    <Line
+                      type="monotone"
+                      dataKey="roi"
+                      stroke="#22c55e"
+                      strokeWidth={1.2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
-              <Target className="w-5 h-5 text-linear-warning" />
+            <div className="w-12 h-12 bg-linear-warning/10 rounded-linear flex items-center justify-center">
+              <Target className="w-5 h-5 text-linear-warning/80" />
             </div>
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">{activeCampaigns}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-2xl md:text-3xl font-semibold">{activeCampaigns}</div>
+            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Active campaigns
             </div>
           </div>
         </div>
       </div>
 
-      {campaignsWithMetrics.length === 0 ? (
-        <div className="text-center py-12 md:py-20 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
-          <Target className="w-10 h-10 md:w-12 md:h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
-          <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">
-            No campaign data yet. Create a campaign to see analytics.
-          </p>
+      {campaignsFiltered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-48 text-sm dark:text-text-secondary light:text-text-light-secondary dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
+          <div className="w-16 h-16 mb-4 rounded-full flex items-center justify-center dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle">
+            <BarChart3 className="w-8 h-8 dark:text-text-tertiary light:text-text-light-tertiary" />
+          </div>
+          <div className="font-medium mb-2 dark:text-text-primary light:text-text-light-primary">No campaign data yet</div>
+          <div className="text-xs max-w-sm text-center">
+            {campaignsWithMetrics.length === 0
+              ? 'Create a new campaign to see performance analytics here.'
+              : 'Adjust your filters or create a new campaign to see performance analytics here.'}
+          </div>
         </div>
       ) : (
         <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <h3 className="text-sm md:text-base font-medium mb-4">Spend vs Revenue by Campaign</h3>
             {chartData.length === 0 ? (
-              <div className="flex items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
-                No data available
+              <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
+                <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
+                <div className="text-sm">No data available</div>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                  <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} vertical={false} />
                   <XAxis
                     dataKey="name"
                     tick={{ fontSize: 12 }}
@@ -289,7 +426,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             <h3 className="text-sm md:text-base font-medium mb-4">Campaign Breakdown</h3>
             <div className="overflow-x-auto">
               <div className="min-w-full">
-                <div className="grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs font-medium dark:text-text-secondary light:text-text-light-secondary">
+                <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs font-medium dark:text-text-secondary light:text-text-light-secondary">
                   <div className="col-span-2">Campaign</div>
                   <div>Status</div>
                   <div>Ad Sets</div>
@@ -298,32 +435,37 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   <div className="text-right">ROI</div>
                 </div>
                 <div className="space-y-2 mt-2">
-                  {campaignsWithMetrics.map(campaign => (
+                  {campaignsFiltered.map(campaign => (
                     <div
                       key={campaign.id}
-                      className="grid grid-cols-7 gap-2 py-2 text-xs hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle rounded-linear px-1"
+                      className="grid grid-cols-1 sm:grid-cols-7 gap-2 py-2 text-xs hover:dark:bg-linear-bg-subtle/40 light:hover:bg-linear-light-bg-subtle/40 rounded-linear px-1 sm:px-2"
                     >
-                      <div className="col-span-2 truncate font-medium" title={campaign.name}>
+                      <div className="col-span-1 sm:col-span-2 truncate font-medium" title={campaign.name}>
                         {campaign.name}
                       </div>
-                      <div>
+                      <div className="flex items-center gap-2 sm:block">
+                        <span className="sm:hidden text-text-tertiary">Status:</span>
                         <span className={`inline-block text-xs px-2 py-0.5 rounded-full border ${getStatusColor(campaign.status)}`}>
                           {campaign.status}
                         </span>
                       </div>
-                      <div className="dark:text-text-secondary light:text-text-light-secondary">
+                      <div className="flex items-center gap-2 sm:block dark:text-text-secondary light:text-text-light-secondary">
+                        <span className="sm:hidden text-text-tertiary">Ad Sets:</span>
                         {campaign.total_ad_sets}
                         {campaign.active_ad_sets > 0 && (
                           <span className="text-linear-success ml-1">({campaign.active_ad_sets})</span>
                         )}
                       </div>
-                      <div className="text-right dark:text-text-secondary light:text-text-light-secondary">
+                      <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
+                        <span className="sm:hidden text-text-tertiary">Spend:</span>
                         {formatCurrency(campaign.total_spend)}
                       </div>
-                      <div className="text-right dark:text-text-secondary light:text-text-light-secondary">
+                      <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
+                        <span className="sm:hidden text-text-tertiary">Revenue:</span>
                         {formatCurrency(campaign.total_revenue)}
                       </div>
-                      <div className={`text-right font-medium ${campaign.roi >= 0 ? 'text-linear-success' : 'text-linear-error'}`}>
+                      <div className={`flex items-center justify-between sm:justify-end gap-2 font-medium ${getRoiColor(campaign.roi)}`}>
+                        <span className="sm:hidden text-text-tertiary">ROI:</span>
                         {Math.round(campaign.roi)}%
                       </div>
                     </div>
