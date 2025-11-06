@@ -121,7 +121,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
         supabase
           .from('ad_sets')
-          .select('campaign_id, status, spend, revenue, created_at'),
+          .select('campaign_id, creator_id, platform, status, spend, revenue, created_at'),
 
         supabase
           .from('creators')
@@ -243,17 +243,21 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
   const creatorRevenue = useMemo(() => {
     const revenueMap: Record<string, number> = {};
-    const totalFilteredRevenue = campaignsFiltered.reduce((sum, c) => sum + c.total_revenue, 0);
 
-    if (totalFilteredRevenue > 0 && creators.length > 0) {
-      const revenuePerCreator = totalFilteredRevenue / creators.length;
-      creators.forEach(creator => {
-        revenueMap[creator.id] = revenuePerCreator;
+    const filteredCampaignIds = new Set(campaignsFiltered.map(c => c.id));
+
+    adSetsData
+      .filter(adSet => filteredCampaignIds.has(adSet.campaign_id))
+      .forEach(adSet => {
+        if (adSet.creator_id) {
+          const creatorId = adSet.creator_id;
+          const revenue = Number(adSet.revenue) || 0;
+          revenueMap[creatorId] = (revenueMap[creatorId] || 0) + revenue;
+        }
       });
-    }
 
     return revenueMap;
-  }, [campaignsFiltered, creators]);
+  }, [campaignsFiltered, adSetsData]);
 
   const topCreators = useMemo(() => {
     const activeCreators = creators.filter(c => c.status === 'active');
@@ -300,25 +304,30 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   const platformStats = useMemo(() => {
     const stats: Record<string, { count: number; revenue: number }> = {};
 
-    creators.forEach(creator => {
-      const revenue = creatorRevenue[creator.id] || 0;
+    const filteredCampaignIds = new Set(campaignsFiltered.map(c => c.id));
 
-      if (creator.tiktok_handle) {
-        if (!stats['TikTok']) stats['TikTok'] = { count: 0, revenue: 0 };
-        stats['TikTok'].count += 1;
-        stats['TikTok'].revenue += revenue;
-      }
-      if (creator.instagram_handle) {
-        if (!stats['Instagram']) stats['Instagram'] = { count: 0, revenue: 0 };
-        stats['Instagram'].count += 1;
-        stats['Instagram'].revenue += revenue;
-      }
-      if (creator.youtube_handle) {
-        if (!stats['YouTube']) stats['YouTube'] = { count: 0, revenue: 0 };
-        stats['YouTube'].count += 1;
-        stats['YouTube'].revenue += revenue;
-      }
-    });
+    const uniqueCreatorPlatforms = new Set<string>();
+
+    adSetsData
+      .filter(adSet => filteredCampaignIds.has(adSet.campaign_id))
+      .forEach(adSet => {
+        const platform = adSet.platform === 'META' ? 'Instagram' : adSet.platform;
+        const revenue = Number(adSet.revenue) || 0;
+
+        if (!stats[platform]) {
+          stats[platform] = { count: 0, revenue: 0 };
+        }
+
+        stats[platform].revenue += revenue;
+
+        if (adSet.creator_id) {
+          const key = `${adSet.creator_id}-${platform}`;
+          if (!uniqueCreatorPlatforms.has(key)) {
+            uniqueCreatorPlatforms.add(key);
+            stats[platform].count += 1;
+          }
+        }
+      });
 
     const totalCount = Object.values(stats).reduce((sum, s) => sum + s.count, 0);
 
@@ -330,7 +339,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
         percentage: totalCount > 0 ? Math.round((data.count / totalCount) * 100) : 0
       }))
       .sort((a, b) => b.revenue - a.revenue || b.count - a.count);
-  }, [creators, creatorRevenue]);
+  }, [campaignsFiltered, adSetsData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
