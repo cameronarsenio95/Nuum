@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import { Target, DollarSign, TrendingUp, BarChart3, Filter } from 'lucide-react';
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
   Legend,
   CartesianGrid,
-  LineChart,
-  Line,
 } from 'recharts';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
@@ -146,10 +144,6 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     ? campaignsWithSpend.reduce((sum, c) => sum + c.roi, 0) / campaignsWithSpend.length
     : 0;
   const activeCampaigns = campaignsFiltered.filter(c => c.status === 'active').length;
-
-  const roiTrend = campaignsWithMetrics
-    .filter(c => c.total_spend > 0)
-    .map((c, index) => ({ index, roi: c.roi }));
 
   const chartData = campaignsFiltered
     .filter(c => c.total_spend > 0 || c.total_revenue > 0)
@@ -301,7 +295,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-red-500/10 rounded-linear flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-red-500/80" />
@@ -316,7 +310,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           </div>
         </div>
 
-        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-green-500/10 rounded-linear flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-green-500/80" />
@@ -331,7 +325,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           </div>
         </div>
 
-        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-linear-accent/10 rounded-linear flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-linear-accent/80" />
@@ -342,28 +336,13 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             <div className="text-2xl md:text-3xl font-semibold">
               {isNaN(averageRoi) ? '0' : Math.round(averageRoi)}%
             </div>
-            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mb-2">
+            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Average return
             </div>
-            {roiTrend.length >= 2 && (
-              <div className="mt-2 -mb-2">
-                <ResponsiveContainer width="100%" height={30}>
-                  <LineChart data={roiTrend}>
-                    <Line
-                      type="monotone"
-                      dataKey="roi"
-                      stroke="#22c55e"
-                      strokeWidth={1.2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="dark:bg-gradient-to-b dark:from-[#111111] dark:to-[#0C0C0C] light:bg-gradient-to-b light:from-[#F8F9FA] light:to-[#F1F3F5] border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 shadow-lg dark:shadow-black/20 light:shadow-black/5">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-linear-warning/10 rounded-linear flex items-center justify-center">
               <Target className="w-5 h-5 text-linear-warning/80" />
@@ -401,23 +380,56 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 <div className="text-sm">No data available</div>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} vertical={false} />
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeOpacity={0.08} vertical={false} />
                   <XAxis
                     dataKey="name"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
                     tick={{ fontSize: 12 }}
                     className="dark:fill-text-secondary light:fill-text-light-secondary"
                   />
                   <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
                     tick={{ fontSize: 12 }}
                     className="dark:fill-text-secondary light:fill-text-light-secondary"
                   />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar dataKey="spend" name="Spend" fill="#ef4444" />
-                  <Bar dataKey="revenue" name="Revenue" fill="#22c55e" />
-                </BarChart>
+                  <Tooltip
+                    formatter={(value: any, name: any) => [
+                      typeof value === 'number' ? `€${value.toLocaleString('nl-NL')}` : value,
+                      name === 'revenue' ? 'Revenue' : name === 'spend' ? 'Spend' : name,
+                    ]}
+                    labelFormatter={(label) => label}
+                    contentStyle={{
+                      backgroundColor: 'var(--color-bg-secondary)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    name="Revenue"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="spend"
+                    name="Spend"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             )}
           </div>
