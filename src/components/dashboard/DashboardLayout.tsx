@@ -1,4 +1,4 @@
-import { NotificationBell } from '../NotificationBell';
+import { NotificationBell } from './NotificationBell';
 import { useState, useEffect } from 'react';
 import { LogOut, LayoutDashboard, Users, Target, CheckSquare, Settings as SettingsIcon, User as UserIcon, Image, FileText, CreditCard, Headphones as HeadphonesIcon, Menu, X, BarChart3, ShoppingBag, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -149,10 +149,17 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
           </nav>
 
           <div className="p-4 border-t space-y-1 dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
-            <div className="flex items-center gap-2 mb-2 px-3">
-              <span className="text-xs font-medium dark:dark:text-text-tertiary light:text-text-light-tertiary light:text-text-light-tertiary">Theme</span>
-              <ThemeToggle />
+            {/* Theme + Notification bell op één rij */}
+            <div className="flex items-center justify-between mb-2 px-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium dark:dark:text-text-tertiary light:text-text-light-tertiary light:text-text-light-tertiary">
+                  Theme
+                </span>
+                <ThemeToggle />
+              </div>
+              <NotificationBell />
             </div>
+
             <button
               type="button"
               onClick={() => {
@@ -228,11 +235,6 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
 
         <main className="flex-1 overflow-auto lg:ml-0">
           <div className="p-4 md:p-8 pt-16 lg:pt-8">
-            {/* Top row met notificatiebel rechts */}
-            <div className="flex items-center justify-end mb-4">
-              <NotificationBell />
-            </div>
-
             <TrialBanner
               daysRemaining={trialInfo.daysRemaining}
               onUpgradeClick={() => onViewChange('billing')}
