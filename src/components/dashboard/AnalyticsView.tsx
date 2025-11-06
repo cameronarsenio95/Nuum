@@ -214,7 +214,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   }) => (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-linear text-xs md:text-sm font-medium border linear-transition ${
+      className={`px-3 py-1.5 rounded-linear text-xs md:text-sm border linear-transition ${
         active
           ? 'dark:bg-linear-bg-subtle dark:border-linear-border dark:text-text-primary light:bg-linear-light-bg-subtle light:border-linear-light-border light:text-text-light-primary'
           : 'dark:bg-transparent dark:border-transparent dark:text-text-secondary dark:hover:bg-linear-bg-subtle/60 light:bg-transparent light:border-transparent light:text-text-light-secondary light:hover:bg-linear-light-bg-subtle/60'
@@ -235,7 +235,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   return (
     <div className="space-y-6 md:space-y-8">
       <div>
-        <h2 className="text-xl md:text-2xl font-medium mb-2">Campaign Performance</h2>
+        <h2 className="text-xl md:text-2xl mb-2">Campaign Performance</h2>
         <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">
           Comprehensive performance insights for your campaigns
         </p>
@@ -251,17 +251,17 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
       {campaignsWithMetrics.length > 0 && (
         <div className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg px-4 md:px-6 py-3 md:py-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-              <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+              <span className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                 Filters
               </span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-wrap items-start sm:items-center">
+            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+                <span className="text-sm dark:text-text-secondary light:text-text-light-secondary">
                   Time:
                 </span>
                 <div className="flex gap-1">
@@ -278,7 +278,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">
+                <span className="text-sm dark:text-text-secondary light:text-text-light-secondary">
                   Status:
                 </span>
                 <div className="flex gap-1 flex-wrap">
@@ -373,7 +373,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           <div className="w-16 h-16 mb-4 rounded-full flex items-center justify-center dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle">
             <BarChart3 className="w-8 h-8 dark:text-text-tertiary light:text-text-light-tertiary" />
           </div>
-          <div className="font-medium mb-2 dark:text-text-primary light:text-text-light-primary">No campaign data yet</div>
+          <div className="mb-2 dark:text-text-primary light:text-text-light-primary">No campaign data yet</div>
           <div className="text-xs max-w-sm text-center">
             {campaignsWithMetrics.length === 0
               ? 'Create a new campaign to see performance analytics here.'
@@ -383,7 +383,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       ) : (
         <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-            <h3 className="text-sm md:text-base font-medium mb-4">Spend vs Revenue by Campaign</h3>
+            <h3 className="text-sm md:text-base mb-4">Spend vs Revenue by Campaign</h3>
             {chartData.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
                 <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
@@ -445,10 +445,10 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           </div>
 
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-            <h3 className="text-sm md:text-base font-medium mb-4">Campaign Breakdown</h3>
+            <h3 className="text-sm md:text-base mb-4">Campaign Breakdown</h3>
             <div className="overflow-x-auto">
               <div className="min-w-full">
-                <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs font-medium dark:text-text-secondary light:text-text-light-secondary">
+                <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-secondary light:text-text-light-secondary">
                   <div className="col-span-2">Campaign</div>
                   <div>Status</div>
                   <div>Ad Sets</div>
@@ -462,7 +462,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                       key={campaign.id}
                       className="grid grid-cols-1 sm:grid-cols-7 gap-2 py-2 text-xs hover:dark:bg-linear-bg-subtle/40 light:hover:bg-linear-light-bg-subtle/40 rounded-linear px-1 sm:px-2"
                     >
-                      <div className="col-span-1 sm:col-span-2 truncate font-medium" title={campaign.name}>
+                      <div className="col-span-1 sm:col-span-2 truncate" title={campaign.name}>
                         {campaign.name}
                       </div>
                       <div className="flex items-center gap-2 sm:block">
