@@ -15,6 +15,24 @@ type NotificationFilter =
   | 'content'
   | 'note';
 
+type DashboardView =
+  | 'overview'
+  | 'campaigns'
+  | 'creators'
+  | 'tasks'
+  | 'team'
+  | 'content'
+  | 'notions'
+  | 'contact'
+  | 'settings'
+  | 'billing'
+  | 'analytics'
+  | 'shopify';
+
+interface NotificationBellProps {
+  onNavigate?: (view: DashboardView) => void;
+}
+
 const FILTERS: { id: NotificationFilter; label: string }[] = [
   { id: 'all',      label: 'All' },
   { id: 'campaign', label: 'Campaigns' },
@@ -24,11 +42,12 @@ const FILTERS: { id: NotificationFilter; label: string }[] = [
   { id: 'note',     label: 'Notes' },
 ];
 
-export function NotificationBell() {
+export function NotificationBell({ onNavigate }: NotificationBellProps) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all');
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -63,7 +82,16 @@ export function NotificationBell() {
           filter: `user_id=eq.${user.id}`,
         },
         payload => {
-          setNotifications(prev => [payload.new as Notification, ...prev]);
+          const newNotification = payload.new as Notification;
+          setNotifications(prev => [newNotification, ...prev]);
+          setHighlightedId(newNotification.id);
+
+          // micro-animatie: highlight even de nieuwste notificatie
+          setTimeout(() => {
+            setHighlightedId(current =>
+              current === newNotification.id ? null : current
+            );
+          }, 1600);
         }
       )
       .subscribe();
@@ -158,19 +186,51 @@ export function NotificationBell() {
     return type === activeFilter;
   });
 
+  const handleViewDetails = (n: Notification) => {
+    if (!onNavigate) return;
+
+    switch (n.entity_type) {
+      case 'campaign':
+        onNavigate('campaigns');
+        break;
+      case 'task':
+        onNavigate('tasks');
+        break;
+      case 'creator':
+        onNavigate('creators');
+        break;
+      case 'content':
+        onNavigate('content');
+        break;
+      case 'note':
+        onNavigate('notions');
+        break;
+      default:
+        return;
+    }
+
+    // modal sluiten bij navigatie
+    setOpen(false);
+  };
+
+  const canViewDetails = (n: Notification) =>
+    ['campaign', 'task', 'creator', 'content', 'note'].includes(
+      n.entity_type || ''
+    );
+
   // Modal via portal zodat hij boven het hele workspace-gedeelte hangt
   let modal: React.ReactNode = null;
   if (open && typeof document !== 'undefined') {
     modal = createPortal(
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center">
         {/* Donkere overlay over het hele scherm */}
         <div
           className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           onClick={closeModal}
         />
 
-        {/* Gecentreerde, grotere modal in het midden */}
-        <div className="relative z-10 w-full max-w-2xl lg:max-w-3xl mx-4 rounded-linear-lg border dark:border-linear-border light:border-linear-light-border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary shadow-2xl max-h-[80vh] flex flex-col">
+        {/* Gecentreerde, grotere modal – full-screen op mobiel */}
+        <div className="relative z-10 w-full max-w-2xl lg:max-w-3xl mx-0 md:mx-4 h-full md:h-auto rounded-none md:rounded-linear-lg border dark:border-linear-border light:border-linear-light-border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary shadow-2xl max-h-[100vh] md:max-h-[80vh] flex flex-col">
           {/* Header */}
           <div className="px-6 py-4 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle flex items-center justify-between">
             <div className="flex flex-col">
@@ -221,61 +281,79 @@ export function NotificationBell() {
                 No notifications for this filter yet.
               </div>
             ) : (
-              filteredNotifications.map(n => (
-                <div
-                  key={n.id}
-                  className="px-6 py-4 text-sm border-b last:border-b-0 dark:border-linear-border-subtle/60 light:border-linear-light-border-subtle/60 hover:dark:bg-linear-bg-subtle/60 light:hover:bg-linear-light-bg-subtle/60 linear-transition flex gap-4"
-                >
-                  {/* Accent dot */}
-                  <div className="pt-1">
-                    <span className="block w-2 h-2 rounded-full bg-linear-accent" />
-                  </div>
+              filteredNotifications.map(n => {
+                const isHighlighted = highlightedId === n.id;
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {/* Type chip */}
-                        <span
-                          className={
-                            'text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-full border ' +
-                            getTypeChipClasses(n.type)
-                          }
-                        >
-                          {n.type === 'assignment' && 'Assignment'}
-                          {n.type === 'status_change' && 'Status Update'}
-                          {n.type === 'activity' && 'Activity'}
-                          {!['assignment', 'status_change', 'activity'].includes(
-                            n.type
-                          ) && (n.type || 'Update')}
-                        </span>
-
-                        {/* Entity chip */}
-                        <span className="text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-full border dark:border-linear-border-subtle light:border-linear-light-border-subtle dark:text-text-tertiary light:text-text-light-tertiary">
-                          {getEntityLabel(n.entity_type)}
-                        </span>
-                      </div>
-
-                      {formatDate(n) && (
-                        <span className="ml-2 text-[11px] whitespace-nowrap dark:text-text-tertiary light:text-text-light-tertiary">
-                          {formatDate(n)}
-                        </span>
-                      )}
+                return (
+                  <div
+                    key={n.id}
+                    className={[
+                      'px-6 py-4 text-sm border-b last:border-b-0 dark:border-linear-border-subtle/60 light:border-linear-light-border-subtle/60 hover:dark:bg-linear-bg-subtle/60 light:hover:bg-linear-light-bg-subtle/60 linear-transition flex gap-4',
+                      isHighlighted ? 'animate-pulse' : '',
+                    ].join(' ')}
+                  >
+                    {/* Accent dot */}
+                    <div className="pt-1">
+                      <span className="block w-2 h-2 rounded-full bg-linear-accent" />
                     </div>
 
-                    {n.title && (
-                      <div className="text-sm font-medium mb-0.5 truncate">
-                        {n.title}
-                      </div>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Type chip */}
+                          <span
+                            className={
+                              'text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-full border ' +
+                              getTypeChipClasses(n.type)
+                            }
+                          >
+                            {n.type === 'assignment' && 'Assignment'}
+                            {n.type === 'status_change' && 'Status Update'}
+                            {n.type === 'activity' && 'Activity'}
+                            {!['assignment', 'status_change', 'activity'].includes(
+                              n.type
+                            ) && (n.type || 'Update')}
+                          </span>
 
-                    {n.message && (
-                      <div className="text-xs leading-snug dark:text-text-secondary light:text-text-light-secondary">
-                        {n.message}
+                          {/* Entity chip */}
+                          <span className="text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-full border dark:border-linear-border-subtle light:border-linear-light-border-subtle dark:text-text-tertiary light:text-text-light-tertiary">
+                            {getEntityLabel(n.entity_type)}
+                          </span>
+                        </div>
+
+                        {formatDate(n) && (
+                          <span className="ml-2 text-[11px] whitespace-nowrap dark:text-text-tertiary light:text-text-light-tertiary">
+                            {formatDate(n)}
+                          </span>
+                        )}
                       </div>
-                    )}
+
+                      {n.title && (
+                        <div className="text-sm font-medium mb-0.5 truncate">
+                          {n.title}
+                        </div>
+                      )}
+
+                      {n.message && (
+                        <div className="text-xs leading-snug dark:text-text-secondary light:text-text-light-secondary mb-2">
+                          {n.message}
+                        </div>
+                      )}
+
+                      {/* View details knop */}
+                      {onNavigate && canViewDetails(n) && (
+                        <button
+                          type="button"
+                          onClick={() => handleViewDetails(n)}
+                          className="text-[11px] font-medium text-linear-accent hover:text-linear-accent/80 linear-transition"
+                        >
+                          View details
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
