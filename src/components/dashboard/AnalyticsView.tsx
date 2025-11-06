@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Target, DollarSign, TrendingUp, BarChart3, Filter, Lightbulb, GitCompare, X, Download, Eye, Table2, Users, Zap } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -214,7 +214,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     return filtered;
   };
 
-  const campaignsFiltered = applyFilters(campaignsWithMetrics);
+  const campaignsFiltered = useMemo(() => applyFilters(campaignsWithMetrics), [campaignsWithMetrics, timeFilter, statusFilter]);
 
   const totalSpend = campaignsFiltered.reduce((sum, c) => sum + c.total_spend, 0);
   const totalRevenue = campaignsFiltered.reduce((sum, c) => sum + c.total_revenue, 0);
@@ -241,20 +241,40 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     ? campaignsFiltered.reduce((prev, current) => (current.total_revenue > prev.total_revenue ? current : prev))
     : null;
 
-  const topCreators = (() => {
+  const creatorRevenue = useMemo(() => {
+    const revenueMap: Record<string, number> = {};
+    const totalFilteredRevenue = campaignsFiltered.reduce((sum, c) => sum + c.total_revenue, 0);
+
+    if (totalFilteredRevenue > 0 && creators.length > 0) {
+      const revenuePerCreator = totalFilteredRevenue / creators.length;
+      creators.forEach(creator => {
+        revenueMap[creator.id] = revenuePerCreator;
+      });
+    }
+
+    return revenueMap;
+  }, [campaignsFiltered, creators]);
+
+  const topCreators = useMemo(() => {
     const activeCreators = creators.filter(c => c.status === 'active');
 
     if (activeCreators.length === 0) return [];
 
     return activeCreators
       .sort((a, b) => {
+        const revA = creatorRevenue[a.id] || 0;
+        const revB = creatorRevenue[b.id] || 0;
+
+        if (revB !== revA) return revB - revA;
+
         if (a.engagement_rate && b.engagement_rate) {
           return b.engagement_rate - a.engagement_rate;
         }
+
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       })
       .slice(0, 5);
-  })();
+  }, [creators, creatorRevenue]);
 
   const getPrimaryPlatform = (creator: Creator): string | null => {
     if (creator.tiktok_handle) return 'TikTok';
@@ -277,31 +297,40 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     return total > 0 ? total.toString() : null;
   };
 
-  const platformStats = (() => {
-    const stats: Record<string, number> = {};
+  const platformStats = useMemo(() => {
+    const stats: Record<string, { count: number; revenue: number }> = {};
 
     creators.forEach(creator => {
+      const revenue = creatorRevenue[creator.id] || 0;
+
       if (creator.tiktok_handle) {
-        stats['TikTok'] = (stats['TikTok'] || 0) + 1;
+        if (!stats['TikTok']) stats['TikTok'] = { count: 0, revenue: 0 };
+        stats['TikTok'].count += 1;
+        stats['TikTok'].revenue += revenue;
       }
       if (creator.instagram_handle) {
-        stats['Instagram'] = (stats['Instagram'] || 0) + 1;
+        if (!stats['Instagram']) stats['Instagram'] = { count: 0, revenue: 0 };
+        stats['Instagram'].count += 1;
+        stats['Instagram'].revenue += revenue;
       }
       if (creator.youtube_handle) {
-        stats['YouTube'] = (stats['YouTube'] || 0) + 1;
+        if (!stats['YouTube']) stats['YouTube'] = { count: 0, revenue: 0 };
+        stats['YouTube'].count += 1;
+        stats['YouTube'].revenue += revenue;
       }
     });
 
-    const total = Object.values(stats).reduce((sum, count) => sum + count, 0);
+    const totalCount = Object.values(stats).reduce((sum, s) => sum + s.count, 0);
 
     return Object.entries(stats)
-      .map(([platform, count]) => ({
+      .map(([platform, data]) => ({
         platform,
-        count,
-        percentage: total > 0 ? Math.round((count / total) * 100) : 0
+        count: data.count,
+        revenue: data.revenue,
+        percentage: totalCount > 0 ? Math.round((data.count / totalCount) * 100) : 0
       }))
-      .sort((a, b) => b.count - a.count);
-  })();
+      .sort((a, b) => b.revenue - a.revenue || b.count - a.count);
+  }, [creators, creatorRevenue]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
@@ -381,17 +410,17 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     const campaignB = campaignsFiltered.find(c => c.id === compareCampaignBId);
 
     return (
-      <div
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={() => {
             setIsCompareOpen(false);
             setCompareCampaignAId(null);
             setCompareCampaignBId(null);
-          }
-        }}
-      >
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg shadow-xl w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+          }}
+        />
+
+        <div className="relative z-10 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
           <div className="sticky top-0 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-b dark:border-linear-border-subtle light:border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between">
             <h3 className="text-sm font-medium dark:text-text-primary light:text-gray-900">Compare Campaigns</h3>
             <button
@@ -597,51 +626,51 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
       {campaignsWithMetrics.length > 0 && (
         <div className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg px-4 md:px-6 py-3 md:py-4">
-          <div className="flex flex-col gap-2 md:gap-3">
-            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-              Filters
+              <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                Filters
+              </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 md:gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm dark:text-text-secondary light:text-text-light-secondary">
-                  Time:
-                </span>
-                <div className="flex gap-1">
-                  <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>
-                    All time
-                  </FilterButton>
-                  <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>
-                    Last 30 days
-                  </FilterButton>
-                  <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>
-                    Last 7 days
-                  </FilterButton>
-                </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                Time:
+              </span>
+              <div className="flex gap-1">
+                <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>
+                  All time
+                </FilterButton>
+                <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>
+                  Last 30 days
+                </FilterButton>
+                <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>
+                  Last 7 days
+                </FilterButton>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm dark:text-text-secondary light:text-text-light-secondary">
-                  Status:
-                </span>
-                <div className="flex gap-1 flex-wrap">
-                  <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
-                    All statuses
-                  </FilterButton>
-                  <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>
-                    Active
-                  </FilterButton>
-                  <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
-                    Completed
-                  </FilterButton>
-                  <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>
-                    Draft
-                  </FilterButton>
-                  <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
-                    Archived
-                  </FilterButton>
-                </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+                Status:
+              </span>
+              <div className="flex gap-1 flex-wrap">
+                <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                  All statuses
+                </FilterButton>
+                <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>
+                  Active
+                </FilterButton>
+                <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>
+                  Completed
+                </FilterButton>
+                <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>
+                  Draft
+                </FilterButton>
+                <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
+                  Archived
+                </FilterButton>
               </div>
             </div>
           </div>
@@ -989,7 +1018,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   <h3 className="text-sm md:text-base">Top Creators</h3>
                 </div>
                 <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-4">
-                  Creators with the strongest presence in your workspace
+                  Highest revenue-generating creators based on filtered campaigns
                 </p>
 
                 {topCreators.length === 0 ? (
@@ -1001,7 +1030,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   <div className="space-y-3">
                     {topCreators.map(creator => {
                       const platform = getPrimaryPlatform(creator);
-                      const followers = formatFollowerCount(creator.follower_count);
+                      const revenue = creatorRevenue[creator.id] || 0;
 
                       return (
                         <div key={creator.id} className="flex items-center justify-between py-2 border-b dark:border-linear-border-subtle/50 light:border-gray-200 last:border-0">
@@ -1023,24 +1052,15 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                             </div>
                           </div>
                           <div className="ml-3 text-right flex-shrink-0">
-                            {creator.engagement_rate ? (
+                            {revenue > 0 ? (
                               <div>
                                 <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
-                                  {(creator.engagement_rate * 100).toFixed(1)}%
+                                  {formatCurrency(revenue)}
                                 </div>
-                                <div className="text-xs dark:text-text-tertiary light:text-gray-500">engagement</div>
-                              </div>
-                            ) : followers ? (
-                              <div>
-                                <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
-                                  {followers}
-                                </div>
-                                <div className="text-xs dark:text-text-tertiary light:text-gray-500">followers</div>
+                                <div className="text-xs dark:text-text-tertiary light:text-gray-500">revenue</div>
                               </div>
                             ) : (
-                              <span className="text-xs px-2 py-0.5 rounded-full dark:bg-linear-success/10 light:bg-green-50 dark:text-linear-success light:text-green-700">
-                                Active
-                              </span>
+                              <div className="text-xs dark:text-text-tertiary light:text-gray-500">—</div>
                             )}
                           </div>
                         </div>
@@ -1056,7 +1076,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   <h3 className="text-sm md:text-base">Platform Performance</h3>
                 </div>
                 <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-4">
-                  Distribution of creators across social platforms
+                  Revenue distribution across social platforms
                 </p>
 
                 {platformStats.length === 0 ? (
@@ -1069,7 +1089,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {platformStats.map(({ platform, count, percentage }) => (
+                    {platformStats.map(({ platform, count, revenue, percentage }) => (
                       <div key={platform} className="flex items-center justify-between py-2 border-b dark:border-linear-border-subtle/50 light:border-gray-200 last:border-0">
                         <div className="flex items-center gap-3">
                           <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
@@ -1077,8 +1097,11 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="text-sm dark:text-text-secondary light:text-gray-600">
+                          <div className="text-xs dark:text-text-secondary light:text-gray-600">
                             {count} {count === 1 ? 'creator' : 'creators'}
+                          </div>
+                          <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
+                            {formatCurrency(revenue)}
                           </div>
                           <div className="text-xs dark:text-text-tertiary light:text-gray-500 min-w-[3rem] text-right">
                             {percentage}%
