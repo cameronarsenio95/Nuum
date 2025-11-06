@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
+import { exportAnalyticsPdf } from '../../utils/exportAnalyticsPdf';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -376,28 +377,45 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     return 'dark:text-text-secondary light:text-text-light-secondary';
   };
 
-  const handleExportCsv = () => {
-    const headers = ['Campaign', 'Status', 'Ad Sets', 'Spend', 'Revenue', 'ROI', 'Last Updated'];
-    const rows = campaignsFiltered.map(c => [
-      c.name,
-      c.status || 'draft',
-      `${c.total_ad_sets} (${c.active_ad_sets} active)`,
-      c.total_spend.toFixed(2),
-      c.total_revenue.toFixed(2),
-      `${Math.round(c.roi)}%`,
-      c.updated_at ? new Date(c.updated_at).toLocaleDateString() : 'N/A'
-    ]);
+  const handleExportPdf = () => {
+    const keyInsightText = campaignsFiltered.length > 0
+      ? `Your campaigns generated ${formatCurrency(totalRevenue)} in revenue with an average ROI of ${Math.round(averageRoi)}%. ${
+          topCampaignByRoi ? topCampaignByRoi.name : 'No campaign'
+        } is currently your best performing campaign.`
+      : 'No campaign data available for this selection.';
 
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'campaign-analytics.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const creatorsData = topCreators.map(creator => ({
+      id: creator.id,
+      name: creator.name,
+      handle: creator.instagram_handle || creator.tiktok_handle || creator.youtube_handle || 'N/A',
+      platform: getPrimaryPlatform(creator) || 'Unknown',
+      total_revenue: creatorRevenue[creator.id] || 0,
+    }));
+
+    const platformsData = platformStats.map(stat => ({
+      platform: stat.platform,
+      creator_count: stat.count,
+      revenue: stat.revenue,
+      share: stat.percentage,
+    }));
+
+    exportAnalyticsPdf({
+      workspace,
+      filters: {
+        timeRange: timeFilter,
+        status: statusFilter,
+      },
+      kpis: {
+        totalSpend,
+        totalRevenue,
+        averageRoi,
+        activeCampaigns,
+      },
+      campaigns: campaignsFiltered,
+      creators: creatorsData,
+      platforms: platformsData,
+      keyInsight: keyInsightText,
+    });
   };
 
   const FilterButton = ({
@@ -851,11 +869,11 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               Data view shows your current campaigns in a flat table. Filters still apply.
             </p>
             <button
-              onClick={handleExportCsv}
+              onClick={handleExportPdf}
               className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:text-text-primary light:text-gray-700 dark:hover:bg-linear-bg-subtle light:hover:bg-gray-50 linear-transition"
             >
               <Download className="w-3.5 h-3.5" />
-              Export CSV
+              Export PDF
             </button>
           </div>
 
