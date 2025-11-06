@@ -1179,7 +1179,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                       return (
                         <div
                           key={creator.id}
-                          className="flex items-center justify-between py-3 px-4 dark:bg-[#0a0e1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#0d1221] linear-transition cursor-pointer"
+                          className="flex items-center justify-between py-3 px-4 dark:bg-[#1a1a1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#252525] linear-transition cursor-pointer"
                           onClick={() => {
                             console.log('Navigate to creator:', creator.id);
                           }}
@@ -1229,7 +1229,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 ) : (
                   <div className="space-y-2">
                     {platformStats.map(({ platform, count, revenue, percentage }) => (
-                      <div key={platform} className="flex items-center justify-between py-3 px-4 dark:bg-[#0a0e1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#0d1221] linear-transition">
+                      <div key={platform} className="flex items-center justify-between py-3 px-4 dark:bg-[#1a1a1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#252525] linear-transition">
                         <div className="text-base font-medium dark:text-text-primary light:text-gray-900">
                           {platform}
                         </div>
