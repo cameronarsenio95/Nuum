@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Target, DollarSign, TrendingUp, BarChart3, Filter, Lightbulb, GitCompare, X, Download, Eye, Table2 } from 'lucide-react';
+import { Target, DollarSign, TrendingUp, BarChart3, Filter, Lightbulb, GitCompare, X, Download, Eye, Table2, Users, Zap } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -18,6 +18,7 @@ import type { Database } from '../../lib/database.types';
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
+type Creator = Database['public']['Tables']['creators']['Row'];
 
 interface CampaignWithMetrics extends Campaign {
   total_ad_sets: number;
@@ -89,6 +90,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [campaignsWithMetrics, setCampaignsWithMetrics] = useState<CampaignWithMetrics[]>([]);
   const [adSetsData, setAdSetsData] = useState<AdSet[]>([]);
+  const [creators, setCreators] = useState<Creator[]>([]);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [viewMode, setViewMode] = useState<AnalyticsViewMode>('visual');
@@ -110,36 +112,49 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       setLoading(true);
       setError(null);
 
-      const { data: campaignsData, error: campaignsError } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('workspace_id', workspace.id)
-        .order('created_at', { ascending: false });
+      const [campaignsResult, adSetsResult, creatorsResult] = await Promise.all([
+        supabase
+          .from('campaigns')
+          .select('*')
+          .eq('workspace_id', workspace.id)
+          .order('created_at', { ascending: false }),
 
-      if (campaignsError) {
-        console.error('Error loading campaigns:', campaignsError);
+        supabase
+          .from('ad_sets')
+          .select('campaign_id, status, spend, revenue, created_at'),
+
+        supabase
+          .from('creators')
+          .select('id, name, instagram_handle, tiktok_handle, youtube_handle, follower_count, engagement_rate, status, created_at')
+          .eq('workspace_id', workspace.id)
+      ]);
+
+      if (campaignsResult.error) {
+        console.error('Error loading campaigns:', campaignsResult.error);
         setError('Failed to load analytics data.');
         setLoading(false);
         return;
       }
 
-      if (!campaignsData || campaignsData.length === 0) {
+      const campaignsData = campaignsResult.data || [];
+
+      if (campaignsData.length === 0) {
         setCampaignsWithMetrics([]);
+        setCreators(creatorsResult.data || []);
         setLoading(false);
         return;
       }
 
-      const { data: adSetsData, error: adSetsError } = await supabase
-        .from('ad_sets')
-        .select('campaign_id, status, spend, revenue, created_at')
-        .in('campaign_id', campaignsData.map(c => c.id));
+      const adSetsData = adSetsResult.data?.filter(ad =>
+        campaignsData.some(c => c.id === ad.campaign_id)
+      ) || [];
 
-      if (adSetsError) {
-        console.error('Error loading ad sets:', adSetsError);
+      if (adSetsResult.error) {
+        console.error('Error loading ad sets:', adSetsResult.error);
       }
 
       const campaignsWithMetrics: CampaignWithMetrics[] = campaignsData.map(campaign => {
-        const campaignAdSets = adSetsData?.filter(ad => ad.campaign_id === campaign.id) || [];
+        const campaignAdSets = adSetsData.filter(ad => ad.campaign_id === campaign.id);
 
         const total_ad_sets = campaignAdSets.length;
         const active_ad_sets = campaignAdSets.filter(ad => ad.status === 'active').length;
@@ -158,7 +173,8 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       });
 
       setCampaignsWithMetrics(campaignsWithMetrics);
-      setAdSetsData(adSetsData || []);
+      setAdSetsData(adSetsData);
+      setCreators(creatorsResult.data || []);
     } catch (err) {
       console.error('Unexpected error loading analytics:', err);
       setError('Failed to load analytics data.');
@@ -225,48 +241,66 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     ? campaignsFiltered.reduce((prev, current) => (current.total_revenue > prev.total_revenue ? current : prev))
     : null;
 
-  const roiChartData = campaignsFiltered
-    .filter(c => c.total_spend > 0)
-    .map(c => ({
-      name: c.name.length > 15 ? c.name.substring(0, 15) + '...' : c.name,
-      roi: Math.round(c.roi),
-    }));
+  const topCreators = (() => {
+    const activeCreators = creators.filter(c => c.status === 'active');
 
-  const timeSeriesData = (() => {
-    const filteredCampaignIds = campaignsFiltered.map(c => c.id);
-    const relevantAdSets = adSetsData.filter(ad => filteredCampaignIds.includes(ad.campaign_id));
+    if (activeCreators.length === 0) return [];
 
-    if (relevantAdSets.length === 0 || !relevantAdSets[0].created_at) {
-      return campaignsFiltered
-        .filter(c => c.total_spend > 0 || c.total_revenue > 0)
-        .slice(0, 10)
-        .map((c, idx) => ({
-          date: `Week ${idx + 1}`,
-          spend: c.total_spend,
-          revenue: c.total_revenue,
-        }));
-    }
-
-    const dataByDate: Record<string, { spend: number; revenue: number }> = {};
-
-    relevantAdSets.forEach(ad => {
-      if (ad.created_at) {
-        const date = new Date(ad.created_at).toISOString().split('T')[0];
-        if (!dataByDate[date]) {
-          dataByDate[date] = { spend: 0, revenue: 0 };
+    return activeCreators
+      .sort((a, b) => {
+        if (a.engagement_rate && b.engagement_rate) {
+          return b.engagement_rate - a.engagement_rate;
         }
-        dataByDate[date].spend += Number(ad.spend) || 0;
-        dataByDate[date].revenue += Number(ad.revenue) || 0;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })
+      .slice(0, 5);
+  })();
+
+  const getPrimaryPlatform = (creator: Creator): string | null => {
+    if (creator.tiktok_handle) return 'TikTok';
+    if (creator.instagram_handle) return 'Instagram';
+    if (creator.youtube_handle) return 'YouTube';
+    return null;
+  };
+
+  const formatFollowerCount = (followerCount: any): string | null => {
+    if (!followerCount || typeof followerCount !== 'object') return null;
+
+    const counts = followerCount as Record<string, number>;
+    const total = Object.values(counts).reduce((sum: number, val: any) => sum + (Number(val) || 0), 0);
+
+    if (total >= 1000000) {
+      return `${(total / 1000000).toFixed(1)}M`;
+    } else if (total >= 1000) {
+      return `${(total / 1000).toFixed(1)}K`;
+    }
+    return total > 0 ? total.toString() : null;
+  };
+
+  const platformStats = (() => {
+    const stats: Record<string, number> = {};
+
+    creators.forEach(creator => {
+      if (creator.tiktok_handle) {
+        stats['TikTok'] = (stats['TikTok'] || 0) + 1;
+      }
+      if (creator.instagram_handle) {
+        stats['Instagram'] = (stats['Instagram'] || 0) + 1;
+      }
+      if (creator.youtube_handle) {
+        stats['YouTube'] = (stats['YouTube'] || 0) + 1;
       }
     });
 
-    return Object.entries(dataByDate)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, data]) => ({
-        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        spend: data.spend,
-        revenue: data.revenue,
-      }));
+    const total = Object.values(stats).reduce((sum, count) => sum + count, 0);
+
+    return Object.entries(stats)
+      .map(([platform, count]) => ({
+        platform,
+        count,
+        percentage: total > 0 ? Math.round((count / total) * 100) : 0
+      }))
+      .sort((a, b) => b.count - a.count);
   })();
 
   const formatCurrency = (amount: number) => {
@@ -347,10 +381,19 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     const campaignB = campaignsFiltered.find(c => c.id === compareCampaignBId);
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="dark:bg-linear-bg-primary light:bg-white border dark:border-linear-border light:border-gray-200 rounded-linear-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 dark:bg-linear-bg-primary light:bg-white border-b dark:border-linear-border-subtle light:border-gray-200 px-6 py-4 flex items-center justify-between">
-            <h3 className="text-lg font-medium dark:text-text-primary light:text-gray-900">Compare Campaigns</h3>
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setIsCompareOpen(false);
+            setCompareCampaignAId(null);
+            setCompareCampaignBId(null);
+          }
+        }}
+      >
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg shadow-xl w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="sticky top-0 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-b dark:border-linear-border-subtle light:border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between">
+            <h3 className="text-sm font-medium dark:text-text-primary light:text-gray-900">Compare Campaigns</h3>
             <button
               onClick={() => {
                 setIsCompareOpen(false);
@@ -363,16 +406,16 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </button>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-4 md:p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm dark:text-text-secondary light:text-gray-600 mb-2">
+                <label className="block text-xs dark:text-text-secondary light:text-gray-600 mb-2">
                   Campaign A
                 </label>
                 <select
                   value={compareCampaignAId || ''}
                   onChange={(e) => setCompareCampaignAId(e.target.value || null)}
-                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-secondary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
+                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-primary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
                 >
                   <option value="">Select campaign...</option>
                   {campaignsFiltered.map(c => (
@@ -384,13 +427,13 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               </div>
 
               <div>
-                <label className="block text-sm dark:text-text-secondary light:text-gray-600 mb-2">
+                <label className="block text-xs dark:text-text-secondary light:text-gray-600 mb-2">
                   Campaign B
                 </label>
                 <select
                   value={compareCampaignBId || ''}
                   onChange={(e) => setCompareCampaignBId(e.target.value || null)}
-                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-secondary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
+                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-primary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
                 >
                   <option value="">Select campaign...</option>
                   {campaignsFiltered.map(c => (
@@ -404,8 +447,8 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
             {campaignA && campaignB && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="dark:bg-linear-bg-secondary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
-                  <h4 className="font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignA.name}>
+                <div className="dark:bg-linear-bg-primary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
+                  <h4 className="text-sm font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignA.name}>
                     {campaignA.name}
                   </h4>
                   <div className="space-y-3">
@@ -417,19 +460,19 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                     </div>
                     <div>
                       <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Spend</div>
-                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignA.total_spend)}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Revenue</div>
-                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignA.total_revenue)}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">ROI</div>
-                      <div className={`text-lg font-semibold ${getRoiColor(campaignA.roi)}`}>
+                      <div className={`text-sm font-medium ${getRoiColor(campaignA.roi)}`}>
                         {Math.round(campaignA.roi)}%
                       </div>
                       {campaignA.roi > campaignB.roi && (
@@ -445,8 +488,8 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   </div>
                 </div>
 
-                <div className="dark:bg-linear-bg-secondary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
-                  <h4 className="font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignB.name}>
+                <div className="dark:bg-linear-bg-primary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
+                  <h4 className="text-sm font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignB.name}>
                     {campaignB.name}
                   </h4>
                   <div className="space-y-3">
@@ -458,13 +501,13 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                     </div>
                     <div>
                       <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Spend</div>
-                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignB.total_spend)}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Revenue</div>
-                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignB.total_revenue)}
                       </div>
                       {campaignB.total_revenue > campaignA.total_revenue && (
@@ -473,7 +516,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                     </div>
                     <div>
                       <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">ROI</div>
-                      <div className={`text-lg font-semibold ${getRoiColor(campaignB.roi)}`}>
+                      <div className={`text-sm font-medium ${getRoiColor(campaignB.roi)}`}>
                         {Math.round(campaignB.roi)}%
                       </div>
                       {campaignB.roi > campaignA.roi && (
@@ -490,19 +533,6 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 </div>
               </div>
             )}
-          </div>
-
-          <div className="sticky bottom-0 dark:bg-linear-bg-primary light:bg-white border-t dark:border-linear-border-subtle light:border-gray-200 px-6 py-4 flex justify-end">
-            <button
-              onClick={() => {
-                setIsCompareOpen(false);
-                setCompareCampaignAId(null);
-                setCompareCampaignBId(null);
-              }}
-              className="px-4 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:text-text-primary light:text-gray-700 dark:hover:bg-linear-bg-subtle light:hover:bg-gray-50 linear-transition text-sm"
-            >
-              Close
-            </button>
           </div>
         </div>
       </div>
@@ -567,15 +597,13 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
       {campaignsWithMetrics.length > 0 && (
         <div className="w-full dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg px-4 md:px-6 py-3 md:py-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 md:gap-3">
+            <div className="text-xs dark:text-text-secondary light:text-text-light-secondary flex items-center gap-2">
               <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-              <span className="text-xs dark:text-text-secondary light:text-text-light-secondary">
-                Filters
-              </span>
+              Filters
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm dark:text-text-secondary light:text-text-light-secondary">
                   Time:
@@ -955,109 +983,110 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </div>
 
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:col-span-2">
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-                <h3 className="text-sm md:text-base mb-4">Performance Over Time</h3>
-                {timeSeriesData.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
-                    <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
-                    <div className="text-sm">No time series data available</div>
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+                  <h3 className="text-sm md:text-base">Top Creators</h3>
+                </div>
+                <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-4">
+                  Creators with the strongest presence in your workspace
+                </p>
+
+                {topCreators.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-48 dark:text-text-secondary light:text-text-light-secondary">
+                    <Users className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
+                    <div className="text-sm text-center">No creators yet. Add creators to see them highlighted here.</div>
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <LineChart data={timeSeriesData}>
-                      <CartesianGrid strokeOpacity={0.08} vertical={false} />
-                      <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={{ fontSize: 12 }}
-                        className="dark:fill-text-secondary light:fill-text-light-secondary"
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={{ fontSize: 12 }}
-                        className="dark:fill-text-secondary light:fill-text-light-secondary"
-                      />
-                      <Tooltip
-                        formatter={(value: any, name: any) => [
-                          typeof value === 'number' ? `€${value.toLocaleString('nl-NL')}` : value,
-                          name === 'revenue' ? 'Revenue' : name === 'spend' ? 'Spend' : name,
-                        ]}
-                        contentStyle={{
-                          backgroundColor: 'var(--color-bg-secondary)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '8px',
-                        }}
-                      />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="revenue"
-                        name="Revenue"
-                        stroke="#22c55e"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="spend"
-                        name="Spend"
-                        stroke="#ef4444"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-3">
+                    {topCreators.map(creator => {
+                      const platform = getPrimaryPlatform(creator);
+                      const followers = formatFollowerCount(creator.follower_count);
+
+                      return (
+                        <div key={creator.id} className="flex items-center justify-between py-2 border-b dark:border-linear-border-subtle/50 light:border-gray-200 last:border-0">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium dark:text-text-primary light:text-gray-900 truncate">
+                              {creator.name}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              {platform && (
+                                <span className="text-xs px-2 py-0.5 rounded-full dark:bg-linear-bg-subtle light:bg-gray-100 dark:text-text-secondary light:text-gray-600">
+                                  {platform}
+                                </span>
+                              )}
+                              {(creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle) && (
+                                <span className="text-xs dark:text-text-tertiary light:text-gray-500 truncate">
+                                  @{creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="ml-3 text-right flex-shrink-0">
+                            {creator.engagement_rate ? (
+                              <div>
+                                <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
+                                  {(creator.engagement_rate * 100).toFixed(1)}%
+                                </div>
+                                <div className="text-xs dark:text-text-tertiary light:text-gray-500">engagement</div>
+                              </div>
+                            ) : followers ? (
+                              <div>
+                                <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
+                                  {followers}
+                                </div>
+                                <div className="text-xs dark:text-text-tertiary light:text-gray-500">followers</div>
+                              </div>
+                            ) : (
+                              <span className="text-xs px-2 py-0.5 rounded-full dark:bg-linear-success/10 light:bg-green-50 dark:text-linear-success light:text-green-700">
+                                Active
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
 
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-                <h3 className="text-sm md:text-base mb-4">ROI by Campaign</h3>
-                {roiChartData.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
-                    <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
-                    <div className="text-sm">No ROI data available</div>
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
+                  <h3 className="text-sm md:text-base">Platform Performance</h3>
+                </div>
+                <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-4">
+                  Distribution of creators across social platforms
+                </p>
+
+                {platformStats.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-48 dark:text-text-secondary light:text-text-light-secondary">
+                    <Zap className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
+                    <div className="text-sm text-center">Platform data is not available yet.</div>
+                    <div className="text-xs text-center mt-1 dark:text-text-tertiary light:text-gray-500">
+                      Connect creator platform data to unlock these insights.
+                    </div>
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={roiChartData}>
-                      <CartesianGrid strokeOpacity={0.08} vertical={false} />
-                      <XAxis
-                        dataKey="name"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={{ fontSize: 12 }}
-                        className="dark:fill-text-secondary light:fill-text-light-secondary"
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={{ fontSize: 12 }}
-                        className="dark:fill-text-secondary light:fill-text-light-secondary"
-                        label={{ value: 'ROI %', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
-                      />
-                      <Tooltip
-                        formatter={(value: any) => [`${value}%`, 'ROI']}
-                        contentStyle={{
-                          backgroundColor: 'var(--color-bg-secondary)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '8px',
-                        }}
-                      />
-                      <Bar
-                        dataKey="roi"
-                        fill="#3b82f6"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-3">
+                    {platformStats.map(({ platform, count, percentage }) => (
+                      <div key={platform} className="flex items-center justify-between py-2 border-b dark:border-linear-border-subtle/50 light:border-gray-200 last:border-0">
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
+                            {platform}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm dark:text-text-secondary light:text-gray-600">
+                            {count} {count === 1 ? 'creator' : 'creators'}
+                          </div>
+                          <div className="text-xs dark:text-text-tertiary light:text-gray-500 min-w-[3rem] text-right">
+                            {percentage}%
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
