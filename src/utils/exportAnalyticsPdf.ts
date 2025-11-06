@@ -70,27 +70,28 @@ const getFilterDescription = (timeRange: string, status: string): string => {
   return `${timeDesc} • ${statusDesc}`;
 };
 
-const addHeader = (doc: jsPDF, workspace: Workspace, filterDesc: string, pageNumber: number) => {
-  const pageWidth = doc.internal.pageSize.getWidth();
+const addHeader = (doc: jsPDF, workspace: Workspace, filterDesc: string, generatedDate: string, pageNumber: number): number => {
   const margin = 14;
 
   if (pageNumber === 1) {
-    doc.setFontSize(24);
-    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(28, 28, 28);
     doc.text(workspace.name, margin, 20);
 
-    doc.setFontSize(16);
-    doc.setTextColor(60, 60, 60);
-    doc.text('Campaign Performance Report', margin, 30);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(13);
+    doc.setTextColor(28, 28, 28);
+    doc.text('Campaign Performance Report', margin, 28);
 
-    doc.setFontSize(10);
-    doc.setTextColor(120, 120, 120);
-    const now = new Date();
-    const dateStr = `Generated on ${now.toLocaleDateString('nl-NL')} ${now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`;
-    doc.text(`${dateStr} • ${filterDesc}`, margin, 37);
+    doc.setFontSize(9);
+    doc.setTextColor(102, 102, 102);
+    doc.text(generatedDate, margin, 34);
 
-    doc.setDrawColor(220, 220, 220);
-    doc.line(margin, 40, pageWidth - margin, 40);
+    doc.setDrawColor(234, 234, 234);
+    doc.setLineWidth(0.5);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    doc.line(margin, 38, pageWidth - margin, 38);
 
     return 45;
   }
@@ -98,97 +99,133 @@ const addHeader = (doc: jsPDF, workspace: Workspace, filterDesc: string, pageNum
   return margin;
 };
 
-const addFooter = (doc: jsPDF, workspace: Workspace, pageNumber: number) => {
+const addFooter = (doc: jsPDF, workspace: Workspace, generatedDate: string) => {
   const pageHeight = doc.internal.pageSize.getHeight();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 14;
 
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
+  doc.setTextColor(136, 136, 136);
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('nl-NL', { year: 'numeric', month: '2-digit', day: '2-digit' });
-  const footerText = `NUUM • ${workspace.name} • Generated on ${dateStr}`;
+  const footerText = `NUUM • ${workspace.name} • Generated on ${generatedDate}`;
+  const textWidth = doc.getTextWidth(footerText);
+  const x = (pageWidth - textWidth) / 2;
 
-  doc.text(footerText, margin, pageHeight - 10);
-  doc.text(`Page ${pageNumber}`, pageWidth - margin - 15, pageHeight - 10);
+  doc.text(footerText, x, pageHeight - 10);
 };
 
 const addKpiSection = (doc: jsPDF, kpis: ExportPdfOptions['kpis'], startY: number): number => {
   const margin = 14;
   const pageWidth = doc.internal.pageSize.getWidth();
-  const boxWidth = (pageWidth - margin * 2 - 10) / 4;
 
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(28, 28, 28);
   doc.text('Summary', margin, startY);
+
+  doc.setDrawColor(42, 83, 208);
+  doc.setLineWidth(0.5);
+  doc.line(margin, startY + 1, margin + 22, startY + 1);
 
   let currentY = startY + 8;
 
-  doc.setDrawColor(220, 220, 220);
-  doc.setFillColor(250, 250, 250);
+  const boxWidth = (pageWidth - margin * 2 - 7.5) / 4;
+  const boxHeight = 22;
 
   const kpiData = [
-    { label: 'Total Costs', value: formatCurrency(kpis.totalSpend) },
-    { label: 'Total Revenue', value: formatCurrency(kpis.totalRevenue) },
-    { label: 'Average ROI', value: formatPercentage(kpis.averageRoi) },
-    { label: 'Active Campaigns', value: kpis.activeCampaigns.toString() },
+    { label: 'TOTAL COSTS', value: formatCurrency(kpis.totalSpend) },
+    { label: 'TOTAL REVENUE', value: formatCurrency(kpis.totalRevenue) },
+    { label: 'AVERAGE ROI', value: formatPercentage(kpis.averageRoi) },
+    { label: 'ACTIVE CAMPAIGNS', value: kpis.activeCampaigns.toString() },
   ];
+
+  doc.setDrawColor(234, 234, 234);
+  doc.setLineWidth(0.3);
 
   kpiData.forEach((kpi, index) => {
     const x = margin + (boxWidth + 2.5) * index;
 
-    doc.roundedRect(x, currentY, boxWidth, 20, 2, 2, 'FD');
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(x, currentY, boxWidth, boxHeight, 2, 2, 'FD');
 
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text(kpi.label, x + 3, currentY + 6);
+    doc.setDrawColor(234, 234, 234);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, currentY, boxWidth, boxHeight, 2, 2, 'S');
 
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text(kpi.value, x + 3, currentY + 15);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(136, 136, 136);
+    doc.text(kpi.label, x + 4, currentY + 7);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(28, 28, 28);
+    doc.text(kpi.value, x + 4, currentY + 16);
   });
 
-  return currentY + 25;
+  return currentY + boxHeight + 12;
 };
 
 const addKeyInsightSection = (doc: jsPDF, keyInsight: string, startY: number): number => {
   const margin = 14;
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(28, 28, 28);
   doc.text('Key Insight', margin, startY);
+
+  doc.setDrawColor(42, 83, 208);
+  doc.setLineWidth(0.5);
+  doc.line(margin, startY + 1, margin + 24, startY + 1);
 
   const currentY = startY + 8;
 
-  doc.setDrawColor(220, 220, 220);
-  doc.setFillColor(255, 250, 240);
-  doc.roundedRect(margin, currentY, pageWidth - margin * 2, 18, 2, 2, 'FD');
+  doc.setFillColor(248, 249, 251);
+  const boxHeight = 18;
+  doc.roundedRect(margin, currentY, pageWidth - margin * 2, boxHeight, 2, 2, 'F');
 
+  doc.setDrawColor(42, 83, 208);
+  doc.setLineWidth(1);
+  doc.line(margin, currentY, margin, currentY + boxHeight);
+
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
+  doc.setTextColor(28, 28, 28);
 
-  const maxWidth = pageWidth - margin * 2 - 6;
+  const maxWidth = pageWidth - margin * 2 - 10;
   const lines = doc.splitTextToSize(keyInsight || 'Not enough data for this filter selection yet.', maxWidth);
 
-  doc.text(lines, margin + 3, currentY + 6);
+  doc.text(lines, margin + 6, currentY + 7);
 
-  return currentY + 23;
+  return currentY + boxHeight + 12;
+};
+
+const addSectionTitle = (doc: jsPDF, title: string, y: number, margin: number): number => {
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(28, 28, 28);
+  doc.text(title, margin, y);
+
+  doc.setDrawColor(42, 83, 208);
+  doc.setLineWidth(0.5);
+  const titleWidth = doc.getTextWidth(title);
+  doc.line(margin, y + 1, margin + titleWidth, y + 1);
+
+  return y + 6;
 };
 
 const addCampaignsTable = (doc: jsPDF, campaigns: CampaignWithMetrics[], startY: number): number => {
   const margin = 14;
 
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
-  doc.text('Campaigns', margin, startY);
+  const tableStartY = addSectionTitle(doc, 'Campaigns', startY, margin);
 
   if (campaigns.length === 0) {
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
-    doc.text('No data available for the current filters.', margin, startY + 10);
-    return startY + 20;
+    doc.text('No data available for the current filters.', margin, tableStartY + 5);
+    return tableStartY + 15;
   }
 
   const tableData = campaigns.map(campaign => [
@@ -201,41 +238,48 @@ const addCampaignsTable = (doc: jsPDF, campaigns: CampaignWithMetrics[], startY:
   ]);
 
   autoTable(doc, {
-    startY: startY + 5,
+    startY: tableStartY,
     head: [['Campaign', 'Status', 'Ad Sets', 'Spend', 'Revenue', 'ROI']],
     body: tableData,
     theme: 'grid',
     headStyles: {
-      fillColor: [240, 240, 240],
-      textColor: [60, 60, 60],
+      fillColor: [244, 245, 247],
+      textColor: [28, 28, 28],
       fontStyle: 'bold',
       fontSize: 9,
+      halign: 'left',
     },
     bodyStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [28, 28, 28],
       fontSize: 9,
-      textColor: [40, 40, 40],
+      halign: 'left',
     },
     alternateRowStyles: {
       fillColor: [250, 250, 250],
     },
+    styles: {
+      lineColor: [234, 234, 234],
+      lineWidth: 0.1,
+      cellPadding: 4,
+    },
     margin: { left: margin, right: margin },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as any).lastAutoTable.finalY + 12;
 };
 
 const addCreatorsTable = (doc: jsPDF, creators: CreatorData[], startY: number): number => {
   const margin = 14;
 
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
-  doc.text('Top Creators', margin, startY);
+  const tableStartY = addSectionTitle(doc, 'Top Creators', startY, margin);
 
   if (creators.length === 0) {
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
-    doc.text('No data available for the current filters.', margin, startY + 10);
-    return startY + 20;
+    doc.text('No data available for the current filters.', margin, tableStartY + 5);
+    return tableStartY + 15;
   }
 
   const tableData = creators.map((creator, index) => [
@@ -247,41 +291,48 @@ const addCreatorsTable = (doc: jsPDF, creators: CreatorData[], startY: number): 
   ]);
 
   autoTable(doc, {
-    startY: startY + 5,
+    startY: tableStartY,
     head: [['Rank', 'Name', 'Handle', 'Platform', 'Revenue']],
     body: tableData,
     theme: 'grid',
     headStyles: {
-      fillColor: [240, 240, 240],
-      textColor: [60, 60, 60],
+      fillColor: [244, 245, 247],
+      textColor: [28, 28, 28],
       fontStyle: 'bold',
       fontSize: 9,
+      halign: 'left',
     },
     bodyStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [28, 28, 28],
       fontSize: 9,
-      textColor: [40, 40, 40],
+      halign: 'left',
     },
     alternateRowStyles: {
       fillColor: [250, 250, 250],
     },
+    styles: {
+      lineColor: [234, 234, 234],
+      lineWidth: 0.1,
+      cellPadding: 4,
+    },
     margin: { left: margin, right: margin },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as any).lastAutoTable.finalY + 12;
 };
 
 const addPlatformsTable = (doc: jsPDF, platforms: PlatformData[], startY: number): number => {
   const margin = 14;
 
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
-  doc.text('Platform Performance', margin, startY);
+  const tableStartY = addSectionTitle(doc, 'Platform Performance', startY, margin);
 
   if (platforms.length === 0) {
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
-    doc.text('No data available for the current filters.', margin, startY + 10);
-    return startY + 20;
+    doc.text('No data available for the current filters.', margin, tableStartY + 5);
+    return tableStartY + 15;
   }
 
   const tableData = platforms.map(platform => [
@@ -292,27 +343,35 @@ const addPlatformsTable = (doc: jsPDF, platforms: PlatformData[], startY: number
   ]);
 
   autoTable(doc, {
-    startY: startY + 5,
+    startY: tableStartY,
     head: [['Platform', 'Creators', 'Revenue', 'Share']],
     body: tableData,
     theme: 'grid',
     headStyles: {
-      fillColor: [240, 240, 240],
-      textColor: [60, 60, 60],
+      fillColor: [244, 245, 247],
+      textColor: [28, 28, 28],
       fontStyle: 'bold',
       fontSize: 9,
+      halign: 'left',
     },
     bodyStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [28, 28, 28],
       fontSize: 9,
-      textColor: [40, 40, 40],
+      halign: 'left',
     },
     alternateRowStyles: {
       fillColor: [250, 250, 250],
     },
+    styles: {
+      lineColor: [234, 234, 234],
+      lineWidth: 0.1,
+      cellPadding: 4,
+    },
     margin: { left: margin, right: margin },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as any).lastAutoTable.finalY + 12;
 };
 
 export const exportAnalyticsPdf = (options: ExportPdfOptions): void => {
@@ -325,42 +384,55 @@ export const exportAnalyticsPdf = (options: ExportPdfOptions): void => {
   });
 
   const filterDesc = getFilterDescription(filters.timeRange, filters.status);
+  const now = new Date();
+  const generatedDate = `Generated on ${now.toLocaleDateString('nl-NL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })} ${now.toLocaleTimeString('nl-NL', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })} • ${filterDesc}`;
+  const footerDate = now.toLocaleDateString('nl-NL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 
-  let currentY = addHeader(doc, workspace, filterDesc, 1);
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  let currentY = addHeader(doc, workspace, filterDesc, generatedDate, 1);
 
   currentY = addKpiSection(doc, kpis, currentY);
 
   currentY = addKeyInsightSection(doc, keyInsight, currentY);
 
-  const pageHeight = doc.internal.pageSize.getHeight();
-
   if (currentY > pageHeight - 60) {
-    addFooter(doc, workspace, 1);
+    addFooter(doc, workspace, footerDate);
     doc.addPage();
-    currentY = addHeader(doc, workspace, filterDesc, 2);
+    currentY = addHeader(doc, workspace, filterDesc, generatedDate, 2);
   }
 
   currentY = addCampaignsTable(doc, campaigns, currentY);
 
   if (currentY > pageHeight - 60) {
-    addFooter(doc, workspace, doc.internal.pages.length - 1);
+    addFooter(doc, workspace, footerDate);
     doc.addPage();
-    currentY = addHeader(doc, workspace, filterDesc, doc.internal.pages.length - 1);
+    currentY = addHeader(doc, workspace, filterDesc, generatedDate, doc.internal.pages.length - 1);
   }
 
   currentY = addCreatorsTable(doc, creators, currentY);
 
   if (currentY > pageHeight - 60) {
-    addFooter(doc, workspace, doc.internal.pages.length - 1);
+    addFooter(doc, workspace, footerDate);
     doc.addPage();
-    currentY = addHeader(doc, workspace, filterDesc, doc.internal.pages.length - 1);
+    currentY = addHeader(doc, workspace, filterDesc, generatedDate, doc.internal.pages.length - 1);
   }
 
   currentY = addPlatformsTable(doc, platforms, currentY);
 
-  addFooter(doc, workspace, doc.internal.pages.length - 1);
+  addFooter(doc, workspace, footerDate);
 
-  const now = new Date();
   const dateStr = now.toISOString().split('T')[0];
   const workspaceName = workspace.name.toLowerCase().replace(/\s+/g, '-');
   const fileName = `nuum-campaign-report-${workspaceName}-${dateStr}.pdf`;
