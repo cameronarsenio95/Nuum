@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Target, DollarSign, TrendingUp, BarChart3, Filter, Lightbulb } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Target, DollarSign, TrendingUp, BarChart3, Filter, Lightbulb, GitCompare, X, Download, Eye, Table2 } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -33,6 +33,56 @@ interface AnalyticsViewProps {
 
 type TimeFilter = 'all' | '30d' | '7d';
 type StatusFilter = 'all' | 'active' | 'completed' | 'draft' | 'archived';
+type AnalyticsViewMode = 'visual' | 'data';
+
+interface AnimatedNumberProps {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  duration?: number;
+}
+
+const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ value, prefix = '', suffix = '', duration = 400 }) => {
+  const [displayValue, setDisplayValue] = useState(value);
+  const previousValueRef = useRef(value);
+  const animationRef = useRef<number>();
+
+  useEffect(() => {
+    const startValue = previousValueRef.current;
+    const endValue = value;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+      const current = startValue + (endValue - startValue) * easeOutCubic;
+
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        previousValueRef.current = endValue;
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [value, duration]);
+
+  const formattedValue = prefix === '€'
+    ? Math.round(displayValue).toLocaleString('nl-NL')
+    : Math.round(displayValue).toString();
+
+  return <>{prefix}{formattedValue}{suffix}</>;
+};
 
 export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   const [loading, setLoading] = useState(true);
@@ -41,10 +91,19 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   const [adSetsData, setAdSetsData] = useState<AdSet[]>([]);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [viewMode, setViewMode] = useState<AnalyticsViewMode>('visual');
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [compareCampaignAId, setCompareCampaignAId] = useState<string | null>(null);
+  const [compareCampaignBId, setCompareCampaignBId] = useState<string | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
     loadAnalytics();
   }, [workspace.id]);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const loadAnalytics = async () => {
     try {
@@ -238,25 +297,28 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     return 'dark:text-text-secondary light:text-text-light-secondary';
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear p-3 shadow-lg">
-          <p className="font-medium mb-2">{data.name}</p>
-          <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
-            Spend: {formatCurrency(data.spend)}
-          </p>
-          <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
-            Revenue: {formatCurrency(data.revenue)}
-          </p>
-          <p className={`text-sm font-medium ${getRoiColor(data.roi)}`}>
-            ROI: {Math.round(data.roi)}%
-          </p>
-        </div>
-      );
-    }
-    return null;
+  const handleExportCsv = () => {
+    const headers = ['Campaign', 'Status', 'Ad Sets', 'Spend', 'Revenue', 'ROI', 'Last Updated'];
+    const rows = campaignsFiltered.map(c => [
+      c.name,
+      c.status || 'draft',
+      `${c.total_ad_sets} (${c.active_ad_sets} active)`,
+      c.total_spend.toFixed(2),
+      c.total_revenue.toFixed(2),
+      `${Math.round(c.roi)}%`,
+      c.updated_at ? new Date(c.updated_at).toLocaleDateString() : 'N/A'
+    ]);
+
+    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'campaign-analytics.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const FilterButton = ({
@@ -280,6 +342,173 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
     </button>
   );
 
+  const CompareModal = () => {
+    const campaignA = campaignsFiltered.find(c => c.id === compareCampaignAId);
+    const campaignB = campaignsFiltered.find(c => c.id === compareCampaignBId);
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="dark:bg-linear-bg-primary light:bg-white border dark:border-linear-border light:border-gray-200 rounded-linear-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 dark:bg-linear-bg-primary light:bg-white border-b dark:border-linear-border-subtle light:border-gray-200 px-6 py-4 flex items-center justify-between">
+            <h3 className="text-lg font-medium dark:text-text-primary light:text-gray-900">Compare Campaigns</h3>
+            <button
+              onClick={() => {
+                setIsCompareOpen(false);
+                setCompareCampaignAId(null);
+                setCompareCampaignBId(null);
+              }}
+              className="dark:text-text-secondary light:text-gray-500 hover:dark:text-text-primary hover:light:text-gray-900 linear-transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm dark:text-text-secondary light:text-gray-600 mb-2">
+                  Campaign A
+                </label>
+                <select
+                  value={compareCampaignAId || ''}
+                  onChange={(e) => setCompareCampaignAId(e.target.value || null)}
+                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-secondary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
+                >
+                  <option value="">Select campaign...</option>
+                  {campaignsFiltered.map(c => (
+                    <option key={c.id} value={c.id} disabled={c.id === compareCampaignBId}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm dark:text-text-secondary light:text-gray-600 mb-2">
+                  Campaign B
+                </label>
+                <select
+                  value={compareCampaignBId || ''}
+                  onChange={(e) => setCompareCampaignBId(e.target.value || null)}
+                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-secondary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
+                >
+                  <option value="">Select campaign...</option>
+                  {campaignsFiltered.map(c => (
+                    <option key={c.id} value={c.id} disabled={c.id === compareCampaignAId}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {campaignA && campaignB && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="dark:bg-linear-bg-secondary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
+                  <h4 className="font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignA.name}>
+                    {campaignA.name}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Status</div>
+                      <span className={`inline-block text-xs px-2 py-0.5 rounded-full border ${getStatusColor(campaignA.status)}`}>
+                        {campaignA.status}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Spend</div>
+                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                        {formatCurrency(campaignA.total_spend)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Revenue</div>
+                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                        {formatCurrency(campaignA.total_revenue)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">ROI</div>
+                      <div className={`text-lg font-semibold ${getRoiColor(campaignA.roi)}`}>
+                        {Math.round(campaignA.roi)}%
+                      </div>
+                      {campaignA.roi > campaignB.roi && (
+                        <div className="text-xs text-linear-success mt-1">Higher ROI</div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Ad Sets</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
+                        {campaignA.total_ad_sets} ({campaignA.active_ad_sets} active)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dark:bg-linear-bg-secondary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
+                  <h4 className="font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignB.name}>
+                    {campaignB.name}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Status</div>
+                      <span className={`inline-block text-xs px-2 py-0.5 rounded-full border ${getStatusColor(campaignB.status)}`}>
+                        {campaignB.status}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Spend</div>
+                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                        {formatCurrency(campaignB.total_spend)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Revenue</div>
+                      <div className="text-lg font-semibold dark:text-text-primary light:text-gray-900">
+                        {formatCurrency(campaignB.total_revenue)}
+                      </div>
+                      {campaignB.total_revenue > campaignA.total_revenue && (
+                        <div className="text-xs text-linear-success mt-1">Higher Revenue</div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">ROI</div>
+                      <div className={`text-lg font-semibold ${getRoiColor(campaignB.roi)}`}>
+                        {Math.round(campaignB.roi)}%
+                      </div>
+                      {campaignB.roi > campaignA.roi && (
+                        <div className="text-xs text-linear-success mt-1">Higher ROI</div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Ad Sets</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
+                        {campaignB.total_ad_sets} ({campaignB.active_ad_sets} active)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="sticky bottom-0 dark:bg-linear-bg-primary light:bg-white border-t dark:border-linear-border-subtle light:border-gray-200 px-6 py-4 flex justify-end">
+            <button
+              onClick={() => {
+                setIsCompareOpen(false);
+                setCompareCampaignAId(null);
+                setCompareCampaignBId(null);
+              }}
+              className="px-4 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:text-text-primary light:text-gray-700 dark:hover:bg-linear-bg-subtle light:hover:bg-gray-50 linear-transition text-sm"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -290,11 +519,42 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      <div>
-        <h2 className="text-xl md:text-2xl mb-2">Campaign Performance</h2>
-        <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">
-          Comprehensive performance insights for your campaigns
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl md:text-2xl mb-2">Campaign Performance</h2>
+          <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">
+            Comprehensive performance insights for your campaigns
+          </p>
+        </div>
+
+        {campaignsFiltered.length > 0 && (
+          <div className="inline-flex items-center rounded-linear border dark:border-linear-border-subtle light:border-gray-300 text-xs overflow-hidden">
+            <button
+              type="button"
+              className={`px-3 py-1.5 linear-transition flex items-center gap-1.5 ${
+                viewMode === 'visual'
+                  ? 'dark:bg-linear-bg-subtle light:bg-gray-100 dark:text-text-primary light:text-gray-900'
+                  : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-subtle/60 hover:light:bg-gray-50'
+              }`}
+              onClick={() => setViewMode('visual')}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Visual
+            </button>
+            <button
+              type="button"
+              className={`px-3 py-1.5 linear-transition flex items-center gap-1.5 ${
+                viewMode === 'data'
+                  ? 'dark:bg-linear-bg-subtle light:bg-gray-100 dark:text-text-primary light:text-gray-900'
+                  : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-subtle/60 hover:light:bg-gray-50'
+              }`}
+              onClick={() => setViewMode('data')}
+            >
+              <Table2 className="w-3.5 h-3.5" />
+              Data
+            </button>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -415,7 +675,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 transition-opacity duration-300 ${hasMounted ? 'opacity-100' : 'opacity-0'}`}>
         <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-red-500/10 rounded-linear flex items-center justify-center">
@@ -424,7 +684,9 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl md:text-3xl font-semibold">{formatCurrency(totalSpend)}</div>
+            <div className="text-2xl md:text-3xl font-semibold">
+              <AnimatedNumber value={totalSpend} prefix="€" />
+            </div>
             <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Total investment
             </div>
@@ -439,7 +701,9 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl md:text-3xl font-semibold">{formatCurrency(totalRevenue)}</div>
+            <div className="text-2xl md:text-3xl font-semibold">
+              <AnimatedNumber value={totalRevenue} prefix="€" />
+            </div>
             <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Total generated
             </div>
@@ -455,7 +719,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           </div>
           <div className="space-y-1">
             <div className="text-2xl md:text-3xl font-semibold">
-              {isNaN(averageRoi) ? '0' : Math.round(averageRoi)}%
+              <AnimatedNumber value={isNaN(averageRoi) ? 0 : averageRoi} suffix="%" />
             </div>
             <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Average return
@@ -471,7 +735,9 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl md:text-3xl font-semibold">{activeCampaigns}</div>
+            <div className="text-2xl md:text-3xl font-semibold">
+              <AnimatedNumber value={activeCampaigns} />
+            </div>
             <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
               Active campaigns
             </div>
@@ -491,72 +757,23 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               : 'Adjust your filters or create a new campaign to see performance analytics here.'}
           </div>
         </div>
-      ) : (
-        <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-            <h3 className="text-sm md:text-base mb-4">Spend vs Revenue by Campaign</h3>
-            {chartData.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
-                <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
-                <div className="text-sm">No data available</div>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeOpacity={0.08} vertical={false} />
-                  <XAxis
-                    dataKey="name"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 12 }}
-                    className="dark:fill-text-secondary light:fill-text-light-secondary"
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 12 }}
-                    className="dark:fill-text-secondary light:fill-text-light-secondary"
-                  />
-                  <Tooltip
-                    formatter={(value: any, name: any) => [
-                      typeof value === 'number' ? `€${value.toLocaleString('nl-NL')}` : value,
-                      name === 'revenue' ? 'Revenue' : name === 'spend' ? 'Spend' : name,
-                    ]}
-                    labelFormatter={(label) => label}
-                    contentStyle={{
-                      backgroundColor: 'var(--color-bg-secondary)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    name="Revenue"
-                    stroke="#22c55e"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="spend"
-                    name="Spend"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
+      ) : viewMode === 'data' ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
+              Data view shows your current campaigns in a flat table. Filters still apply.
+            </p>
+            <button
+              onClick={handleExportCsv}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:text-text-primary light:text-gray-700 dark:hover:bg-linear-bg-subtle light:hover:bg-gray-50 linear-transition"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export CSV
+            </button>
           </div>
 
           <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-            <h3 className="text-sm md:text-base mb-4">Campaign Breakdown</h3>
+            <h3 className="text-sm md:text-base mb-4">Campaign Data</h3>
             <div className="overflow-x-auto">
               <div className="min-w-full">
                 <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-secondary light:text-text-light-secondary">
@@ -607,21 +824,34 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               </div>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className={`transition-opacity duration-300 ${hasMounted ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div></div>
+            <button
+              onClick={() => setIsCompareOpen(true)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:text-text-primary light:text-gray-700 dark:hover:bg-linear-bg-subtle light:hover:bg-gray-50 linear-transition"
+            >
+              <GitCompare className="w-3.5 h-3.5" />
+              Compare campaigns
+            </button>
+          </div>
 
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-              <h3 className="text-sm md:text-base mb-4">Performance Over Time</h3>
-              {timeSeriesData.length === 0 ? (
+              <h3 className="text-sm md:text-base mb-4">Spend vs Revenue by Campaign</h3>
+              {chartData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
                   <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
-                  <div className="text-sm">No time series data available</div>
+                  <div className="text-sm">No data available</div>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={timeSeriesData}>
+                  <LineChart data={chartData}>
                     <CartesianGrid strokeOpacity={0.08} vertical={false} />
                     <XAxis
-                      dataKey="date"
+                      dataKey="name"
                       tickLine={false}
                       axisLine={false}
                       tickMargin={8}
@@ -640,6 +870,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                         typeof value === 'number' ? `€${value.toLocaleString('nl-NL')}` : value,
                         name === 'revenue' ? 'Revenue' : name === 'spend' ? 'Spend' : name,
                       ]}
+                      labelFormatter={(label) => label}
                       contentStyle={{
                         backgroundColor: 'var(--color-bg-secondary)',
                         border: '1px solid var(--color-border)',
@@ -671,52 +902,170 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </div>
 
             <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
-              <h3 className="text-sm md:text-base mb-4">ROI by Campaign</h3>
-              {roiChartData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
-                  <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
-                  <div className="text-sm">No ROI data available</div>
+              <h3 className="text-sm md:text-base mb-4">Campaign Breakdown</h3>
+              <div className="overflow-x-auto">
+                <div className="min-w-full">
+                  <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-secondary light:text-text-light-secondary">
+                    <div className="col-span-2">Campaign</div>
+                    <div>Status</div>
+                    <div>Ad Sets</div>
+                    <div className="text-right">Spend</div>
+                    <div className="text-right">Revenue</div>
+                    <div className="text-right">ROI</div>
+                  </div>
+                  <div className="space-y-2 mt-2">
+                    {campaignsFiltered.map(campaign => (
+                      <div
+                        key={campaign.id}
+                        className="grid grid-cols-1 sm:grid-cols-7 gap-2 py-2 text-xs hover:dark:bg-linear-bg-subtle/40 light:hover:bg-linear-light-bg-subtle/40 rounded-linear px-1 sm:px-2"
+                      >
+                        <div className="col-span-1 sm:col-span-2 truncate" title={campaign.name}>
+                          {campaign.name}
+                        </div>
+                        <div className="flex items-center gap-2 sm:block">
+                          <span className="sm:hidden text-text-tertiary">Status:</span>
+                          <span className={`inline-block text-xs px-2 py-0.5 rounded-full border ${getStatusColor(campaign.status)}`}>
+                            {campaign.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 sm:block dark:text-text-secondary light:text-text-light-secondary">
+                          <span className="sm:hidden text-text-tertiary">Ad Sets:</span>
+                          {campaign.total_ad_sets}
+                          {campaign.active_ad_sets > 0 && (
+                            <span className="text-linear-success ml-1">({campaign.active_ad_sets})</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
+                          <span className="sm:hidden text-text-tertiary">Spend:</span>
+                          {formatCurrency(campaign.total_spend)}
+                        </div>
+                        <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
+                          <span className="sm:hidden text-text-tertiary">Revenue:</span>
+                          {formatCurrency(campaign.total_revenue)}
+                        </div>
+                        <div className={`flex items-center justify-between sm:justify-end gap-2 font-medium ${getRoiColor(campaign.roi)}`}>
+                          <span className="sm:hidden text-text-tertiary">ROI:</span>
+                          {Math.round(campaign.roi)}%
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={roiChartData}>
-                    <CartesianGrid strokeOpacity={0.08} vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      tick={{ fontSize: 12 }}
-                      className="dark:fill-text-secondary light:fill-text-light-secondary"
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      tick={{ fontSize: 12 }}
-                      className="dark:fill-text-secondary light:fill-text-light-secondary"
-                      label={{ value: 'ROI %', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
-                    />
-                    <Tooltip
-                      formatter={(value: any) => [`${value}%`, 'ROI']}
-                      contentStyle={{
-                        backgroundColor: 'var(--color-bg-secondary)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Bar
-                      dataKey="roi"
-                      fill="#3b82f6"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:col-span-2">
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+                <h3 className="text-sm md:text-base mb-4">Performance Over Time</h3>
+                {timeSeriesData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
+                    <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
+                    <div className="text-sm">No time series data available</div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={timeSeriesData}>
+                      <CartesianGrid strokeOpacity={0.08} vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fontSize: 12 }}
+                        className="dark:fill-text-secondary light:fill-text-light-secondary"
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fontSize: 12 }}
+                        className="dark:fill-text-secondary light:fill-text-light-secondary"
+                      />
+                      <Tooltip
+                        formatter={(value: any, name: any) => [
+                          typeof value === 'number' ? `€${value.toLocaleString('nl-NL')}` : value,
+                          name === 'revenue' ? 'Revenue' : name === 'spend' ? 'Spend' : name,
+                        ]}
+                        contentStyle={{
+                          backgroundColor: 'var(--color-bg-secondary)',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        name="Revenue"
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="spend"
+                        name="Spend"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+
+              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+                <h3 className="text-sm md:text-base mb-4">ROI by Campaign</h3>
+                {roiChartData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
+                    <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
+                    <div className="text-sm">No ROI data available</div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={roiChartData}>
+                      <CartesianGrid strokeOpacity={0.08} vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fontSize: 12 }}
+                        className="dark:fill-text-secondary light:fill-text-light-secondary"
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fontSize: 12 }}
+                        className="dark:fill-text-secondary light:fill-text-light-secondary"
+                        label={{ value: 'ROI %', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+                      />
+                      <Tooltip
+                        formatter={(value: any) => [`${value}%`, 'ROI']}
+                        contentStyle={{
+                          backgroundColor: 'var(--color-bg-secondary)',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Bar
+                        dataKey="roi"
+                        fill="#3b82f6"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {isCompareOpen && <CompareModal />}
     </div>
   );
 }
