@@ -46,6 +46,8 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
   }, [workspace.id]);
 
   const loadCampaigns = async () => {
+    setLoading(true);
+
     const { data: campaignsData, error } = await supabase
       .from('campaigns')
       .select('*')
@@ -160,12 +162,19 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
   const handleUpdateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCampaign) return;
+    if (!selectedCampaign || !user) return;
 
     if (!checkWritePermission('update campaigns')) {
       setShowEditModal(false);
       return;
     }
+
+    logOperationStart('UPDATE_CAMPAIGN', {
+      campaign_id: selectedCampaign.id,
+      workspace_id: workspace.id,
+      name: newCampaign.name,
+      status: newCampaign.status,
+    });
 
     const { error } = await supabase
       .from('campaigns')
@@ -173,33 +182,63 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
         name: newCampaign.name,
         status: newCampaign.status,
       })
-      .eq('id', selectedCampaign.id);
+      .eq('id', selectedCampaign.id)
+      .eq('workspace_id', workspace.id);
 
     if (error) {
-      console.error('Error updating campaign:', error);
-    } else {
-      setShowEditModal(false);
-      setSelectedCampaign(null);
-      resetForm();
-      loadCampaigns();
+      const appError = handleSupabaseError(error, 'UPDATE_CAMPAIGN');
+      alert(appError.userMessage);
+      return;
     }
+
+    // Direct UI-update
+    setCampaigns(prev =>
+      prev.map(c =>
+        c.id === selectedCampaign.id
+          ? { ...c, name: newCampaign.name, status: newCampaign.status }
+          : c
+      )
+    );
+
+    logOperationSuccess('UPDATE_CAMPAIGN', { campaign_id: selectedCampaign.id });
+
+    setShowEditModal(false);
+    setSelectedCampaign(null);
+    resetForm();
   };
 
   const handleDeleteCampaign = async () => {
-    if (!campaignToDelete) return;
+    if (!campaignToDelete || !user) return;
+
+    if (!checkWritePermission('delete campaigns')) {
+      setShowDeleteConfirm(false);
+      return;
+    }
+
+    logOperationStart('DELETE_CAMPAIGN', {
+      campaign_id: campaignToDelete.id,
+      workspace_id: workspace.id,
+    });
 
     const { error } = await supabase
       .from('campaigns')
       .delete()
-      .eq('id', campaignToDelete.id);
+      .eq('id', campaignToDelete.id)
+      .eq('workspace_id', workspace.id);
 
     if (error) {
-      console.error('Error deleting campaign:', error);
-    } else {
-      setShowDeleteConfirm(false);
-      setCampaignToDelete(null);
-      loadCampaigns();
+      const appError = handleSupabaseError(error, 'DELETE_CAMPAIGN');
+      alert(appError.userMessage);
+      return;
     }
+
+    // Direct UI-update
+    setCampaigns(prev => prev.filter(c => c.id !== campaignToDelete.id));
+
+    logOperationSuccess('DELETE_CAMPAIGN', { campaign_id: campaignToDelete.id });
+
+    setShowDeleteConfirm(false);
+    setCampaignToDelete(null);
   };
 
   const openEditModal = (campaign: Campaign) => {
@@ -315,13 +354,15 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                     </div>
                     <div className="col-span-2">
                       <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">ROI</span>
-                      <span className={`font-medium ${
-                        campaign.total_spend > 0
-                          ? ((campaign.total_revenue - campaign.total_spend) / campaign.total_spend) * 100 >= 0
-                            ? 'text-linear-success'
-                            : 'text-linear-error'
-                          : 'dark:text-text-secondary light:text-text-light-secondary'
-                      }`}>
+                      <span
+                        className={`font-medium ${
+                          campaign.total_spend > 0
+                            ? ((campaign.total_revenue - campaign.total_spend) / campaign.total_spend) * 100 >= 0
+                              ? 'text-linear-success'
+                              : 'text-linear-error'
+                            : 'dark:text-text-secondary light:text-text-light-secondary'
+                        }`}
+                      >
                         {campaign.total_spend > 0
                           ? `${Math.round(((campaign.total_revenue - campaign.total_spend) / campaign.total_spend * 100))}%`
                           : '-'}
