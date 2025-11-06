@@ -76,7 +76,6 @@ export function NotificationBell() {
   if (!user) return null;
 
   const rawUnreadCount = notifications.filter(n => !n.read_at).length;
-  // Als de modal open is, badge verbergen
   const unreadCount = open ? 0 : rawUnreadCount;
 
   const markAllAsRead = async () => {
@@ -123,6 +122,36 @@ export function NotificationBell() {
     }
   };
 
+  const getEntityLabel = (entityType: string | null) => {
+    switch (entityType) {
+      case 'campaign':
+        return 'Campaign';
+      case 'task':
+        return 'Task';
+      case 'creator':
+        return 'Creator';
+      case 'content':
+        return 'Content';
+      case 'note':
+        return 'Note';
+      default:
+        return 'Update';
+    }
+  };
+
+  const getTypeChipClasses = (type: string | null) => {
+    switch (type) {
+      case 'status_change':
+        return 'text-linear-info bg-linear-info/10 border-linear-info-border/30';
+      case 'assignment':
+        return 'text-linear-accent bg-linear-accent/10 border-linear-accent/30';
+      case 'activity':
+        return 'text-linear-success bg-linear-success/10 border-linear-success-border/30';
+      default:
+        return 'text-text-secondary bg-linear-bg-subtle/60 border-linear-border-subtle/40';
+    }
+  };
+
   const filteredNotifications = notifications.filter(n => {
     if (activeFilter === 'all') return true;
     const type = (n.entity_type || '') as NotificationFilter;
@@ -140,22 +169,30 @@ export function NotificationBell() {
           onClick={closeModal}
         />
 
-        {/* Gecentreerde modal in het midden */}
-        <div className="relative z-10 w-full max-w-md mx-4 rounded-linear-lg border dark:border-linear-border light:border-linear-light-border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary shadow-xl max-h-[80vh] flex flex-col animate-[fadeInScale_0.15s_ease-out]">
-          <div className="px-4 py-3 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle flex items-center justify-between">
-            <span className="text-sm font-medium">Notifications</span>
-            <button
-              type="button"
-              onClick={closeModal}
-              className="p-1 rounded-full hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        {/* Gecentreerde, grotere modal in het midden */}
+        <div className="relative z-10 w-full max-w-2xl lg:max-w-3xl mx-4 rounded-linear-lg border dark:border-linear-border light:border-linear-light-border dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary shadow-2xl max-h-[80vh] flex flex-col">
+          {/* Header */}
+          <div className="px-6 py-4 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium tracking-wide">Notifications</span>
+              <span className="text-xs dark:text-text-secondary light:text-text-light-secondary">
+                Live updates for your workspace activity
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="p-1.5 rounded-full hover:dark:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle linear-transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Filter tabs */}
-          <div className="px-3 pt-2 pb-1 border-b dark:border-linear-border-subtle/60 light:border-linear-light-border-subtle/60">
-            <div className="flex flex-wrap gap-1.5">
+          <div className="px-5 pt-3 pb-2 border-b dark:border-linear-border-subtle/60 light:border-linear-light-border-subtle/60">
+            <div className="flex flex-wrap gap-2">
               {FILTERS.map(filter => {
                 const isActive = activeFilter === filter.id;
                 return (
@@ -164,7 +201,7 @@ export function NotificationBell() {
                     type="button"
                     onClick={() => setActiveFilter(filter.id)}
                     className={[
-                      'px-2.5 py-1 rounded-full text-xs border linear-transition',
+                      'px-3 py-1.5 rounded-full text-xs border linear-transition',
                       isActive
                         ? 'dark:bg-linear-bg-subtle dark:border-linear-border light:bg-linear-light-bg-subtle light:border-linear-light-border dark:text-text-primary light:text-text-light-primary'
                         : 'dark:bg-transparent dark:border-transparent dark:text-text-secondary dark:hover:bg-linear-bg-subtle/60 light:bg-transparent light:border-transparent light:text-text-light-secondary light:hover:bg-linear-light-bg-subtle/60',
@@ -177,40 +214,66 @@ export function NotificationBell() {
             </div>
           </div>
 
+          {/* Lijst */}
           <div className="py-2 overflow-y-auto">
             {filteredNotifications.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-center dark:text-text-secondary light:text-text-light-secondary">
-                No notifications for this filter.
+              <div className="px-6 py-10 text-sm text-center dark:text-text-secondary light:text-text-light-secondary">
+                No notifications for this filter yet.
               </div>
             ) : (
               filteredNotifications.map(n => (
                 <div
                   key={n.id}
-                  className="px-4 py-3 text-sm border-b last:border-b-0 dark:border-linear-border-subtle/60 light:border-linear-light-border-subtle/60 hover:dark:bg-linear-bg-subtle/60 hover:light:bg-linear-light-bg-subtle/60 linear-transition"
+                  className="px-6 py-4 text-sm border-b last:border-b-0 dark:border-linear-border-subtle/60 light:border-linear-light-border-subtle/60 hover:dark:bg-linear-bg-subtle/60 light:hover:bg-linear-light-bg-subtle/60 linear-transition flex gap-4"
                 >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="font-medium text-xs uppercase tracking-wide opacity-70">
-                      {n.type === 'assignment' && 'ASSIGNMENT'}
-                      {n.type === 'status_change' && 'STATUS UPDATE'}
-                      {n.type === 'activity' && 'ACTIVITY'}
-                      {!['assignment', 'status_change', 'activity'].includes(
-                        n.type
-                      ) && n.type?.toUpperCase()}
+                  {/* Accent dot */}
+                  <div className="pt-1">
+                    <span className="block w-2 h-2 rounded-full bg-linear-accent" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Type chip */}
+                        <span
+                          className={
+                            'text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-full border ' +
+                            getTypeChipClasses(n.type)
+                          }
+                        >
+                          {n.type === 'assignment' && 'Assignment'}
+                          {n.type === 'status_change' && 'Status Update'}
+                          {n.type === 'activity' && 'Activity'}
+                          {!['assignment', 'status_change', 'activity'].includes(
+                            n.type
+                          ) && (n.type || 'Update')}
+                        </span>
+
+                        {/* Entity chip */}
+                        <span className="text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-full border dark:border-linear-border-subtle light:border-linear-light-border-subtle dark:text-text-tertiary light:text-text-light-tertiary">
+                          {getEntityLabel(n.entity_type)}
+                        </span>
+                      </div>
+
+                      {formatDate(n) && (
+                        <span className="ml-2 text-[11px] whitespace-nowrap dark:text-text-tertiary light:text-text-light-tertiary">
+                          {formatDate(n)}
+                        </span>
+                      )}
                     </div>
-                    {formatDate(n) && (
-                      <span className="ml-2 text-[11px] dark:text-text-tertiary light:text-text-light-tertiary">
-                        {formatDate(n)}
-                      </span>
+
+                    {n.title && (
+                      <div className="text-sm font-medium mb-0.5 truncate">
+                        {n.title}
+                      </div>
+                    )}
+
+                    {n.message && (
+                      <div className="text-xs leading-snug dark:text-text-secondary light:text-text-light-secondary">
+                        {n.message}
+                      </div>
                     )}
                   </div>
-                  <div className="text-sm font-medium mb-0.5">
-                    {n.title}
-                  </div>
-                  {n.message && (
-                    <div className="text-xs leading-snug dark:text-text-secondary light:text-text-light-secondary">
-                      {n.message}
-                    </div>
-                  )}
                 </div>
               ))
             )}
