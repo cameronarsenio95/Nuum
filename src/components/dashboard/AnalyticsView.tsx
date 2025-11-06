@@ -1021,57 +1021,84 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </div>
 
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:col-span-2">
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Users className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-                  <h3 className="text-sm md:text-base">Top Creators</h3>
+              <div className="dark:bg-gradient-to-br dark:from-linear-bg-secondary dark:to-linear-bg-secondary/80 light:bg-gradient-to-br light:from-white light:to-gray-50 border dark:border-linear-border light:border-gray-200 rounded-linear-xl p-5 md:p-6 shadow-sm hover:shadow-md linear-transition">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-linear-lg dark:bg-gradient-to-br dark:from-linear-accent/20 dark:to-linear-accent/5 light:bg-gradient-to-br light:from-blue-100 light:to-blue-50 flex items-center justify-center">
+                      <Users className="w-4.5 h-4.5 dark:text-linear-accent light:text-blue-600" />
+                    </div>
+                    <h3 className="text-base md:text-lg font-semibold dark:text-text-primary light:text-gray-900">Top Creators</h3>
+                  </div>
+                  <div className="px-2.5 py-1 rounded-full text-xs font-medium dark:bg-linear-accent/10 dark:text-linear-accent light:bg-blue-50 light:text-blue-600">
+                    Top 5
+                  </div>
                 </div>
-                <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-4">
+                <p className="text-xs dark:text-text-tertiary light:text-gray-500 mb-5 ml-11">
                   Highest revenue-generating creators based on filtered campaigns
                 </p>
 
                 {topCreators.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-48 dark:text-text-secondary light:text-text-light-secondary">
-                    <Users className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
-                    <div className="text-sm text-center">No creators yet. Add creators to see them highlighted here.</div>
+                    <div className="w-16 h-16 rounded-full dark:bg-linear-bg-subtle light:bg-gray-100 flex items-center justify-center mb-3">
+                      <Users className="w-8 h-8 dark:text-text-tertiary light:text-gray-400" />
+                    </div>
+                    <div className="text-sm text-center font-medium">No creators yet</div>
+                    <div className="text-xs text-center mt-1 dark:text-text-tertiary light:text-gray-500">Add creators to see them highlighted here</div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {topCreators.map(creator => {
+                  <div className="space-y-1">
+                    {topCreators.map((creator, index) => {
                       const platform = getPrimaryPlatform(creator);
                       const revenue = creatorRevenue[creator.id] || 0;
+                      const maxRevenue = Math.max(...topCreators.map(c => creatorRevenue[c.id] || 0));
+                      const revenuePercentage = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
 
                       return (
-                        <div key={creator.id} className="flex items-center justify-between py-2 border-b dark:border-linear-border-subtle/50 light:border-gray-200 last:border-0">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium dark:text-text-primary light:text-gray-900 truncate">
-                              {creator.name}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              {platform && (
-                                <span className="text-xs px-2 py-0.5 rounded-full dark:bg-linear-bg-subtle light:bg-gray-100 dark:text-text-secondary light:text-gray-600">
-                                  {platform}
-                                </span>
-                              )}
-                              {(creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle) && (
-                                <span className="text-xs dark:text-text-tertiary light:text-gray-500 truncate">
-                                  @{creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="ml-3 text-right flex-shrink-0">
-                            {revenue > 0 ? (
-                              <div>
-                                <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
-                                  {formatCurrency(revenue)}
-                                </div>
-                                <div className="text-xs dark:text-text-tertiary light:text-gray-500">revenue</div>
+                        <div key={creator.id} className="group relative dark:bg-linear-bg-subtle/40 light:bg-white/80 hover:dark:bg-linear-bg-subtle hover:light:bg-gray-50 rounded-linear-lg p-3.5 linear-transition border dark:border-transparent hover:dark:border-linear-border/50 light:border-gray-100">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0 w-8 h-8 rounded-full dark:bg-gradient-to-br dark:from-linear-accent/30 dark:to-linear-accent/10 light:bg-gradient-to-br light:from-blue-100 light:to-blue-50 flex items-center justify-center text-xs font-bold dark:text-linear-accent light:text-blue-600">
+                                {index + 1}
                               </div>
-                            ) : (
-                              <div className="text-xs dark:text-text-tertiary light:text-gray-500">—</div>
-                            )}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-semibold dark:text-text-primary light:text-gray-900 truncate">
+                                  {creator.name}
+                                </div>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  {platform && (
+                                    <span className="text-xs px-2 py-0.5 rounded-full dark:bg-linear-bg-secondary light:bg-gray-100 dark:text-text-secondary light:text-gray-600 font-medium">
+                                      {platform}
+                                    </span>
+                                  )}
+                                  {(creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle) && (
+                                    <span className="text-xs dark:text-text-tertiary light:text-gray-500 truncate">
+                                      @{creator.tiktok_handle || creator.instagram_handle || creator.youtube_handle}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="ml-3 text-right flex-shrink-0">
+                              {revenue > 0 ? (
+                                <div>
+                                  <div className="text-base font-bold dark:text-text-primary light:text-gray-900">
+                                    {formatCurrency(revenue)}
+                                  </div>
+                                  <div className="text-xs dark:text-text-tertiary light:text-gray-500 font-medium">revenue</div>
+                                </div>
+                              ) : (
+                                <div className="text-xs dark:text-text-tertiary light:text-gray-500">—</div>
+                              )}
+                            </div>
                           </div>
+                          {revenue > 0 && (
+                            <div className="relative h-1.5 dark:bg-linear-bg-secondary/50 light:bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className="absolute inset-y-0 left-0 dark:bg-gradient-to-r dark:from-linear-accent dark:to-linear-accent/60 light:bg-gradient-to-r light:from-blue-500 light:to-blue-400 rounded-full linear-transition"
+                                style={{ width: `${revenuePercentage}%` }}
+                              />
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1079,45 +1106,82 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 )}
               </div>
 
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Zap className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-                  <h3 className="text-sm md:text-base">Platform Performance</h3>
+              <div className="dark:bg-gradient-to-br dark:from-linear-bg-secondary dark:to-linear-bg-secondary/80 light:bg-gradient-to-br light:from-white light:to-gray-50 border dark:border-linear-border light:border-gray-200 rounded-linear-xl p-5 md:p-6 shadow-sm hover:shadow-md linear-transition">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-linear-lg dark:bg-gradient-to-br dark:from-linear-warning/20 dark:to-linear-warning/5 light:bg-gradient-to-br light:from-amber-100 light:to-amber-50 flex items-center justify-center">
+                      <Zap className="w-4.5 h-4.5 dark:text-linear-warning light:text-amber-600" />
+                    </div>
+                    <h3 className="text-base md:text-lg font-semibold dark:text-text-primary light:text-gray-900">Platform Performance</h3>
+                  </div>
+                  <div className="px-2.5 py-1 rounded-full text-xs font-medium dark:bg-linear-warning/10 dark:text-linear-warning light:bg-amber-50 light:text-amber-600">
+                    {platformStats.length} {platformStats.length === 1 ? 'Platform' : 'Platforms'}
+                  </div>
                 </div>
-                <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-4">
+                <p className="text-xs dark:text-text-tertiary light:text-gray-500 mb-5 ml-11">
                   Revenue distribution across social platforms
                 </p>
 
                 {platformStats.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-48 dark:text-text-secondary light:text-text-light-secondary">
-                    <Zap className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
-                    <div className="text-sm text-center">Platform data is not available yet.</div>
+                    <div className="w-16 h-16 rounded-full dark:bg-linear-bg-subtle light:bg-gray-100 flex items-center justify-center mb-3">
+                      <Zap className="w-8 h-8 dark:text-text-tertiary light:text-gray-400" />
+                    </div>
+                    <div className="text-sm text-center font-medium">Platform data is not available yet</div>
                     <div className="text-xs text-center mt-1 dark:text-text-tertiary light:text-gray-500">
-                      Connect creator platform data to unlock these insights.
+                      Connect creator platform data to unlock these insights
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {platformStats.map(({ platform, count, revenue, percentage }) => (
-                      <div key={platform} className="flex items-center justify-between py-2 border-b dark:border-linear-border-subtle/50 light:border-gray-200 last:border-0">
-                        <div className="flex items-center gap-3">
-                          <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
-                            {platform}
+                  <div className="space-y-2">
+                    {platformStats.map(({ platform, count, revenue, percentage }) => {
+                      const getPlatformColor = (p: string) => {
+                        switch (p) {
+                          case 'Instagram': return { gradient: 'dark:from-pink-500/20 dark:to-purple-500/20 light:from-pink-100 light:to-purple-100', text: 'dark:text-pink-400 light:text-pink-600', bar: 'dark:from-pink-500 dark:to-purple-500 light:from-pink-500 light:to-purple-500' };
+                          case 'TikTok': return { gradient: 'dark:from-cyan-500/20 dark:to-pink-500/20 light:from-cyan-100 light:to-pink-100', text: 'dark:text-cyan-400 light:text-cyan-600', bar: 'dark:from-cyan-500 dark:to-pink-500 light:from-cyan-500 light:to-pink-500' };
+                          case 'Snapchat': return { gradient: 'dark:from-yellow-500/20 dark:to-yellow-500/20 light:from-yellow-100 light:to-yellow-100', text: 'dark:text-yellow-400 light:text-yellow-600', bar: 'dark:from-yellow-500 dark:to-yellow-500 light:from-yellow-500 light:to-yellow-500' };
+                          case 'YouTube': return { gradient: 'dark:from-red-500/20 dark:to-red-500/20 light:from-red-100 light:to-red-100', text: 'dark:text-red-400 light:text-red-600', bar: 'dark:from-red-500 dark:to-red-500 light:from-red-500 light:to-red-500' };
+                          default: return { gradient: 'dark:from-blue-500/20 dark:to-blue-500/20 light:from-blue-100 light:to-blue-100', text: 'dark:text-blue-400 light:text-blue-600', bar: 'dark:from-blue-500 dark:to-blue-500 light:from-blue-500 light:to-blue-500' };
+                        }
+                      };
+                      const colors = getPlatformColor(platform);
+
+                      return (
+                        <div key={platform} className="group relative dark:bg-linear-bg-subtle/40 light:bg-white/80 hover:dark:bg-linear-bg-subtle hover:light:bg-gray-50 rounded-linear-lg p-4 linear-transition border dark:border-transparent hover:dark:border-linear-border/50 light:border-gray-100">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className={`w-10 h-10 rounded-linear-lg bg-gradient-to-br ${colors.gradient} flex items-center justify-center`}>
+                                <span className={`text-lg font-bold ${colors.text}`}>
+                                  {platform === 'Instagram' ? '📷' : platform === 'TikTok' ? '🎵' : platform === 'Snapchat' ? '👻' : platform === 'YouTube' ? '▶️' : '🌐'}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold dark:text-text-primary light:text-gray-900">
+                                  {platform}
+                                </div>
+                                <div className="text-xs dark:text-text-tertiary light:text-gray-500 font-medium">
+                                  {count} {count === 1 ? 'creator' : 'creators'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-base font-bold dark:text-text-primary light:text-gray-900">
+                                {formatCurrency(revenue)}
+                              </div>
+                              <div className="text-xs dark:text-text-tertiary light:text-gray-500 font-medium">
+                                {percentage}% share
+                              </div>
+                            </div>
+                          </div>
+                          <div className="relative h-2 dark:bg-linear-bg-secondary/50 light:bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className={`absolute inset-y-0 left-0 bg-gradient-to-r ${colors.bar} rounded-full linear-transition group-hover:opacity-90`}
+                              style={{ width: `${percentage}%` }}
+                            />
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-xs dark:text-text-secondary light:text-gray-600">
-                            {count} {count === 1 ? 'creator' : 'creators'}
-                          </div>
-                          <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
-                            {formatCurrency(revenue)}
-                          </div>
-                          <div className="text-xs dark:text-text-tertiary light:text-gray-500 min-w-[3rem] text-right">
-                            {percentage}%
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
