@@ -5,11 +5,14 @@ import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
+type Campaign = Database['public']['Tables']['campaigns']['Row'];
 
 interface ContentMediaItem {
   id: string;
   workspace_id: string;
   creator_id: string;
+  campaign_id: string | null;
+  platform: 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | null;
   file_name: string;
   file_type: string;
   file_size: number;
@@ -19,6 +22,7 @@ interface ContentMediaItem {
   tags: string[] | null;
   created_at: string;
   creators?: { name: string } | null;
+  campaigns?: { id: string; name: string } | null;
 }
 
 interface ContentLibraryViewProps {
@@ -28,6 +32,7 @@ interface ContentLibraryViewProps {
 export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const [content, setContent] = useState<ContentMediaItem[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -41,7 +46,9 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
 
   const [uploadForm, setUploadForm] = useState({
     file: null as File | null,
-    creator_id: ''
+    creator_id: '',
+    campaign_id: '',
+    platform: '' as 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | ''
   });
 
   useEffect(() => {
@@ -74,7 +81,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const loadData = async () => {
     await Promise.all([
       loadContent(),
-      loadCreators()
+      loadCreators(),
+      loadCampaigns()
     ]);
     setLoading(false);
   };
@@ -84,7 +92,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       .from('content_media')
       .select(`
         *,
-        creators(name)
+        creators(name),
+        campaigns(id, name)
       `)
       .eq('workspace_id', workspace.id)
       .order('created_at', { ascending: false });
@@ -107,6 +116,20 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       console.error('Error loading creators:', error);
     } else {
       setCreators(data || []);
+    }
+  };
+
+  const loadCampaigns = async () => {
+    const { data, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .order('name');
+
+    if (error) {
+      console.error('Error loading campaigns:', error);
+    } else {
+      setCampaigns(data || []);
     }
   };
 
@@ -135,6 +158,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         .insert({
           workspace_id: workspace.id,
           creator_id: uploadForm.creator_id,
+          campaign_id: uploadForm.campaign_id || null,
+          platform: uploadForm.platform || null,
           file_name: uploadForm.file.name,
           file_type: uploadForm.file.type,
           file_size: uploadForm.file.size,
@@ -147,7 +172,9 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       setShowUploadModal(false);
       setUploadForm({
         file: null,
-        creator_id: ''
+        creator_id: '',
+        campaign_id: '',
+        platform: ''
       });
       loadContent();
     } catch (error: any) {
@@ -281,13 +308,28 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               </div>
 
               <div className="p-4">
-                <div className="flex items-start justify-between gap-2">
+                <div className="space-y-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{item.creators?.name || 'Unknown Creator'}</p>
                     <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary truncate">
                       {new Date(item.created_at).toLocaleDateString('nl-NL')}
                     </p>
                   </div>
+
+                  {(item.campaigns?.name || item.platform) && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {item.campaigns?.name && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-secondary light:text-text-light-secondary">
+                          {item.campaigns.name}
+                        </span>
+                      )}
+                      {item.platform && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-blue-500/10 light:bg-blue-500/10 dark:text-blue-400 light:text-blue-600">
+                          {item.platform}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -332,6 +374,35 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   {creators.map(creator => (
                     <option key={creator.id} value={creator.id}>{creator.name}</option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Campaign</label>
+                <select
+                  value={uploadForm.campaign_id}
+                  onChange={(e) => setUploadForm({ ...uploadForm, campaign_id: e.target.value })}
+                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent"
+                >
+                  <option value="">Select Campaign (Optional)</option>
+                  {campaigns.map(campaign => (
+                    <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Platform</label>
+                <select
+                  value={uploadForm.platform}
+                  onChange={(e) => setUploadForm({ ...uploadForm, platform: e.target.value as any })}
+                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent"
+                >
+                  <option value="">Select Platform (Optional)</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="Snapchat">Snapchat</option>
+                  <option value="YouTube">YouTube</option>
                 </select>
               </div>
 
@@ -411,6 +482,20 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                 <div className="flex items-start justify-between">
                   <div>
                     <h4 className="text-lg font-medium mb-1">{selectedContent.creators?.name || 'Unknown Creator'}</h4>
+                    {(selectedContent.campaigns?.name || selectedContent.platform) && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selectedContent.campaigns?.name && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-secondary light:text-text-light-secondary">
+                            {selectedContent.campaigns.name}
+                          </span>
+                        )}
+                        {selectedContent.platform && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium dark:bg-blue-500/10 light:bg-blue-500/10 dark:text-blue-400 light:text-blue-600">
+                            {selectedContent.platform}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => window.open(selectedContent.file_url, '_blank')}
@@ -419,6 +504,17 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                     <Download className="w-4 h-4" />
                     Download
                   </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
+                    <p className="text-xs uppercase dark:text-text-tertiary light:text-text-light-tertiary mb-2 opacity-70">Campaign</p>
+                    <p className="text-base font-medium">{selectedContent.campaigns?.name || '—'}</p>
+                  </div>
+                  <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
+                    <p className="text-xs uppercase dark:text-text-tertiary light:text-text-light-tertiary mb-2 opacity-70">Platform</p>
+                    <p className="text-base font-medium">{selectedContent.platform || '—'}</p>
+                  </div>
                 </div>
 
                 <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
