@@ -52,9 +52,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     file: null as File | null,
     campaign_id: '',
     creator_id: '',
-    platform: '',
-    views: 0,
-    revenue: 0
+    platform: ''
   });
 
   useEffect(() => {
@@ -170,8 +168,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
           file_size: uploadForm.file.size,
           file_url: urlData.publicUrl,
           platform: uploadForm.platform as any,
-          performance_views: uploadForm.views,
-          performance_revenue: uploadForm.revenue,
+          performance_views: 0,
+          performance_revenue: 0,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id
         });
 
@@ -182,9 +180,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         file: null,
         campaign_id: '',
         creator_id: '',
-        platform: '',
-        views: 0,
-        revenue: 0
+        platform: ''
       });
       loadContent();
     } catch (error: any) {
@@ -507,31 +503,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   <option value="YouTube">YouTube</option>
                   <option value="Other">Other</option>
                 </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Views</label>
-                  <input
-                    type="number"
-                    value={uploadForm.views}
-                    onChange={(e) => setUploadForm({ ...uploadForm, views: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Revenue (€)</label>
-                  <input
-                    type="number"
-                    value={uploadForm.revenue}
-                    onChange={(e) => setUploadForm({ ...uploadForm, revenue: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
