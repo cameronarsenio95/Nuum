@@ -1,9 +1,10 @@
 import { X, Plus, Link2, Edit2, DollarSign, TrendingUp, Target, Zap, Mail, Phone, Award, Download, FileText, BarChart3 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import type { Database } from '../../lib/database.types';
-import { exportAnalyticsPdf } from '../../utils/exportAnalyticsPdf';
+import { exportCreatorPerformancePdf, exportCreatorPerformanceCsv } from '../../utils/exportCreatorAnalytics';
 import { supabase } from '../../lib/supabase';
 import { useState, useEffect, useMemo } from 'react';
+import { useCurrentWorkspace } from '../../hooks/useCurrentWorkspace';
 
 type Creator = Database['public']['Tables']['creators']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -212,6 +213,7 @@ export function CreatorDetailModal({
   onAddToCampaign,
   onRemoveAdSet,
 }: DetailModalProps) {
+  const { workspace } = useCurrentWorkspace();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [sortBy, setSortBy] = useState<'roi' | 'revenue'>('roi');
   const [isExporting, setIsExporting] = useState(false);
@@ -323,27 +325,65 @@ export function CreatorDetailModal({
   };
 
   const handleExportPDF = () => {
-    if (campaignPerformance.length === 0) return;
+    if (campaignPerformance.length === 0 || !workspace) return;
 
     setIsExporting(true);
     try {
-      const campaignsData = campaignPerformance.map(cp => ({
-        name: cp.campaign.name,
-        status: cp.status,
-        total_ad_sets: cp.adSetCount,
-        active_ad_sets: cp.status === 'active' ? cp.adSetCount : 0,
-        total_spend: cp.spend,
-        total_revenue: cp.revenue,
-        roi: cp.roi,
+      const platformStats = new Map<string, { creators: number; revenue: number }>();
+
+      adSets.forEach(adSet => {
+        const platform = adSet.platform === 'META' ? 'Instagram' : adSet.platform;
+        const revenue = Number(adSet.revenue) || 0;
+
+        if (!platformStats.has(platform)) {
+          platformStats.set(platform, { creators: 1, revenue: 0 });
+        }
+        platformStats.get(platform)!.revenue += revenue;
+      });
+
+      const totalPlatformRevenue = Array.from(platformStats.values()).reduce((sum, p) => sum + p.revenue, 0);
+
+      const platforms = Array.from(platformStats.entries()).map(([platform, stats]) => ({
+        platform,
+        creators: stats.creators,
+        revenue: stats.revenue,
+        share: totalPlatformRevenue > 0 ? (stats.revenue / totalPlatformRevenue) * 100 : 0,
       }));
 
-      exportAnalyticsPdf(
-        campaignsData,
-        [],
-        [],
-        performanceSummary,
-        `${creator.name} Performance Report`
-      );
+      const primaryPlatform = platforms.length > 0
+        ? platforms.reduce((max, p) => p.revenue > max.revenue ? p : max).platform
+        : undefined;
+
+      exportCreatorPerformancePdf({
+        workspaceName: workspace.name,
+        creatorName: creator.name,
+        creatorHandle: creator.instagram_handle || creator.tiktok_handle || creator.snapchat_handle || undefined,
+        generatedAt: new Date(),
+        timeFilterLabel: 'All time',
+        statusFilterLabel: 'All statuses',
+        summary: {
+          totalSpend,
+          totalRevenue,
+          avgRoi: roi,
+          activeCampaigns: activeCount,
+        },
+        campaigns: campaignPerformance.map(cp => ({
+          name: cp.campaign.name,
+          status: cp.status,
+          adSets: cp.adSetCount,
+          spend: cp.spend,
+          revenue: cp.revenue,
+          roi: cp.roi,
+        })),
+        topCreatorRow: {
+          rank: 1,
+          name: creator.name,
+          handle: creator.instagram_handle || creator.tiktok_handle || creator.snapchat_handle || undefined,
+          platform: primaryPlatform,
+          revenue: totalRevenue,
+        },
+        platforms,
+      });
     } catch (error) {
       console.error('PDF export error:', error);
     } finally {
@@ -352,30 +392,52 @@ export function CreatorDetailModal({
   };
 
   const handleExportCSV = () => {
-    if (campaignPerformance.length === 0) return;
+    if (campaignPerformance.length === 0 || !workspace) return;
 
-    const csvData = campaignPerformance.map(cp => ({
-      'Campaign': cp.campaign.name,
-      'Status': cp.status,
-      'Ad Sets': cp.adSetCount,
-      'Spend (€)': cp.spend.toFixed(2),
-      'Revenue (€)': cp.revenue.toFixed(2),
-      'ROI (%)': cp.roi.toFixed(2),
+    const platformStats = new Map<string, { creators: number; revenue: number }>();
+
+    adSets.forEach(adSet => {
+      const platform = adSet.platform === 'META' ? 'Instagram' : adSet.platform;
+      const revenue = Number(adSet.revenue) || 0;
+
+      if (!platformStats.has(platform)) {
+        platformStats.set(platform, { creators: 1, revenue: 0 });
+      }
+      platformStats.get(platform)!.revenue += revenue;
+    });
+
+    const totalPlatformRevenue = Array.from(platformStats.values()).reduce((sum, p) => sum + p.revenue, 0);
+
+    const platforms = Array.from(platformStats.entries()).map(([platform, stats]) => ({
+      platform,
+      creators: stats.creators,
+      revenue: stats.revenue,
+      share: totalPlatformRevenue > 0 ? (stats.revenue / totalPlatformRevenue) * 100 : 0,
     }));
 
-    const headers = Object.keys(csvData[0]);
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => headers.map(h => row[h as keyof typeof row]).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${creator.name.replace(/\s+/g, '_')}_performance.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    exportCreatorPerformanceCsv({
+      workspaceName: workspace.name,
+      creatorName: creator.name,
+      creatorHandle: creator.instagram_handle || creator.tiktok_handle || creator.snapchat_handle || undefined,
+      generatedAt: new Date(),
+      timeFilterLabel: 'All time',
+      statusFilterLabel: 'All statuses',
+      summary: {
+        totalSpend,
+        totalRevenue,
+        avgRoi: roi,
+        activeCampaigns: activeCount,
+      },
+      campaigns: campaignPerformance.map(cp => ({
+        name: cp.campaign.name,
+        status: cp.status,
+        adSets: cp.adSetCount,
+        spend: cp.spend,
+        revenue: cp.revenue,
+        roi: cp.roi,
+      })),
+      platforms,
+    });
   };
 
   return (
