@@ -1,5 +1,9 @@
-import { X, Plus, Link2, Edit2, DollarSign, TrendingUp, Target, Zap, Mail, Phone, Award } from 'lucide-react';
+import { X, Plus, Link2, Edit2, DollarSign, TrendingUp, Target, Zap, Mail, Phone, Award, Download, FileText, BarChart3 } from 'lucide-react';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import type { Database } from '../../lib/database.types';
+import { exportAnalyticsPdf } from '../../utils/exportAnalyticsPdf';
+import { supabase } from '../../lib/supabase';
+import { useState, useEffect, useMemo } from 'react';
 
 type Creator = Database['public']['Tables']['creators']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -208,10 +212,89 @@ export function CreatorDetailModal({
   onAddToCampaign,
   onRemoveAdSet,
 }: DetailModalProps) {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [sortBy, setSortBy] = useState<'roi' | 'revenue'>('roi');
+  const [isExporting, setIsExporting] = useState(false);
+
   const totalRevenue = adSets.reduce((sum, adSet) => sum + (Number(adSet.revenue) || 0), 0);
   const totalSpend = adSets.reduce((sum, adSet) => sum + (Number(adSet.spend) || 0), 0);
   const profit = totalRevenue - totalSpend;
   const roi = totalSpend > 0 ? ((profit / totalSpend) * 100) : 0;
+  const activeCount = adSets.filter(as => as.status === 'active').length;
+
+  useEffect(() => {
+    loadCampaignData();
+  }, [creator.id]);
+
+  const loadCampaignData = async () => {
+    const campaignIds = [...new Set(adSets.map(as => as.campaign_id))];
+    if (campaignIds.length === 0) return;
+
+    const { data } = await supabase
+      .from('campaigns')
+      .select('*')
+      .in('id', campaignIds);
+
+    if (data) setCampaigns(data);
+  };
+
+  const campaignPerformance = useMemo(() => {
+    const perfMap = new Map<string, {
+      campaign: Campaign;
+      adSetCount: number;
+      spend: number;
+      revenue: number;
+      roi: number;
+      status: string;
+    }>();
+
+    adSets.forEach(adSet => {
+      const campaign = campaigns.find(c => c.id === adSet.campaign_id);
+      if (!campaign) return;
+
+      const existing = perfMap.get(campaign.id);
+      const spend = Number(adSet.spend) || 0;
+      const revenue = Number(adSet.revenue) || 0;
+
+      if (existing) {
+        existing.adSetCount++;
+        existing.spend += spend;
+        existing.revenue += revenue;
+      } else {
+        perfMap.set(campaign.id, {
+          campaign,
+          adSetCount: 1,
+          spend,
+          revenue,
+          roi: 0,
+          status: adSet.status,
+        });
+      }
+    });
+
+    perfMap.forEach(perf => {
+      perf.roi = perf.spend > 0 ? ((perf.revenue - perf.spend) / perf.spend) * 100 : 0;
+    });
+
+    const sorted = Array.from(perfMap.values()).sort((a, b) => {
+      if (sortBy === 'roi') return b.roi - a.roi;
+      return b.revenue - a.revenue;
+    });
+
+    return sorted;
+  }, [adSets, campaigns, sortBy]);
+
+  const chartData = useMemo(() => {
+    return campaignPerformance.slice(0, 5).map(cp => ({
+      name: cp.campaign.name.length > 12 ? cp.campaign.name.substring(0, 12) + '...' : cp.campaign.name,
+      revenue: cp.revenue,
+    }));
+  }, [campaignPerformance]);
+
+  const topCampaign = campaignPerformance.length > 0 ? campaignPerformance[0] : null;
+  const performanceSummary = topCampaign
+    ? `Top Campaign: ${topCampaign.campaign.name} (ROI +${Math.round(topCampaign.roi)}%) • Total Revenue ${formatCurrency(totalRevenue)} across ${campaignPerformance.length} campaign${campaignPerformance.length !== 1 ? 's' : ''}.`
+    : `No campaign data available yet.`;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
@@ -237,9 +320,56 @@ export function CreatorDetailModal({
     }
   };
 
+  const handleExportPDF = () => {
+    setIsExporting(true);
+    const campaignsData = campaignPerformance.map(cp => ({
+      name: cp.campaign.name,
+      status: cp.status,
+      total_ad_sets: cp.adSetCount,
+      active_ad_sets: cp.status === 'active' ? cp.adSetCount : 0,
+      total_spend: cp.spend,
+      total_revenue: cp.revenue,
+      roi: cp.roi,
+    }));
+
+    exportAnalyticsPdf(
+      campaignsData,
+      [],
+      [],
+      performanceSummary,
+      `${creator.name} Performance Report`
+    );
+    setTimeout(() => setIsExporting(false), 1000);
+  };
+
+  const handleExportCSV = () => {
+    const csvData = campaignPerformance.map(cp => ({
+      'Campaign': cp.campaign.name,
+      'Status': cp.status,
+      'Ad Sets': cp.adSetCount,
+      'Spend (€)': cp.spend.toFixed(2),
+      'Revenue (€)': cp.revenue.toFixed(2),
+      'ROI (%)': cp.roi.toFixed(2),
+    }));
+
+    const headers = Object.keys(csvData[0] || {});
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => headers.map(h => row[h as keyof typeof row]).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${creator.name.replace(/\s+/g, '_')}_performance.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-300" onClick={onClose}>
+      <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto transition-opacity duration-300" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle p-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
@@ -254,6 +384,24 @@ export function CreatorDetailModal({
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={handleExportPDF}
+              disabled={isExporting || campaignPerformance.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs dark:bg-linear-bg-primary light:bg-white hover:dark:bg-linear-bg-hover light:hover:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-300 rounded-linear linear-transition disabled:opacity-50"
+              title="Export PDF Report"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              PDF
+            </button>
+            <button
+              onClick={handleExportCSV}
+              disabled={campaignPerformance.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs dark:bg-linear-bg-primary light:bg-white hover:dark:bg-linear-bg-hover light:hover:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-300 rounded-linear linear-transition disabled:opacity-50"
+              title="Export CSV Data"
+            >
+              <Download className="w-3.5 h-3.5" />
+              CSV
+            </button>
             <span className={`inline-flex text-xs px-2.5 py-1 rounded-full border ${getStatusColor(creator.status)}`}>
               {creator.status}
             </span>
@@ -272,128 +420,259 @@ export function CreatorDetailModal({
           </div>
         </div>
 
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-4 gap-4">
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+        <div className="p-4 space-y-3">
+          <div className="grid grid-cols-4 gap-3">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-9 h-9 bg-red-500/10 rounded-linear flex items-center justify-center">
                   <Zap className="w-4 h-4 text-red-500" />
                 </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Spend</span>
               </div>
               <div>
                 <div className="text-xl font-semibold">{formatCurrency(totalSpend)}</div>
-                <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-0.5">
-                  Total investment
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
+                  Investment
                 </div>
               </div>
             </div>
 
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-9 h-9 bg-green-500/10 rounded-linear flex items-center justify-center">
                   <DollarSign className="w-4 h-4 text-green-500" />
                 </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Revenue</span>
               </div>
               <div>
                 <div className="text-xl font-semibold">{formatCurrency(totalRevenue)}</div>
-                <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-0.5">
-                  Total generated
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
+                  Generated
                 </div>
               </div>
             </div>
 
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-9 h-9 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-linear-accent" />
+                  <BarChart3 className="w-4 h-4 text-linear-accent" />
                 </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Avg ROI</span>
               </div>
               <div>
                 <div className={`text-xl font-semibold ${roi > 0 ? 'text-linear-success' : 'text-linear-error'}`}>
                   {roi > 0 ? '+' : ''}{Math.round(roi)}%
                 </div>
-                <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-0.5">
-                  {formatCurrency(profit)} profit
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
+                  Return
                 </div>
               </div>
             </div>
 
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-9 h-9 bg-linear-info-subtle rounded-linear flex items-center justify-center">
                   <Target className="w-4 h-4 text-linear-info" />
                 </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Ad Sets</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active Campaigns</span>
               </div>
               <div>
-                <div className="text-xl font-semibold">{adSets.length}</div>
-                <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-0.5">
-                  Active campaigns
+                <div className="text-xl font-semibold">{activeCount}</div>
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
+                  {adSets.length} total
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {(creator.email || creator.phone) && (
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
-                <h3 className="text-sm font-medium mb-3">Contact Information</h3>
-                <div className="space-y-2">
-                  {creator.email && (
-                    <a
-                      href={`mailto:${creator.email}`}
-                      className="flex items-center gap-2 text-sm hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover p-2 rounded-linear linear-transition"
-                    >
-                      <Mail className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary flex-shrink-0" />
-                      <span className="text-linear-info truncate">{creator.email}</span>
-                    </a>
-                  )}
-                  {creator.phone && (
-                    <a
-                      href={`tel:${creator.phone}`}
-                      className="flex items-center gap-2 text-sm hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover p-2 rounded-linear linear-transition"
-                    >
-                      <Phone className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary flex-shrink-0" />
-                      <span className="text-linear-info">{creator.phone}</span>
-                    </a>
-                  )}
+          {chartData.length > 0 && (
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+              <h3 className="text-sm font-medium mb-3">Performance per Campaign</h3>
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2A53D0" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#2A53D0" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.1} />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fill: '#888', fontSize: 11 }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: '#888', fontSize: 11 }}
+                    tickLine={false}
+                    tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                    formatter={(value: number) => [`€${value.toFixed(0)}`, 'Revenue']}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#2A53D0"
+                    strokeWidth={2}
+                    fill="url(#revenueGradient)"
+                    dot={{ fill: '#2A53D0', r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {campaignPerformance.length > 0 && (
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+              <p className="text-xs dark:text-text-secondary light:text-text-light-secondary mb-3">
+                {performanceSummary}
+              </p>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium">Campaign History</h3>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="dark:text-text-tertiary light:text-text-light-tertiary">Sort by:</span>
+                  <button
+                    onClick={() => setSortBy('roi')}
+                    className={`px-2 py-1 rounded linear-transition ${
+                      sortBy === 'roi'
+                        ? 'dark:bg-linear-accent-subtle light:bg-blue-100 text-linear-accent'
+                        : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-hover light:hover:bg-gray-100'
+                    }`}
+                  >
+                    ROI
+                  </button>
+                  <button
+                    onClick={() => setSortBy('revenue')}
+                    className={`px-2 py-1 rounded linear-transition ${
+                      sortBy === 'revenue'
+                        ? 'dark:bg-linear-accent-subtle light:bg-blue-100 text-linear-accent'
+                        : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-hover light:hover:bg-gray-100'
+                    }`}
+                  >
+                    Revenue
+                  </button>
                 </div>
               </div>
-            )}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b dark:border-linear-border-subtle light:border-gray-200">
+                      <th className="text-left py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Campaign</th>
+                      <th className="text-left py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Status</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Ad Sets</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Spend</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Revenue</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">ROI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campaignPerformance.map((cp, idx) => (
+                      <tr key={cp.campaign.id} className="border-b dark:border-linear-border-subtle/50 light:border-gray-100 hover:dark:bg-linear-bg-hover/30 light:hover:bg-gray-50 linear-transition">
+                        <td className="py-2 px-2 font-medium">{cp.campaign.name}</td>
+                        <td className="py-2 px-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full border ${getStatusColor(cp.status)}`}>
+                            {cp.status}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-right dark:text-text-secondary light:text-gray-600">{cp.adSetCount}</td>
+                        <td className="py-2 px-2 text-right dark:text-text-secondary light:text-gray-600">{formatCurrency(cp.spend)}</td>
+                        <td className="py-2 px-2 text-right font-medium">{formatCurrency(cp.revenue)}</td>
+                        <td className="py-2 px-2 text-right font-semibold">
+                          <span className={cp.roi > 0 ? 'text-linear-success' : 'text-linear-error'}>
+                            {cp.roi > 0 ? '+' : ''}{Math.round(cp.roi)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 dark:border-linear-border light:border-gray-300 font-semibold">
+                      <td className="py-2 px-2" colSpan={3}>Total</td>
+                      <td className="py-2 px-2 text-right">{formatCurrency(totalSpend)}</td>
+                      <td className="py-2 px-2 text-right">{formatCurrency(totalRevenue)}</td>
+                      <td className="py-2 px-2 text-right">
+                        <span className={roi > 0 ? 'text-linear-success' : 'text-linear-error'}>
+                          {roi > 0 ? '+' : ''}{Math.round(roi)}%
+                        </span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
 
-            {creator.discount_code && (
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Award className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-                  <h3 className="text-sm font-medium">Discount Code</h3>
-                </div>
-                <div className="px-4 py-2.5 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear border-2 dark:border-linear-accent light:border-linear-light-accent">
-                  <div className="font-mono text-base font-semibold text-linear-accent text-center tracking-wider">
-                    {creator.discount_code}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+              <h3 className="text-sm font-medium mb-3 dark:text-text-primary light:text-gray-900">Contact & Details</h3>
+              <div className="space-y-2">
+                {creator.email && (
+                  <div className="flex items-start gap-2">
+                    <Mail className="w-4 h-4 dark:text-gray-400 light:text-gray-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs dark:text-gray-400 light:text-gray-500">Email</div>
+                      <a
+                        href={`mailto:${creator.email}`}
+                        className="text-sm dark:text-white light:text-gray-900 hover:text-linear-accent truncate block linear-transition"
+                      >
+                        {creator.email}
+                      </a>
+                    </div>
                   </div>
-                </div>
+                )}
+                {creator.phone && (
+                  <div className="flex items-start gap-2">
+                    <Phone className="w-4 h-4 dark:text-gray-400 light:text-gray-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs dark:text-gray-400 light:text-gray-500">Phone</div>
+                      <a
+                        href={`tel:${creator.phone}`}
+                        className="text-sm dark:text-white light:text-gray-900 hover:text-linear-accent linear-transition"
+                      >
+                        {creator.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {!creator.email && !creator.phone && (
+                  <p className="text-xs dark:text-text-tertiary light:text-gray-500">No contact information</p>
+                )}
               </div>
-            )}
+            </div>
 
-            {(creator.instagram_handle || creator.tiktok_handle || creator.snapchat_handle) && (
-              <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 col-span-2">
-                <h3 className="text-sm font-medium mb-3">Social Media</h3>
-                <div className="grid grid-cols-3 gap-3">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+              <h3 className="text-sm font-medium mb-3 dark:text-text-primary light:text-gray-900">Social Media & Code</h3>
+              <div className="space-y-2">
+                {creator.discount_code && (
+                  <div className="mb-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Award className="w-3.5 h-3.5 dark:text-gray-400 light:text-gray-500" />
+                      <div className="text-xs dark:text-gray-400 light:text-gray-500">Discount Code</div>
+                    </div>
+                    <div className="px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear border dark:border-linear-accent/50 light:border-linear-light-accent">
+                      <div className="font-mono text-sm font-semibold text-linear-accent text-center tracking-wider">
+                        {creator.discount_code}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-col gap-1.5">
                   {creator.instagram_handle && (
                     <a
                       href={`https://instagram.com/${creator.instagram_handle}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2.5 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover linear-transition"
+                      className="flex items-center gap-2 text-xs group"
                     >
-                      <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Instagram</div>
-                        <div className="text-sm font-medium truncate">@{creator.instagram_handle}</div>
-                      </div>
+                      <span className="w-16 dark:text-gray-400 light:text-gray-500">Instagram</span>
+                      <span className="dark:text-white light:text-gray-900 group-hover:text-linear-accent linear-transition truncate">@{creator.instagram_handle}</span>
                     </a>
                   )}
                   {creator.tiktok_handle && (
@@ -401,13 +680,10 @@ export function CreatorDetailModal({
                       href={`https://tiktok.com/@${creator.tiktok_handle}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2.5 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover linear-transition"
+                      className="flex items-center gap-2 text-xs group"
                     >
-                      <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">TikTok</div>
-                        <div className="text-sm font-medium truncate">@{creator.tiktok_handle}</div>
-                      </div>
+                      <span className="w-16 dark:text-gray-400 light:text-gray-500">TikTok</span>
+                      <span className="dark:text-white light:text-gray-900 group-hover:text-linear-accent linear-transition truncate">@{creator.tiktok_handle}</span>
                     </a>
                   )}
                   {creator.snapchat_handle && (
@@ -415,18 +691,18 @@ export function CreatorDetailModal({
                       href={`https://snapchat.com/add/${creator.snapchat_handle}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2.5 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover linear-transition"
+                      className="flex items-center gap-2 text-xs group"
                     >
-                      <Link2 className="w-4 h-4 dark:text-text-secondary light:text-text-light-secondary flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Snapchat</div>
-                        <div className="text-sm font-medium truncate">@{creator.snapchat_handle}</div>
-                      </div>
+                      <span className="w-16 dark:text-gray-400 light:text-gray-500">Snapchat</span>
+                      <span className="dark:text-white light:text-gray-900 group-hover:text-linear-accent linear-transition truncate">@{creator.snapchat_handle}</span>
                     </a>
+                  )}
+                  {!creator.instagram_handle && !creator.tiktok_handle && !creator.snapchat_handle && !creator.discount_code && (
+                    <p className="text-xs dark:text-text-tertiary light:text-gray-500">No social media linked</p>
                   )}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {creator.tags && creator.tags.length > 0 && (
