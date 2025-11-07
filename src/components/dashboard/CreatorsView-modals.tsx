@@ -216,6 +216,15 @@ export function CreatorDetailModal({
   const [sortBy, setSortBy] = useState<'roi' | 'revenue'>('roi');
   const [isExporting, setIsExporting] = useState(false);
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const totalRevenue = adSets.reduce((sum, adSet) => sum + (Number(adSet.revenue) || 0), 0);
   const totalSpend = adSets.reduce((sum, adSet) => sum + (Number(adSet.spend) || 0), 0);
   const profit = totalRevenue - totalSpend;
@@ -296,13 +305,6 @@ export function CreatorDetailModal({
     ? `Top Campaign: ${topCampaign.campaign.name} (ROI +${Math.round(topCampaign.roi)}%) • Total Revenue ${formatCurrency(totalRevenue)} across ${campaignPerformance.length} campaign${campaignPerformance.length !== 1 ? 's' : ''}.`
     : `No campaign data available yet.`;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount);
-  };
-
   const getPrimaryHandle = () => {
     return creator.instagram_handle || creator.tiktok_handle || creator.snapchat_handle;
   };
@@ -321,28 +323,37 @@ export function CreatorDetailModal({
   };
 
   const handleExportPDF = () => {
-    setIsExporting(true);
-    const campaignsData = campaignPerformance.map(cp => ({
-      name: cp.campaign.name,
-      status: cp.status,
-      total_ad_sets: cp.adSetCount,
-      active_ad_sets: cp.status === 'active' ? cp.adSetCount : 0,
-      total_spend: cp.spend,
-      total_revenue: cp.revenue,
-      roi: cp.roi,
-    }));
+    if (campaignPerformance.length === 0) return;
 
-    exportAnalyticsPdf(
-      campaignsData,
-      [],
-      [],
-      performanceSummary,
-      `${creator.name} Performance Report`
-    );
-    setTimeout(() => setIsExporting(false), 1000);
+    setIsExporting(true);
+    try {
+      const campaignsData = campaignPerformance.map(cp => ({
+        name: cp.campaign.name,
+        status: cp.status,
+        total_ad_sets: cp.adSetCount,
+        active_ad_sets: cp.status === 'active' ? cp.adSetCount : 0,
+        total_spend: cp.spend,
+        total_revenue: cp.revenue,
+        roi: cp.roi,
+      }));
+
+      exportAnalyticsPdf(
+        campaignsData,
+        [],
+        [],
+        performanceSummary,
+        `${creator.name} Performance Report`
+      );
+    } catch (error) {
+      console.error('PDF export error:', error);
+    } finally {
+      setTimeout(() => setIsExporting(false), 1000);
+    }
   };
 
   const handleExportCSV = () => {
+    if (campaignPerformance.length === 0) return;
+
     const csvData = campaignPerformance.map(cp => ({
       'Campaign': cp.campaign.name,
       'Status': cp.status,
@@ -352,7 +363,7 @@ export function CreatorDetailModal({
       'ROI (%)': cp.roi.toFixed(2),
     }));
 
-    const headers = Object.keys(csvData[0] || {});
+    const headers = Object.keys(csvData[0]);
     const csvContent = [
       headers.join(','),
       ...csvData.map(row => headers.map(h => row[h as keyof typeof row]).join(','))
