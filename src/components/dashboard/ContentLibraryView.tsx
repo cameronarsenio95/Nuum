@@ -10,7 +10,7 @@ type Creator = Database['public']['Tables']['creators']['Row'];
 interface ContentMediaItem {
   id: string;
   workspace_id: string;
-  creator_id: string;
+  creator_id: string | null;
   campaign_id: string | null;
   file_name: string;
   file_type: string;
@@ -19,12 +19,12 @@ interface ContentMediaItem {
   title: string | null;
   description: string | null;
   platform: 'TikTok' | 'Instagram' | 'Snapchat' | 'YouTube' | 'Other' | null;
-  performance_views: number;
-  performance_revenue: number;
-  tags: string[];
+  performance_views: number | null;
+  performance_revenue: number | null;
+  tags: string[] | null;
   created_at: string;
-  creators?: { name: string };
-  campaigns?: { name: string };
+  creators?: { name: string } | null;
+  campaigns?: { name: string } | null;
 }
 
 interface ContentLibraryViewProps {
@@ -224,19 +224,21 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     }
   };
 
-  const formatRevenue = (amount: number) => {
+  const formatRevenue = (amount: number | null | undefined) => {
+    const value = amount ?? 0;
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(value);
   };
 
-  const formatViews = (views: number) => {
-    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
-    if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
-    return views.toString();
+  const formatViews = (views: number | null | undefined) => {
+    const value = views ?? 0;
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+    return value.toString();
   };
 
   if (loading) {
@@ -354,18 +356,23 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               key={item.id}
               className="group dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-lg overflow-hidden hover:shadow-lg hover:shadow-[#2A53D0]/20 transition-all cursor-pointer"
               onClick={() => {
-                setSelectedContent(item);
-                setShowDetailModal(true);
+                if (item && item.id) {
+                  setSelectedContent(item);
+                  setShowDetailModal(true);
+                }
               }}
             >
               <div className="relative aspect-video dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle flex items-center justify-center overflow-hidden">
-                {item.file_type.startsWith('image/') ? (
+                {item.file_type?.startsWith('image/') ? (
                   <img
                     src={item.file_url}
                     alt={item.title || item.file_name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
-                ) : item.file_type.startsWith('video/') ? (
+                ) : item.file_type?.startsWith('video/') ? (
                   <>
                     <video
                       src={item.file_url}
@@ -375,7 +382,11 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                       <Play className="w-12 h-12 text-white" />
                     </div>
                   </>
-                ) : null}
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <Upload className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary" />
+                  </div>
+                )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-center">
@@ -390,7 +401,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{item.creators?.name}</p>
+                    <p className="font-medium text-sm truncate">{item.creators?.name || 'Unknown Creator'}</p>
                     {item.campaigns?.name && (
                       <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary truncate">
                         {item.campaigns.name}
@@ -404,15 +415,15 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   )}
                 </div>
 
-                {(item.performance_revenue > 0 || item.performance_views > 0) && (
+                {((item.performance_revenue ?? 0) > 0 || (item.performance_views ?? 0) > 0) && (
                   <div className="flex items-center gap-3 text-xs dark:text-text-secondary light:text-text-light-secondary">
-                    {item.performance_revenue > 0 && (
+                    {(item.performance_revenue ?? 0) > 0 && (
                       <span className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3" />
                         {formatRevenue(item.performance_revenue)}
                       </span>
                     )}
-                    {item.performance_views > 0 && (
+                    {(item.performance_views ?? 0) > 0 && (
                       <span className="flex items-center gap-1">
                         <Eye className="w-3 h-3" />
                         {formatViews(item.performance_views)}
@@ -562,25 +573,43 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
 
             <div className="p-5">
               <div className="aspect-video dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg overflow-hidden mb-5">
-                {selectedContent.file_type.startsWith('image/') ? (
+                {selectedContent.file_type?.startsWith('image/') ? (
                   <img
                     src={selectedContent.file_url}
                     alt={selectedContent.title || selectedContent.file_name}
                     className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="flex items-center justify-center h-full"><p class="dark:text-text-tertiary light:text-text-light-tertiary">Image preview unavailable</p></div>';
+                      }
+                    }}
                   />
-                ) : selectedContent.file_type.startsWith('video/') ? (
+                ) : selectedContent.file_type?.startsWith('video/') ? (
                   <video
                     src={selectedContent.file_url}
                     controls
                     className="w-full h-full"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="flex items-center justify-center h-full"><p class="dark:text-text-tertiary light:text-text-light-tertiary">Video preview unavailable</p></div>';
+                      }
+                    }}
                   />
-                ) : null}
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="dark:text-text-tertiary light:text-text-light-tertiary">File preview unavailable</p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-lg font-medium mb-1">{selectedContent.creators?.name}</h4>
+                    <h4 className="text-lg font-medium mb-1">{selectedContent.creators?.name || 'Unknown Creator'}</h4>
                     {selectedContent.platform && (
                       <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getPlatformColor(selectedContent.platform)}`}>
                         {selectedContent.platform}
@@ -614,11 +643,11 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   </div>
                 </div>
 
-                {selectedContent.performance_revenue > 0 && selectedContent.performance_views > 0 && (
+                {(selectedContent.performance_revenue ?? 0) > 0 && (selectedContent.performance_views ?? 0) > 0 && (
                   <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
                     <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">ROI per 1K Views</p>
                     <p className="text-xl font-semibold">
-                      {formatRevenue((selectedContent.performance_revenue / selectedContent.performance_views) * 1000)}
+                      {formatRevenue(((selectedContent.performance_revenue ?? 0) / (selectedContent.performance_views ?? 1)) * 1000)}
                     </p>
                   </div>
                 )}
