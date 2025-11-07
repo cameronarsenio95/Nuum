@@ -1,30 +1,24 @@
 import { useState, useEffect } from 'react';
-import { Upload, X, Play, Download, Eye, TrendingUp, Filter } from 'lucide-react';
+import { Upload, X, Play, Download, Eye, Filter } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
-type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
 
 interface ContentMediaItem {
   id: string;
   workspace_id: string;
-  creator_id: string | null;
-  campaign_id: string | null;
+  creator_id: string;
   file_name: string;
   file_type: string;
   file_size: number;
   file_url: string;
   title: string | null;
   description: string | null;
-  platform: 'TikTok' | 'Instagram' | 'Snapchat' | 'YouTube' | 'Other' | null;
-  performance_views: number | null;
-  performance_revenue: number | null;
   tags: string[] | null;
   created_at: string;
   creators?: { name: string } | null;
-  campaigns?: { name: string } | null;
 }
 
 interface ContentLibraryViewProps {
@@ -33,7 +27,6 @@ interface ContentLibraryViewProps {
 
 export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const [content, setContent] = useState<ContentMediaItem[]>([]);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -42,17 +35,13 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const [uploading, setUploading] = useState(false);
 
   const [filters, setFilters] = useState({
-    campaign: 'all',
     creator: 'all',
-    platform: 'all',
     sortBy: 'newest'
   });
 
   const [uploadForm, setUploadForm] = useState({
     file: null as File | null,
-    campaign_id: '',
-    creator_id: '',
-    platform: ''
+    creator_id: ''
   });
 
   useEffect(() => {
@@ -85,7 +74,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const loadData = async () => {
     await Promise.all([
       loadContent(),
-      loadCampaigns(),
       loadCreators()
     ]);
     setLoading(false);
@@ -96,8 +84,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       .from('content_media')
       .select(`
         *,
-        creators(name),
-        campaigns(name)
+        creators(name)
       `)
       .eq('workspace_id', workspace.id)
       .order('created_at', { ascending: false });
@@ -106,20 +93,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       console.error('Error loading content:', error);
     } else {
       setContent(data || []);
-    }
-  };
-
-  const loadCampaigns = async () => {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('workspace_id', workspace.id)
-      .order('name');
-
-    if (error) {
-      console.error('Error loading campaigns:', error);
-    } else {
-      setCampaigns(data || []);
     }
   };
 
@@ -162,14 +135,10 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         .insert({
           workspace_id: workspace.id,
           creator_id: uploadForm.creator_id,
-          campaign_id: uploadForm.campaign_id || null,
           file_name: uploadForm.file.name,
           file_type: uploadForm.file.type,
           file_size: uploadForm.file.size,
           file_url: urlData.publicUrl,
-          platform: uploadForm.platform as any,
-          performance_views: 0,
-          performance_revenue: 0,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id
         });
 
@@ -178,9 +147,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       setShowUploadModal(false);
       setUploadForm({
         file: null,
-        campaign_id: '',
-        creator_id: '',
-        platform: ''
+        creator_id: ''
       });
       loadContent();
     } catch (error: any) {
@@ -192,50 +159,11 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   };
 
   const filteredContent = content.filter(item => {
-    if (filters.campaign !== 'all' && item.campaign_id !== filters.campaign) return false;
     if (filters.creator !== 'all' && item.creator_id !== filters.creator) return false;
-    if (filters.platform !== 'all' && item.platform !== filters.platform) return false;
     return true;
   }).sort((a, b) => {
-    switch (filters.sortBy) {
-      case 'views':
-        return (b.performance_views || 0) - (a.performance_views || 0);
-      case 'revenue':
-        return (b.performance_revenue || 0) - (a.performance_revenue || 0);
-      default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
-
-  const getPlatformColor = (platform: string | null) => {
-    switch (platform) {
-      case 'TikTok':
-        return 'bg-[#EE1D52]';
-      case 'Instagram':
-        return 'bg-[#E1306C]';
-      case 'Snapchat':
-        return 'bg-[#FFFC00] text-black';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const formatRevenue = (amount: number | null | undefined) => {
-    const value = amount ?? 0;
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
-
-  const formatViews = (views: number | null | undefined) => {
-    const value = views ?? 0;
-    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-    return value.toString();
-  };
 
   if (loading) {
     return (
@@ -271,21 +199,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
           <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
           <span className="text-sm font-medium dark:text-text-secondary light:text-text-light-secondary">Filters</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm mb-2 dark:text-text-secondary light:text-text-light-secondary">Campaign</label>
-            <select
-              value={filters.campaign}
-              onChange={(e) => setFilters({ ...filters, campaign: e.target.value })}
-              className="w-full px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg text-sm focus:outline-none focus:border-linear-accent"
-            >
-              <option value="all">All Campaigns</option>
-              {campaigns.map(campaign => (
-                <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
-              ))}
-            </select>
-          </div>
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-2 dark:text-text-secondary light:text-text-light-secondary">Creator</label>
             <select
@@ -297,34 +211,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               {creators.map(creator => (
                 <option key={creator.id} value={creator.id}>{creator.name}</option>
               ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm mb-2 dark:text-text-secondary light:text-text-light-secondary">Platform</label>
-            <select
-              value={filters.platform}
-              onChange={(e) => setFilters({ ...filters, platform: e.target.value })}
-              className="w-full px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg text-sm focus:outline-none focus:border-linear-accent"
-            >
-              <option value="all">All Platforms</option>
-              <option value="TikTok">TikTok</option>
-              <option value="Instagram">Instagram</option>
-              <option value="Snapchat">Snapchat</option>
-              <option value="YouTube">YouTube</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm mb-2 dark:text-text-secondary light:text-text-light-secondary">Sort By</label>
-            <select
-              value={filters.sortBy}
-              onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-              className="w-full px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg text-sm focus:outline-none focus:border-linear-accent"
-            >
-              <option value="newest">Newest</option>
-              <option value="views">Most Views</option>
-              <option value="revenue">Highest Revenue</option>
             </select>
           </div>
         </div>
@@ -395,38 +281,14 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               </div>
 
               <div className="p-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{item.creators?.name || 'Unknown Creator'}</p>
-                    {item.campaigns?.name && (
-                      <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary truncate">
-                        {item.campaigns.name}
-                      </p>
-                    )}
+                    <p className="text-xs dark:text-text-tertiary light:text-text-light-tertiary truncate">
+                      {new Date(item.created_at).toLocaleDateString('nl-NL')}
+                    </p>
                   </div>
-                  {item.platform && (
-                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${getPlatformColor(item.platform)}`}>
-                      {item.platform}
-                    </span>
-                  )}
                 </div>
-
-                {((item.performance_revenue ?? 0) > 0 || (item.performance_views ?? 0) > 0) && (
-                  <div className="flex items-center gap-3 text-xs dark:text-text-secondary light:text-text-light-secondary">
-                    {(item.performance_revenue ?? 0) > 0 && (
-                      <span className="flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" />
-                        {formatRevenue(item.performance_revenue)}
-                      </span>
-                    )}
-                    {(item.performance_views ?? 0) > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {formatViews(item.performance_views)}
-                      </span>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -459,21 +321,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Campaign</label>
-                <select
-                  value={uploadForm.campaign_id}
-                  onChange={(e) => setUploadForm({ ...uploadForm, campaign_id: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent"
-                  required
-                >
-                  <option value="">Select Campaign</option>
-                  {campaigns.map(campaign => (
-                    <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium mb-2">Creator</label>
                 <select
                   value={uploadForm.creator_id}
@@ -485,23 +332,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   {creators.map(creator => (
                     <option key={creator.id} value={creator.id}>{creator.name}</option>
                   ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Platform</label>
-                <select
-                  value={uploadForm.platform}
-                  onChange={(e) => setUploadForm({ ...uploadForm, platform: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent"
-                  required
-                >
-                  <option value="">Select Platform</option>
-                  <option value="TikTok">TikTok</option>
-                  <option value="Instagram">Instagram</option>
-                  <option value="Snapchat">Snapchat</option>
-                  <option value="YouTube">YouTube</option>
-                  <option value="Other">Other</option>
                 </select>
               </div>
 
@@ -591,26 +421,30 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
-                    <p className="text-xs uppercase dark:text-text-tertiary light:text-text-light-tertiary mb-2 opacity-70">Campaign</p>
-                    <p className="text-base font-medium">{selectedContent.campaigns?.name || 'No campaign'}</p>
+                <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
+                  <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">File Information</p>
+                  <div className="space-y-2 mt-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">File Name</span>
+                      <span className="font-medium">{selectedContent.file_name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">File Type</span>
+                      <span className="font-medium">{selectedContent.file_type}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">File Size</span>
+                      <span className="font-medium">{(selectedContent.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">Uploaded</span>
+                      <span className="font-medium">{new Date(selectedContent.created_at).toLocaleDateString('nl-NL', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}</span>
+                    </div>
                   </div>
-                  <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
-                    <p className="text-xs uppercase dark:text-text-tertiary light:text-text-light-tertiary mb-2 opacity-70">Platform</p>
-                    <p className="text-base font-medium">{selectedContent.platform || 'Not specified'}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">Uploaded</p>
-                  <p>{new Date(selectedContent.created_at).toLocaleDateString('nl-NL', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}</p>
                 </div>
               </div>
             </div>
