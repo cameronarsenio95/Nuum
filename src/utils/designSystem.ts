@@ -8,18 +8,19 @@ export const NUUM_COLORS = {
   accentHover: '#1E3BA1',
   textPrimary: '#FFFFFF',
   textSecondary: '#B0B0B0',
-  textTertiary: '#6B6B6B',
+  textMuted: '#666666',
   success: '#38E29F',
   successMuted: 'rgba(56, 226, 159, 0.6)',
-  error: '#E74C3C',
+  error: '#C34B4B',
   errorMuted: 'rgba(231, 76, 60, 0.5)',
-  warning: '#F39C12',
-  warningMuted: 'rgba(243, 156, 18, 0.5)',
+  warning: '#E6B450',
+  warningMuted: 'rgba(230, 180, 80, 0.5)',
 } as const;
 
 export const STATUS_COLORS = {
   active: '#3E7C6D',
   completed: '#3B4A5C',
+  done: '#36454F',
   draft: '#5A5454',
   pending: '#6B5B3A',
   cancelled: '#4A3B3B',
@@ -32,15 +33,18 @@ export const TRANSITIONS = {
 } as const;
 
 export const SHADOWS = {
-  card: 'shadow-sm',
-  cardHover: 'shadow-md',
-  modal: 'shadow-2xl',
+  card: 'shadow-[0_0_8px_rgba(0,0,0,0.2)]',
+  cardHover: 'shadow-[0_0_12px_rgba(42,83,208,0.15)]',
+  modal: 'shadow-[0_8px_32px_rgba(0,0,0,0.5)]',
 } as const;
 
 export const SPACING = {
-  cardPadding: 'p-4 lg:p-6',
+  cardPadding: 'p-4 md:p-5',
   sectionGap: 'gap-6',
-  horizontalPadding: 'px-8 lg:px-10',
+  outerPadding: 'p-8',
+  cardGap: 'gap-6',
+  verticalRhythm: 'space-y-10',
+  sectionHeaderMargin: 'mb-6',
 } as const;
 
 export const RADIUS = {
@@ -55,18 +59,22 @@ export const getStatusColorClass = (status: string): string => {
   switch (statusLower) {
     case 'active':
     case 'in progress':
-      return 'bg-[#3E7C6D] text-white';
+    case 'in_progress':
+      return 'bg-[#3E7C6D] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
     case 'completed':
+      return 'bg-[#3B4A5C] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
     case 'done':
-      return 'bg-[#3B4A5C] text-white';
+      return 'bg-[#36454F] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
     case 'draft':
-      return 'bg-[#5A5454] text-white';
+      return 'bg-[#5A5454] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
     case 'pending':
-      return 'bg-[#6B5B3A] text-white';
+    case 'todo':
+      return 'bg-[#6B5B3A] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
     case 'cancelled':
-      return 'bg-[#4A3B3B] text-white';
+    case 'archived':
+      return 'bg-[#4A3B3B] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
     default:
-      return 'bg-[#2A2A2A] text-gray-300';
+      return 'bg-[#2A2A2A] text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full';
   }
 };
 
@@ -85,3 +93,18 @@ export const getPlatformColorClass = (platform: string): string => {
       return 'bg-[#1C1C1C] border-[#2A2A2A]';
   }
 };
+
+export const getCardStyles = () => ({
+  backgroundColor: NUUM_COLORS.surface,
+  borderColor: NUUM_COLORS.border,
+  borderWidth: '1px',
+  borderRadius: '12px',
+  padding: '16px',
+  boxShadow: '0 0 8px rgba(0,0,0,0.2)',
+  transition: 'all 150ms ease-in-out',
+});
+
+export const getCardHoverStyles = () => ({
+  borderColor: NUUM_COLORS.borderHover,
+  transform: 'scale(1.02)',
+});

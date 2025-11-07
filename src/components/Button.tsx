@@ -24,21 +24,21 @@ export function Button({
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: NUUM_COLORS.textPrimary,
-          color: NUUM_COLORS.background,
-          border: 'none',
+          backgroundColor: 'transparent',
+          color: NUUM_COLORS.textPrimary,
+          border: `1px solid ${NUUM_COLORS.accent}`,
         };
       case 'secondary':
         return {
           backgroundColor: 'transparent',
-          color: NUUM_COLORS.textSecondary,
-          border: `1px solid ${NUUM_COLORS.border}`,
+          color: '#9CA3AF',
+          border: '1px solid #1E1E1E',
         };
       case 'danger':
         return {
           backgroundColor: 'transparent',
-          color: '#C34B4B',
-          border: '1px solid #C34B4B',
+          color: NUUM_COLORS.error,
+          border: `1px solid rgba(195, 75, 75, 0.4)`,
         };
       default:
         return {};
@@ -53,10 +53,9 @@ export function Button({
       onMouseEnter={(e) => {
         if (!disabled) {
           if (variant === 'primary') {
-            e.currentTarget.style.backgroundColor = '#f5f5f5';
+            e.currentTarget.style.backgroundColor = 'rgba(42, 83, 208, 0.1)';
           } else if (variant === 'secondary') {
-            e.currentTarget.style.borderColor = NUUM_COLORS.borderHover;
-            e.currentTarget.style.color = NUUM_COLORS.textPrimary;
+            e.currentTarget.style.borderColor = 'rgba(42, 83, 208, 0.6)';
           } else if (variant === 'danger') {
             e.currentTarget.style.backgroundColor = 'rgba(195, 75, 75, 0.1)';
           }
