@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, Edit2, Trash2, X, User, Check, Circle, Clock } from 'lucide-react';
+import { Plus, Calendar, User, X, AlertCircle, TrendingUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWritePermission } from '../../hooks/useWritePermission';
@@ -7,7 +7,6 @@ import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Task = Database['public']['Tables']['tasks']['Row'];
-type WorkspaceMember = Database['public']['Tables']['workspace_members']['Row'];
 
 interface UserProfile {
   id: string;
@@ -26,10 +25,8 @@ export function TasksView({ workspace }: TasksViewProps) {
   const [teamMembers, setTeamMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -108,23 +105,17 @@ export function TasksView({ workspace }: TasksViewProps) {
     }
   };
 
-  const handleUpdateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateTask = async (updatedFields: Partial<Task>) => {
     if (!selectedTask) return;
 
     if (!checkWritePermission('update tasks')) {
-      setShowEditModal(false);
       return;
     }
 
     const { error } = await supabase
       .from('tasks')
       .update({
-        title: newTask.title,
-        description: newTask.description || null,
-        priority: newTask.priority,
-        due_date: newTask.due_date || null,
-        assigned_to: newTask.assigned_to || null,
+        ...updatedFields,
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedTask.id);
@@ -132,55 +123,41 @@ export function TasksView({ workspace }: TasksViewProps) {
     if (error) {
       console.error('Error updating task:', error);
     } else {
-      setShowEditModal(false);
-      setSelectedTask(null);
-      resetForm();
+      setSelectedTask({ ...selectedTask, ...updatedFields } as Task);
       loadTasks();
     }
   };
 
   const handleDeleteTask = async () => {
-    if (!taskToDelete) return;
+    if (!selectedTask) return;
 
     const { error } = await supabase
       .from('tasks')
       .delete()
-      .eq('id', taskToDelete.id);
+      .eq('id', selectedTask.id);
 
     if (error) {
       console.error('Error deleting task:', error);
     } else {
-      setShowDeleteConfirm(false);
-      setTaskToDelete(null);
+      setShowDetailDrawer(false);
+      setSelectedTask(null);
       loadTasks();
     }
   };
 
-  const openEditModal = (task: Task) => {
+  const openTaskDetail = (task: Task) => {
     setSelectedTask(task);
-    setNewTask({
-      title: task.title,
-      description: task.description || '',
-      priority: task.priority as any,
-      due_date: task.due_date || '',
-      assigned_to: task.assigned_to || '',
-    });
-    setShowEditModal(true);
-  };
-
-  const openDeleteConfirm = (task: Task) => {
-    setTaskToDelete(task);
-    setShowDeleteConfirm(true);
+    setShowDetailDrawer(true);
   };
 
   const resetForm = () => {
     setNewTask({ title: '', description: '', priority: 'medium', due_date: '', assigned_to: '' });
   };
 
-  const updateTaskStatus = async (taskId: string, status: string) => {
+  const updateTaskStatus = async (taskId: string, newStatus: string) => {
     const { error } = await supabase
       .from('tasks')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
       .eq('id', taskId);
 
     if (error) {
@@ -190,53 +167,25 @@ export function TasksView({ workspace }: TasksViewProps) {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'done':
-        return 'text-linear-success bg-linear-success/10 border-linear-success-border/20';
-      case 'in_progress':
-        return 'text-linear-info bg-linear-info/10 border-linear-info-border/20';
-      default:
-        return 'text-text-tertiary bg-text-tertiary/10 border-linear-border/20';
-    }
-  };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'text-linear-error bg-linear-error/10 border-linear-error-border/20';
+        return 'text-red-400 bg-red-400/10 border-red-400/20';
       case 'high':
         return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
       case 'medium':
-        return 'text-linear-warning bg-linear-warning/10 border-linear-warning-border/20';
+        return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
       default:
-        return 'text-text-tertiary bg-text-tertiary/10 border-linear-border/20';
+        return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
     }
   };
 
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'done':
-        return <Check className="w-4 h-4" />;
-      case 'in_progress':
-        return <Clock className="w-4 h-4" />;
-      default:
-        return <Circle className="w-4 h-4" />;
-    }
-  };
-
-  const filteredTasks = filterStatus === 'all'
-    ? tasks
-    : tasks.filter(t => t.status === filterStatus);
-
-  const statusCounts = {
-    all: tasks.length,
-    todo: tasks.filter(t => t.status === 'todo').length,
-    in_progress: tasks.filter(t => t.status === 'in_progress').length,
-    done: tasks.filter(t => t.status === 'done').length,
-  };
+  const todoTasks = tasks.filter(t => t.status === 'todo');
+  const inProgressTasks = tasks.filter(t => t.status === 'in_progress');
+  const doneTasks = tasks.filter(t => t.status === 'done');
+  const completedCount = doneTasks.length;
+  const totalCount = tasks.length;
+  const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   if (loading) {
     return <div className="text-text-secondary">Loading tasks...</div>;
@@ -244,10 +193,10 @@ export function TasksView({ workspace }: TasksViewProps) {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl md:text-2xl font-medium mb-2">Tasks</h2>
-          <p className="text-sm md:text-base text-text-secondary">Track your team's work and progress</p>
+          <p className="text-sm md:text-base text-text-secondary">Organize your work in a visual board</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -258,35 +207,29 @@ export function TasksView({ workspace }: TasksViewProps) {
         </button>
       </div>
 
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-        {[
-          { value: 'all', label: 'All' },
-          { value: 'todo', label: 'To Do' },
-          { value: 'in_progress', label: 'In Progress' },
-          { value: 'done', label: 'Done' },
-        ].map((filter) => (
-          <button
-            key={filter.value}
-            onClick={() => setFilterStatus(filter.value)}
-            className={`px-4 py-2 rounded-linear text-sm whitespace-nowrap linear-transition ${
-              filterStatus === filter.value
-                ? 'bg-white text-black'
-                : 'bg-linear-bg-secondary text-text-secondary hover:bg-linear-bg-subtle border border-linear-border-subtle'
-            }`}
-          >
-            {filter.label}
-            <span className="ml-2 text-xs opacity-60">
-              {statusCounts[filter.value as keyof typeof statusCounts]}
-            </span>
-          </button>
-        ))}
+      <div className="mb-6 p-4 bg-linear-bg-secondary border border-linear-border-subtle rounded-linear-lg">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-linear-accent" />
+            <span className="text-sm font-medium">Progress</span>
+          </div>
+          <span className="text-sm text-text-secondary">
+            {completedCount} / {totalCount} completed
+          </span>
+        </div>
+        <div className="w-full h-2 bg-linear-bg rounded-full overflow-hidden">
+          <div
+            className="h-full bg-linear-accent transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
       </div>
 
       {tasks.length === 0 ? (
         <div className="text-center py-20 bg-linear-bg-secondary border border-linear-border-subtle rounded-linear-lg">
-          <CheckSquare className="w-12 h-12 text-text-tertiary mx-auto mb-4" />
+          <AlertCircle className="w-12 h-12 text-text-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No tasks yet</h3>
-          <p className="text-text-secondary mb-6">Create your first task to start tracking work</p>
+          <p className="text-text-secondary mb-6">Create your first task to start organizing work</p>
           <button
             onClick={() => setShowCreateModal(true)}
             className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
@@ -294,90 +237,32 @@ export function TasksView({ workspace }: TasksViewProps) {
             Create Task
           </button>
         </div>
-      ) : filteredTasks.length === 0 ? (
-        <div className="text-center py-12 bg-linear-bg-secondary border border-linear-border-subtle rounded-linear-lg">
-          <p className="text-text-secondary">No tasks in this category</p>
-        </div>
       ) : (
-        <div className="space-y-3">
-          {filteredTasks.map((task) => {
-            const assignedMember = teamMembers.find(m => m.id === task.assigned_to);
-            return (
-              <div
-                key={task.id}
-                className="bg-linear-bg-secondary border border-linear-border-subtle rounded-linear-lg p-4 hover:border-linear-border linear-transition group"
-              >
-                <div className="flex items-start gap-4">
-                  <button
-                    onClick={() => updateTaskStatus(task.id, task.status === 'done' ? 'todo' : 'done')}
-                    className={`mt-1 rounded-full p-0.5 linear-transition ${
-                      task.status === 'done'
-                        ? 'bg-linear-success text-black'
-                        : 'border-2 border-linear-border hover:border-linear-accent'
-                    }`}
-                  >
-                    {task.status === 'done' ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      <div className="w-4 h-4" />
-                    )}
-                  </button>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <h3 className={`text-base font-medium ${task.status === 'done' ? 'line-through opacity-60' : ''}`}>
-                        {task.title}
-                      </h3>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(task.priority)}`}>
-                          {task.priority}
-                        </span>
-                        <button
-                          onClick={() => openEditModal(task)}
-                          className="p-2 hover:bg-linear-bg-subtle rounded-linear opacity-0 group-hover:opacity-100 linear-transition"
-                          title="Edit task"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => openDeleteConfirm(task)}
-                          className="p-2 hover:bg-linear-error-subtle text-linear-error rounded-linear opacity-0 group-hover:opacity-100 linear-transition"
-                          title="Delete task"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {task.description && (
-                      <p className="text-sm text-text-secondary mb-3">{task.description}</p>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-text-tertiary">
-                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded border ${getStatusColor(task.status)}`}>
-                        {getStatusIcon(task.status)}
-                        <span className="capitalize text-xs">{task.status.replace('_', ' ')}</span>
-                      </div>
-
-                      {assignedMember && (
-                        <div className="flex items-center gap-1.5">
-                          <User className="w-4 h-4" />
-                          <span className="text-xs">{assignedMember.name}</span>
-                        </div>
-                      )}
-
-                      {task.due_date && (
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4" />
-                          <span className="text-xs">{new Date(task.due_date).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TaskColumn
+            title="To Do"
+            count={todoTasks.length}
+            tasks={todoTasks}
+            teamMembers={teamMembers}
+            onTaskClick={openTaskDetail}
+            getPriorityColor={getPriorityColor}
+          />
+          <TaskColumn
+            title="In Progress"
+            count={inProgressTasks.length}
+            tasks={inProgressTasks}
+            teamMembers={teamMembers}
+            onTaskClick={openTaskDetail}
+            getPriorityColor={getPriorityColor}
+          />
+          <TaskColumn
+            title="Done"
+            count={doneTasks.length}
+            tasks={doneTasks}
+            teamMembers={teamMembers}
+            onTaskClick={openTaskDetail}
+            getPriorityColor={getPriorityColor}
+          />
         </div>
       )}
 
@@ -387,12 +272,13 @@ export function TasksView({ workspace }: TasksViewProps) {
             <h3 className="text-xl font-medium mb-6">Create New Task</h3>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Task Title</label>
+                <label className="block text-sm font-medium mb-2">Title</label>
                 <input
                   type="text"
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                   className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  placeholder="Enter task title..."
                   required
                 />
               </div>
@@ -401,24 +287,36 @@ export function TasksView({ workspace }: TasksViewProps) {
                 <textarea
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent h-24"
+                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent h-24 resize-none"
+                  placeholder="Add a more detailed description..."
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Priority</label>
-                <select
-                  value={newTask.priority}
-                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Priority</label>
+                  <select
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Due Date</label>
+                  <input
+                    type="date"
+                    value={newTask.due_date}
+                    onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  />
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Assign To</label>
+                <label className="block text-sm font-medium mb-2">Assignee</label>
                 <select
                   value={newTask.assigned_to}
                   onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
@@ -431,15 +329,6 @@ export function TasksView({ workspace }: TasksViewProps) {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Due Date</label>
-                <input
-                  type="date"
-                  value={newTask.due_date}
-                  onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
-                />
               </div>
               <div className="flex gap-3 mt-6">
                 <button
@@ -453,7 +342,7 @@ export function TasksView({ workspace }: TasksViewProps) {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
                 >
-                  Create
+                  Create Task
                 </button>
               </div>
             </form>
@@ -461,111 +350,109 @@ export function TasksView({ workspace }: TasksViewProps) {
         </div>
       )}
 
-      {showEditModal && selectedTask && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowEditModal(false)}>
-          <div className="bg-linear-bg-secondary border border-linear-border rounded-linear-lg p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-medium">Edit Task</h3>
-              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-linear-bg-subtle rounded-linear">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleUpdateTask} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Task Title</label>
-                <input
-                  type="text"
-                  value={newTask.title}
-                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
-                <textarea
-                  value={newTask.description}
-                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent h-24"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Priority</label>
-                <select
-                  value={newTask.priority}
-                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Assign To</label>
-                <select
-                  value={newTask.assigned_to}
-                  onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
-                >
-                  <option value="">Unassigned</option>
-                  {teamMembers.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Due Date</label>
-                <input
-                  type="date"
-                  value={newTask.due_date}
-                  onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                  className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
-                />
-              </div>
-              <div className="flex gap-3 mt-6">
+      {showDetailDrawer && selectedTask && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex justify-end"
+          onClick={() => setShowDetailDrawer(false)}
+        >
+          <div
+            className="w-full max-w-md bg-linear-bg-secondary border-l border-linear-border h-full overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-medium">Task Details</h3>
                 <button
-                  type="button"
-                  onClick={() => { setShowEditModal(false); resetForm(); }}
-                  className="flex-1 px-4 py-2 bg-linear-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
+                  onClick={() => setShowDetailDrawer(false)}
+                  className="p-2 hover:bg-linear-bg-subtle rounded-linear linear-transition"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
-                >
-                  Save Changes
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {showDeleteConfirm && taskToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-linear-bg-secondary border border-linear-border rounded-linear-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-medium mb-4">Delete Task</h3>
-            <p className="text-text-secondary mb-6">
-              Are you sure you want to delete <span className="font-medium text-text-primary">"{taskToDelete.title}"</span>? This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2 bg-linear-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteTask}
-                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-linear linear-transition"
-              >
-                Delete
-              </button>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Title</label>
+                  <input
+                    type="text"
+                    value={selectedTask.title}
+                    onChange={(e) => handleUpdateTask({ title: e.target.value })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <textarea
+                    value={selectedTask.description || ''}
+                    onChange={(e) => handleUpdateTask({ description: e.target.value })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent h-32 resize-none"
+                    placeholder="Add a description..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <select
+                    value={selectedTask.status}
+                    onChange={(e) => handleUpdateTask({ status: e.target.value })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Priority</label>
+                  <select
+                    value={selectedTask.priority}
+                    onChange={(e) => handleUpdateTask({ priority: e.target.value })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Assignee</label>
+                  <select
+                    value={selectedTask.assigned_to || ''}
+                    onChange={(e) => handleUpdateTask({ assigned_to: e.target.value || null })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  >
+                    <option value="">Unassigned</option>
+                    {teamMembers.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.name} ({member.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Due Date</label>
+                  <input
+                    type="date"
+                    value={selectedTask.due_date || ''}
+                    onChange={(e) => handleUpdateTask({ due_date: e.target.value || null })}
+                    className="w-full px-4 py-2 bg-linear-bg border border-linear-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-linear-border">
+                  <button
+                    onClick={handleDeleteTask}
+                    className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-linear linear-transition"
+                  >
+                    Delete Task
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -574,22 +461,75 @@ export function TasksView({ workspace }: TasksViewProps) {
   );
 }
 
-function CheckSquare(props: React.SVGProps<SVGSVGElement>) {
+interface TaskColumnProps {
+  title: string;
+  count: number;
+  tasks: Task[];
+  teamMembers: UserProfile[];
+  onTaskClick: (task: Task) => void;
+  getPriorityColor: (priority: string) => string;
+}
+
+function TaskColumn({ title, count, tasks, teamMembers, onTaskClick, getPriorityColor }: TaskColumnProps) {
   return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="9 11 12 14 22 4" />
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-    </svg>
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-text-secondary">{title}</h3>
+        <span className="text-xs px-2 py-1 bg-linear-bg-subtle text-text-tertiary rounded-full">
+          {count}
+        </span>
+      </div>
+      <div className="space-y-3 min-h-[400px]">
+        {tasks.map((task) => {
+          const assignedMember = teamMembers.find(m => m.id === task.assigned_to);
+          return (
+            <div
+              key={task.id}
+              onClick={() => onTaskClick(task)}
+              className="bg-linear-bg-secondary border border-linear-border-subtle hover:border-linear-border rounded-linear-lg p-4 cursor-pointer linear-transition group"
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h4 className="text-sm font-medium flex-1 line-clamp-2 group-hover:text-linear-accent linear-transition">
+                  {task.title}
+                </h4>
+                <span className={`text-xs px-2 py-1 rounded-full border flex-shrink-0 ${getPriorityColor(task.priority)}`}>
+                  {task.priority}
+                </span>
+              </div>
+
+              {task.description && (
+                <p className="text-xs text-text-secondary mb-3 line-clamp-2">
+                  {task.description}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between text-xs text-text-tertiary">
+                <div className="flex items-center gap-1.5">
+                  {assignedMember ? (
+                    <>
+                      <User className="w-3.5 h-3.5" />
+                      <span>{assignedMember.name}</span>
+                    </>
+                  ) : (
+                    <span className="text-text-tertiary/50">Unassigned</span>
+                  )}
+                </div>
+                {task.due_date && (
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>{new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {tasks.length === 0 && (
+          <div className="text-center py-12 text-text-tertiary text-sm">
+            No tasks
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
