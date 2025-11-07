@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { PageLayout } from '../PageLayout';
 import { Card } from '../Card';
 import { Button } from '../Button';
-import { Badge } from '../Badge';
 import { NUUM_COLORS, TYPOGRAPHY, getStatusColorClass } from '../../utils/designSystem';
 import { CampaignDetailModal } from './CampaignDetailModal';
 import type { Database } from '../../lib/database.types';
@@ -24,14 +23,9 @@ interface CampaignsViewProps {
   workspace: Workspace;
 }
 
-type StatusFilter = 'all' | 'active' | 'draft' | 'completed' | 'archived';
-type TimeFilter = 'all' | '30d' | '7d';
-
 export function CampaignsView({ workspace }: CampaignsViewProps) {
   const [campaigns, setCampaigns] = useState<CampaignWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignWithMetrics | null>(null);
 
   useEffect(() => {
@@ -45,7 +39,7 @@ export function CampaignsView({ workspace }: CampaignsViewProps) {
       .from('campaigns')
       .select('*')
       .eq('workspace_id', workspace.id)
-      .order('created_at', { ascending: false });
+      .order('updated_at', { ascending: false });
 
     if (error || !campaignsData) {
       console.error('Error loading campaigns:', error);
@@ -86,34 +80,6 @@ export function CampaignsView({ workspace }: CampaignsViewProps) {
     setLoading(false);
   };
 
-  const filteredCampaigns = campaigns.filter(campaign => {
-    if (statusFilter !== 'all' && campaign.status !== statusFilter) return false;
-
-    if (timeFilter !== 'all') {
-      const createdAt = new Date(campaign.created_at);
-      const now = new Date();
-      const daysAgo = timeFilter === '7d' ? 7 : 30;
-      const cutoff = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-      if (createdAt < cutoff) return false;
-    }
-
-    return true;
-  });
-
-  const FilterButton = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
-    <button
-      onClick={onClick}
-      className="px-3 py-1.5 text-sm rounded-lg transition-all duration-150"
-      style={{
-        backgroundColor: active ? 'rgba(42, 83, 208, 0.08)' : 'transparent',
-        color: active ? NUUM_COLORS.textPrimary : '#C8C8C8',
-        border: `1px solid ${active ? NUUM_COLORS.accent : '#1C1C1C'}`,
-      }}
-    >
-      {children}
-    </button>
-  );
-
   if (loading) {
     return (
       <PageLayout title="Campaigns" subtitle="Manage your campaigns">
@@ -125,36 +91,7 @@ export function CampaignsView({ workspace }: CampaignsViewProps) {
   return (
     <>
       <PageLayout title="Campaigns" subtitle="Manage your campaigns">
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className={TYPOGRAPHY.metadata} style={{ color: NUUM_COLORS.textMuted }}>Status:</span>
-              <div className="flex gap-2">
-                <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>All</FilterButton>
-                <FilterButton active={statusFilter === 'active'} onClick={() => setStatusFilter('active')}>Active</FilterButton>
-                <FilterButton active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')}>Draft</FilterButton>
-                <FilterButton active={statusFilter === 'completed'} onClick={() => setStatusFilter('completed')}>Completed</FilterButton>
-                <FilterButton active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>Archived</FilterButton>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className={TYPOGRAPHY.metadata} style={{ color: NUUM_COLORS.textMuted }}>Time:</span>
-              <div className="flex gap-2">
-                <FilterButton active={timeFilter === 'all'} onClick={() => setTimeFilter('all')}>All time</FilterButton>
-                <FilterButton active={timeFilter === '30d'} onClick={() => setTimeFilter('30d')}>Last 30 days</FilterButton>
-                <FilterButton active={timeFilter === '7d'} onClick={() => setTimeFilter('7d')}>Last 7 days</FilterButton>
-              </div>
-            </div>
-          </div>
-
-          <Button variant="primary" size="md">
-            <Plus className="w-4 h-4 mr-2" />
-            New Campaign
-          </Button>
-        </div>
-
-        {filteredCampaigns.length === 0 ? (
+        {campaigns.length === 0 ? (
           <Card>
             <div className="text-center py-12">
               <p className={TYPOGRAPHY.bodyText} style={{ color: NUUM_COLORS.textSecondary }}>
@@ -163,8 +100,8 @@ export function CampaignsView({ workspace }: CampaignsViewProps) {
             </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredCampaigns.map(campaign => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {campaigns.map(campaign => (
               <Card
                 key={campaign.id}
                 hover
@@ -195,10 +132,14 @@ export function CampaignsView({ workspace }: CampaignsViewProps) {
                   <span style={{ color: NUUM_COLORS.textPrimary }}>{campaign.creators_count}</span>
                 </div>
 
-                <div className="pt-3 border-t" style={{ borderColor: '#1C1C1C' }}>
+                <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: '#1C1C1C' }}>
                   <span className={TYPOGRAPHY.metadata} style={{ color: NUUM_COLORS.textMuted }}>
                     {campaign.content_count} content items
                   </span>
+                  <div className="flex items-center gap-1" style={{ color: '#666666' }}>
+                    <span className="text-xs">View details</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </div>
                 </div>
               </Card>
             ))}
