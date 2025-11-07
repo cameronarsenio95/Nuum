@@ -39,12 +39,22 @@ export const SHADOWS = {
 } as const;
 
 export const SPACING = {
-  cardPadding: 'p-4 md:p-5',
+  cardPadding: 'p-5',
   sectionGap: 'gap-6',
   outerPadding: 'p-8',
   cardGap: 'gap-6',
   verticalRhythm: 'space-y-10',
-  sectionHeaderMargin: 'mb-6',
+  sectionHeaderMargin: 'mb-3',
+  horizontalPadding: 'px-8',
+  verticalSectionGap: 'space-y-10',
+} as const;
+
+export const TYPOGRAPHY = {
+  pageTitle: 'text-xl font-semibold text-white',
+  sectionHeader: 'text-sm text-gray-400 uppercase tracking-wide',
+  bodyText: 'text-sm text-gray-300 leading-relaxed',
+  numeric: 'text-white font-medium',
+  metadata: 'text-xs text-gray-500',
 } as const;
 
 export const RADIUS = {
