@@ -581,11 +581,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                 <div className="flex items-start justify-between">
                   <div>
                     <h4 className="text-lg font-medium mb-1">{selectedContent.creators?.name || 'Unknown Creator'}</h4>
-                    {selectedContent.platform && (
-                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getPlatformColor(selectedContent.platform)}`}>
-                        {selectedContent.platform}
-                      </span>
-                    )}
                   </div>
                   <button
                     onClick={() => window.open(selectedContent.file_url, '_blank')}
@@ -596,32 +591,16 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   </button>
                 </div>
 
-                {selectedContent.campaigns?.name && (
-                  <div>
-                    <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">Campaign</p>
-                    <p className="font-medium">{selectedContent.campaigns.name}</p>
-                  </div>
-                )}
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
-                    <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">Views</p>
-                    <p className="text-2xl font-semibold">{formatViews(selectedContent.performance_views)}</p>
+                    <p className="text-xs uppercase dark:text-text-tertiary light:text-text-light-tertiary mb-2 opacity-70">Campaign</p>
+                    <p className="text-base font-medium">{selectedContent.campaigns?.name || 'No campaign'}</p>
                   </div>
                   <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
-                    <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">Revenue</p>
-                    <p className="text-2xl font-semibold">{formatRevenue(selectedContent.performance_revenue)}</p>
+                    <p className="text-xs uppercase dark:text-text-tertiary light:text-text-light-tertiary mb-2 opacity-70">Platform</p>
+                    <p className="text-base font-medium">{selectedContent.platform || 'Not specified'}</p>
                   </div>
                 </div>
-
-                {(selectedContent.performance_revenue ?? 0) > 0 && (selectedContent.performance_views ?? 0) > 0 && (
-                  <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
-                    <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">ROI per 1K Views</p>
-                    <p className="text-xl font-semibold">
-                      {formatRevenue(((selectedContent.performance_revenue ?? 0) / (selectedContent.performance_views ?? 1)) * 1000)}
-                    </p>
-                  </div>
-                )}
 
                 <div>
                   <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">Uploaded</p>
