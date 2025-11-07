@@ -10,7 +10,7 @@ import { CampaignsView } from '../components/dashboard/CampaignsView';
 import { CreatorsView } from '../components/dashboard/CreatorsView';
 import { TasksView } from '../components/dashboard/TasksView';
 import { TeamView } from '../components/dashboard/TeamView';
-import { ContentView } from '../components/dashboard/ContentView';
+import { ContentLibraryView as ContentView } from '../components/dashboard/ContentLibraryView';
 import { SettingsView } from '../components/dashboard/SettingsView';
 import { NotionsView } from '../components/dashboard/NotionsView';
 import { AdSetsView } from '../components/dashboard/AdSetsView';
