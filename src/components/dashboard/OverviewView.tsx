@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Target, Users, CheckSquare, TrendingUp, Calendar, DollarSign } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
+import { NUUM_COLORS, getStatusColorClass } from '../../utils/designSystem';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -136,45 +137,35 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
     setLoading(false);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-      case 'done':
-        return 'text-linear-success bg-linear-success-subtle border-linear-success-border';
-      case 'completed':
-        return 'text-linear-info bg-linear-info-subtle border-linear-info-border';
-      case 'in_progress':
-        return 'text-linear-warning bg-linear-warning-subtle border-linear-warning-border';
-      default:
-        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
-    }
-  };
 
   if (loading) {
-    return <div className="dark:text-text-secondary light:text-text-light-secondary">Loading overview...</div>;
+    return <div style={{ color: NUUM_COLORS.textSecondary }}>Loading overview...</div>;
   }
 
   return (
     <div className="space-y-6 md:space-y-8">
       <div>
-        <h2 className="text-xl md:text-2xl font-medium mb-2">Overview</h2>
-        <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">Dashboard overview of your workspace</p>
+        <h2 className="text-2xl font-semibold mb-2" style={{ color: NUUM_COLORS.textPrimary }}>Overview</h2>
+        <p className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>Dashboard overview of your workspace</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <button
           onClick={() => onViewChange?.('creators')}
-          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
+          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center dark:text-linear-bg light:text-linear-light-bg">
-              <Users className="w-5 h-5 dark:text-linear-accent light:text-linear-light-accent" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(42, 83, 208, 0.1)' }}>
+              <Users className="w-5 h-5" style={{ color: NUUM_COLORS.accent }} />
             </div>
-            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Creators</span>
+            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Creators</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">{stats.totalCreators}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>{stats.totalCreators}</div>
+            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
               Total creators
             </div>
           </div>
@@ -182,17 +173,20 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
 
         <button
           onClick={() => onViewChange?.('campaigns')}
-          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
+          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
-              <Target className="w-5 h-5 text-linear-info" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(42, 83, 208, 0.1)' }}>
+              <Target className="w-5 h-5" style={{ color: NUUM_COLORS.accent }} />
             </div>
-            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Campaigns</span>
+            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Campaigns</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">{stats.totalCampaigns}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>{stats.totalCampaigns}</div>
+            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
               {stats.activeCampaigns} active
             </div>
           </div>
@@ -200,17 +194,20 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
 
         <button
           onClick={() => onViewChange?.('analytics')}
-          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
+          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-red-500/10 rounded-linear flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-red-500" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(231, 76, 60, 0.1)' }}>
+              <TrendingUp className="w-5 h-5" style={{ color: NUUM_COLORS.errorMuted }} />
             </div>
-            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Costs</span>
+            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Total Costs</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">${stats.totalCosts.toLocaleString()}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>${stats.totalCosts.toLocaleString()}</div>
+            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
               Across all ad sets
             </div>
           </div>
@@ -218,17 +215,20 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
 
         <button
           onClick={() => onViewChange?.('analytics')}
-          className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border hover:light:border-linear-light-border linear-transition cursor-pointer text-left w-full"
+          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
+          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-green-500/10 rounded-linear flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-green-500" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(56, 226, 159, 0.1)' }}>
+              <DollarSign className="w-5 h-5" style={{ color: NUUM_COLORS.successMuted }} />
             </div>
-            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Revenue</span>
+            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Total Revenue</span>
           </div>
           <div className="space-y-1">
-            <div className="text-xl md:text-2xl font-medium">${stats.totalRevenue.toLocaleString()}</div>
-            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
+            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>${stats.totalRevenue.toLocaleString()}</div>
+            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
               Across all ad sets
             </div>
           </div>
@@ -236,28 +236,34 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <div className="border rounded-xl p-6" style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}>
           <button
             onClick={() => onViewChange?.('campaigns')}
-            className="text-sm md:text-base font-medium mb-4 flex items-center gap-2 hover:dark:text-linear-accent hover:light:text-linear-light-accent linear-transition"
+            className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150"
+            style={{ color: NUUM_COLORS.textPrimary }}
+            onMouseEnter={(e) => e.currentTarget.style.color = NUUM_COLORS.accent}
+            onMouseLeave={(e) => e.currentTarget.style.color = NUUM_COLORS.textPrimary}
           >
             <Target className="w-4 h-4" />
             Recent Campaigns
           </button>
           {recentCampaigns.length === 0 ? (
-            <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No campaigns yet</p>
+            <p className="text-sm py-8 text-center" style={{ color: NUUM_COLORS.textSecondary }}>No campaigns yet — start by creating your first one.</p>
           ) : (
             <div className="space-y-3">
               {recentCampaigns.map((campaign) => (
                 <button
                   key={campaign.id}
                   onClick={() => onViewChange?.('campaigns')}
-                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle linear-transition w-full text-left"
+                  className="flex items-center justify-between p-3 rounded-lg w-full text-left transition-all duration-150"
+                  style={{ backgroundColor: NUUM_COLORS.background }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.background}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{campaign.name}</div>
+                    <div className="font-medium text-sm truncate" style={{ color: NUUM_COLORS.textPrimary }}>{campaign.name}</div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColorClass(campaign.status)}`}>
                     {campaign.status}
                   </span>
                 </button>
@@ -266,29 +272,35 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
           )}
         </div>
 
-        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+        <div className="border rounded-xl p-6" style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}>
           <button
             onClick={() => onViewChange?.('tasks')}
-            className="text-sm md:text-base font-medium mb-4 flex items-center gap-2 hover:dark:text-linear-accent hover:light:text-linear-light-accent linear-transition"
+            className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150"
+            style={{ color: NUUM_COLORS.textPrimary }}
+            onMouseEnter={(e) => e.currentTarget.style.color = NUUM_COLORS.accent}
+            onMouseLeave={(e) => e.currentTarget.style.color = NUUM_COLORS.textPrimary}
           >
             <CheckSquare className="w-4 h-4" />
             Recent Tasks
           </button>
           {recentTasks.length === 0 ? (
-            <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No tasks yet</p>
+            <p className="text-sm py-8 text-center" style={{ color: NUUM_COLORS.textSecondary }}>No tasks yet — start by creating your first one.</p>
           ) : (
             <div className="space-y-3">
               {recentTasks.map((task) => (
                 <button
                   key={task.id}
                   onClick={() => onViewChange?.('tasks')}
-                  className="flex items-center justify-between p-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle linear-transition w-full text-left"
+                  className="flex items-center justify-between p-3 rounded-lg w-full text-left transition-all duration-150"
+                  style={{ backgroundColor: NUUM_COLORS.background }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.background}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{task.title}</div>
-                    <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary capitalize">{task.priority} priority</div>
+                    <div className="font-medium text-sm truncate" style={{ color: NUUM_COLORS.textPrimary }}>{task.title}</div>
+                    <div className="text-xs capitalize" style={{ color: NUUM_COLORS.textTertiary }}>{task.priority} priority</div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(task.status)}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColorClass(task.status)}`}>
                     {task.status.replace('_', ' ')}
                   </span>
                 </button>
@@ -298,29 +310,35 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
         </div>
       </div>
 
-      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
+      <div className="border rounded-xl p-6" style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}>
         <button
           onClick={() => onViewChange?.('creators')}
-          className="text-sm md:text-base font-medium mb-4 flex items-center gap-2 hover:dark:text-linear-accent hover:light:text-linear-light-accent linear-transition"
+          className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150"
+          style={{ color: NUUM_COLORS.textPrimary }}
+          onMouseEnter={(e) => e.currentTarget.style.color = NUUM_COLORS.accent}
+          onMouseLeave={(e) => e.currentTarget.style.color = NUUM_COLORS.textPrimary}
         >
           <Users className="w-4 h-4" />
           Top Creators
         </button>
         {topCreators.length === 0 ? (
-          <p className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No creators with revenue yet</p>
+          <p className="text-sm py-8 text-center" style={{ color: NUUM_COLORS.textSecondary }}>No creators with revenue yet</p>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {topCreators.map((creator, index) => (
               <button
                 key={creator.id}
                 onClick={() => onViewChange?.('creators')}
-                className="p-4 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear hover:dark:bg-linear-bg-subtle hover:light:bg-linear-light-bg-subtle linear-transition relative w-full text-left"
+                className="p-4 rounded-lg relative w-full text-left transition-all duration-150"
+                style={{ backgroundColor: NUUM_COLORS.background }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.background}
               >
-                <div className="absolute top-3 right-3 w-8 h-8 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-full flex items-center justify-center text-sm font-medium text-linear-warning border border-linear-warning-border">
+                <div className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border" style={{ backgroundColor: NUUM_COLORS.surface, color: NUUM_COLORS.warningMuted, borderColor: 'rgba(243, 156, 18, 0.3)' }}>
                   #{index + 1}
                 </div>
-                <div className="font-medium mb-3">{creator.name}</div>
-                <div className="space-y-1 text-xs dark:text-text-secondary light:text-text-light-secondary mb-3">
+                <div className="font-semibold mb-3" style={{ color: NUUM_COLORS.textPrimary }}>{creator.name}</div>
+                <div className="space-y-1 text-xs mb-3" style={{ color: NUUM_COLORS.textSecondary }}>
                   {creator.instagram_handle && (
                     <div className="flex items-center gap-1">
                       <span>@{creator.instagram_handle}</span>
@@ -330,9 +348,9 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
                     <div className="truncate">{creator.email}</div>
                   )}
                 </div>
-                <div className="pt-3 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
-                  <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-1">Total Revenue</div>
-                  <div className="text-lg font-medium dark:text-linear-success light:text-linear-light-success">
+                <div className="pt-3 border-t" style={{ borderColor: NUUM_COLORS.border }}>
+                  <div className="text-xs uppercase tracking-wide mb-1" style={{ color: NUUM_COLORS.textTertiary }}>Total Revenue</div>
+                  <div className="text-lg font-semibold" style={{ color: NUUM_COLORS.successMuted }}>
                     ${((creator as any).totalRevenue || 0).toLocaleString()}
                   </div>
                 </div>

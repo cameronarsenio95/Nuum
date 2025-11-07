@@ -8,6 +8,7 @@ import { ThemeToggle } from '../ThemeToggle';
 import { TrialBanner } from './TrialBanner';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
+import { NUUM_COLORS, TRANSITIONS } from '../../utils/designSystem';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -80,17 +81,18 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
   };
 
   return (
-    <div className="min-h-screen dark:dark:bg-linear-bg light:bg-linear-light-bg light:bg-linear-light-bg">
+    <div className="min-h-screen" style={{ backgroundColor: NUUM_COLORS.background }}>
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg border transition-all duration-150"
+        style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
       >
-        {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isMobileMenuOpen ? <X className="w-6 h-6" style={{ color: NUUM_COLORS.textPrimary }} /> : <Menu className="w-6 h-6" style={{ color: NUUM_COLORS.textPrimary }} />}
       </button>
 
       <div className="flex h-screen">
-        <aside className={`w-64 border-r flex flex-col dark:dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary dark:dark:border-linear-border light:border-linear-light-border light:bg-linear-light-bg-secondary light:border-linear-light-border fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-          <div className="p-6 border-b dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
+        <aside className={`w-64 border-r flex flex-col fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`} style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}>
+          <div className="p-6 border-b" style={{ borderColor: NUUM_COLORS.border }}>
             <div className="flex items-center gap-3">
               <img
                 src={theme === 'dark' ? '/assets/members/nuum - White Mark.png' : '/assets/members/nuum - Black Mark.png'}
@@ -98,13 +100,12 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
                 className="h-8 w-8 flex-shrink-0"
               />
               <div className="min-w-0 flex-1">
-                <h1 className="font-medium text-sm truncate dark:dark:text-text-primary light:text-text-light-primary light:text-text-light-primary">{profile?.company || workspace.name}</h1>
-                <span className={`text-xs px-2 py-0.5 rounded-full border capitalize inline-block ${
-                  workspace.plan === 'free' ? 'text-gray-400 bg-gray-400/10 border-gray-400/20' :
-                  workspace.plan === 'standard' ? 'text-blue-400 bg-blue-400/10 border-blue-400/20' :
-                  workspace.plan === 'elite' ? 'text-linear-accent bg-linear-accent/10 border-linear-accent/20' :
-                  'text-purple-400 bg-purple-400/10 border-purple-400/20'
-                }`}>{workspace.plan}</span>
+                <h1 className="font-semibold text-sm truncate" style={{ color: NUUM_COLORS.textPrimary }}>{profile?.company || workspace.name}</h1>
+                <span className="text-xs px-2 py-0.5 rounded-full border capitalize inline-block" style={{
+                  color: workspace.plan === 'free' ? '#9CA3AF' : workspace.plan === 'standard' ? '#60A5FA' : workspace.plan === 'elite' ? NUUM_COLORS.accent : '#A78BFA',
+                  backgroundColor: workspace.plan === 'free' ? 'rgba(156, 163, 175, 0.1)' : workspace.plan === 'standard' ? 'rgba(96, 165, 250, 0.1)' : workspace.plan === 'elite' ? 'rgba(42, 83, 208, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                  borderColor: workspace.plan === 'free' ? 'rgba(156, 163, 175, 0.2)' : workspace.plan === 'standard' ? 'rgba(96, 165, 250, 0.2)' : workspace.plan === 'elite' ? 'rgba(42, 83, 208, 0.2)' : 'rgba(167, 139, 250, 0.2)'
+                }}>{workspace.plan}</span>
               </div>
             </div>
           </div>
@@ -126,13 +127,26 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
                         }
                       }}
                       disabled={isDisabled}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                        isDisabled
-                          ? 'dark:text-text-tertiary light:text-text-light-tertiary opacity-40 cursor-not-allowed'
-                          : isActive
-                          ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
-                          : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
-                      }`}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150"
+                      style={{
+                        color: isDisabled ? NUUM_COLORS.textTertiary : isActive ? NUUM_COLORS.textPrimary : NUUM_COLORS.textSecondary,
+                        backgroundColor: isActive ? NUUM_COLORS.surfaceHover : 'transparent',
+                        borderLeft: isActive ? `2px solid ${NUUM_COLORS.accent}` : '2px solid transparent',
+                        opacity: isDisabled ? 0.4 : 1,
+                        cursor: isDisabled ? 'not-allowed' : 'pointer'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isDisabled && !isActive) {
+                          e.currentTarget.style.color = NUUM_COLORS.textPrimary;
+                          e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isDisabled && !isActive) {
+                          e.currentTarget.style.color = NUUM_COLORS.textSecondary;
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
                     >
                       {isDisabled ? <Lock className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                       {item.name}
@@ -148,11 +162,10 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
             </ul>
           </nav>
 
-          <div className="p-4 border-t space-y-1 dark:dark:border-linear-border light:border-linear-light-border light:border-linear-light-border">
-            {/* Theme + Notification bell op één rij */}
+          <div className="p-4 border-t space-y-1" style={{ borderColor: NUUM_COLORS.border }}>
             <div className="flex items-center justify-between mb-2 px-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium dark:dark:text-text-tertiary light:text-text-light-tertiary light:text-text-light-tertiary">
+                <span className="text-xs font-medium" style={{ color: NUUM_COLORS.textTertiary }}>
                   Theme
                 </span>
                 <ThemeToggle />
@@ -166,11 +179,24 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
                 onViewChange('contact');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                currentView === 'contact'
-                  ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
-                  : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
-              }`}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150"
+              style={{
+                color: currentView === 'contact' ? NUUM_COLORS.textPrimary : NUUM_COLORS.textSecondary,
+                backgroundColor: currentView === 'contact' ? NUUM_COLORS.surfaceHover : 'transparent',
+                borderLeft: currentView === 'contact' ? `2px solid ${NUUM_COLORS.accent}` : '2px solid transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (currentView !== 'contact') {
+                  e.currentTarget.style.color = NUUM_COLORS.textPrimary;
+                  e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== 'contact') {
+                  e.currentTarget.style.color = NUUM_COLORS.textSecondary;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
               <HeadphonesIcon className="w-4 h-4" />
               Contact
@@ -181,11 +207,24 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
                 onViewChange('settings');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition ${
-                currentView === 'settings'
-                  ? 'dark:bg-linear-bg-subtle dark:text-text-primary light:bg-linear-light-bg-subtle light:text-text-light-primary'
-                  : 'dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-linear-bg-subtle light:text-text-light-secondary light:hover:text-text-light-primary light:hover:bg-linear-light-bg-subtle'
-              }`}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150"
+              style={{
+                color: currentView === 'settings' ? NUUM_COLORS.textPrimary : NUUM_COLORS.textSecondary,
+                backgroundColor: currentView === 'settings' ? NUUM_COLORS.surfaceHover : 'transparent',
+                borderLeft: currentView === 'settings' ? `2px solid ${NUUM_COLORS.accent}` : '2px solid transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (currentView !== 'settings') {
+                  e.currentTarget.style.color = NUUM_COLORS.textPrimary;
+                  e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== 'settings') {
+                  e.currentTarget.style.color = NUUM_COLORS.textSecondary;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
               <UserIcon className="w-4 h-4" />
               Settings
@@ -218,7 +257,20 @@ export function DashboardLayout({ workspace, currentView, onViewChange, children
               type="button"
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-linear text-sm linear-transition dark:text-text-secondary light:text-text-light-secondary dark:hover:text-text-primary light:hover:text-text-light-primary dark:hover:bg-linear-bg-subtle light:hover:bg-linear-light-bg-subtle disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ color: NUUM_COLORS.textSecondary }}
+              onMouseEnter={(e) => {
+                if (!isSigningOut) {
+                  e.currentTarget.style.color = NUUM_COLORS.textPrimary;
+                  e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSigningOut) {
+                  e.currentTarget.style.color = NUUM_COLORS.textSecondary;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
               <LogOut className="w-4 h-4" />
               {isSigningOut ? 'Signing out...' : 'Sign Out'}

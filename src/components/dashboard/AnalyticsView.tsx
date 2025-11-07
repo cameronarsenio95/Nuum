@@ -15,6 +15,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
 import { exportAnalyticsPdf } from '../../utils/exportAnalyticsPdf';
+import { NUUM_COLORS } from '../../utils/designSystem';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -1111,7 +1112,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                       type="monotone"
                       dataKey="revenue"
                       name="Revenue"
-                      stroke="#22c55e"
+                      stroke={NUUM_COLORS.successMuted}
                       strokeWidth={2}
                       dot={false}
                       activeDot={{ r: 4 }}
@@ -1120,7 +1121,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                       type="monotone"
                       dataKey="spend"
                       name="Spend"
-                      stroke="#ef4444"
+                      stroke={NUUM_COLORS.errorMuted}
                       strokeWidth={2}
                       dot={false}
                       activeDot={{ r: 4 }}

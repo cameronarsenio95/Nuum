@@ -11,6 +11,25 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-background: #0E0E0E;
+    --color-surface: #111111;
+    --color-surface-hover: #151515;
+    --color-border: #1C1C1C;
+    --color-border-hover: #2A53D0;
+    --color-accent: #2A53D0;
+    --color-accent-hover: #1E3BA1;
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #B0B0B0;
+    --color-text-tertiary: #6B6B6B;
+    --color-success: #38E29F;
+    --color-success-muted: rgba(56, 226, 159, 0.6);
+    --color-error: #E74C3C;
+    --color-error-muted: rgba(231, 76, 60, 0.5);
+    --color-warning: #F39C12;
+    --color-warning-muted: rgba(243, 156, 18, 0.5);
+  }
+
   * {
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
