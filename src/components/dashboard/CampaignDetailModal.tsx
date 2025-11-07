@@ -1,290 +1,354 @@
-import { X, Target, TrendingUp, DollarSign, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Download, Edit2, Users, DollarSign, TrendingUp, FileText } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { Card } from '../Card';
+import { Button } from '../Button';
+import { NUUM_COLORS, TYPOGRAPHY, getStatusColorClass } from '../../utils/designSystem';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import type { Database } from '../../lib/database.types';
 
+type Workspace = Database['public']['Tables']['workspaces']['Row'];
+type Campaign = Database['public']['Tables']['campaigns']['Row'];
+type Creator = Database['public']['Tables']['creators']['Row'];
+type Content = Database['public']['Tables']['content_media']['Row'];
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
 
-interface CampaignDetail {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  budget: number | null;
-  start_date: string | null;
-  end_date: string | null;
-  total_revenue: number;
+interface CampaignWithMetrics extends Campaign {
   total_spend: number;
-  profit: number;
-  roi_percentage: number;
-  total_conversions: number;
-  total_clicks: number;
-  total_impressions: number;
-  avg_ctr: number;
-  cost_per_conversion: number;
-  goals: any;
-  brand_guidelines: string | null;
-  brand: string | null;
-  total_ad_sets: number;
-  active_ad_sets: number;
+  total_revenue: number;
+  roi: number;
+  creators_count: number;
+  content_count: number;
 }
 
 interface CampaignDetailModalProps {
-  campaign: CampaignDetail;
-  adSets: AdSet[];
+  campaign: CampaignWithMetrics;
+  workspace: Workspace;
   onClose: () => void;
+  onUpdate: () => void;
 }
 
-export default function CampaignDetailModal({ campaign, adSets, onClose }: CampaignDetailModalProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount);
-  };
+interface CreatorPerformance {
+  creator: Creator;
+  total_revenue: number;
+  total_spend: number;
+  roi: number;
+  ad_sets_count: number;
+}
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('nl-NL').format(num);
-  };
+export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: CampaignDetailModalProps) {
+  const [loading, setLoading] = useState(true);
+  const [creators, setCreators] = useState<CreatorPerformance[]>([]);
+  const [content, setContent] = useState<Content[]>([]);
+  const [adSets, setAdSets] = useState<AdSet[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'text-linear-success bg-linear-success-subtle border-linear-success-border';
-      case 'completed':
-        return 'text-linear-info bg-linear-info-subtle border-linear-info-border';
-      case 'draft':
-        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
-      default:
-        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
+  useEffect(() => {
+    loadCampaignDetails();
+  }, [campaign.id]);
+
+  const loadCampaignDetails = async () => {
+    setLoading(true);
+
+    const { data: adSetsData } = await supabase
+      .from('ad_sets')
+      .select('*, creators(*)')
+      .eq('campaign_id', campaign.id);
+
+    const { data: contentData } = await supabase
+      .from('content_media')
+      .select('*, creators(name)')
+      .eq('campaign_id', campaign.id)
+      .order('uploaded_at', { ascending: false });
+
+    if (adSetsData) {
+      setAdSets(adSetsData);
+
+      const creatorMap = new Map<string, CreatorPerformance>();
+
+      adSetsData.forEach(ad => {
+        if (!ad.creator_id || !ad.creators) return;
+
+        const existing = creatorMap.get(ad.creator_id);
+        const spend = Number(ad.spend) || 0;
+        const revenue = Number(ad.revenue) || 0;
+
+        if (existing) {
+          existing.total_spend += spend;
+          existing.total_revenue += revenue;
+          existing.ad_sets_count += 1;
+        } else {
+          creatorMap.set(ad.creator_id, {
+            creator: ad.creators as Creator,
+            total_spend: spend,
+            total_revenue: revenue,
+            roi: 0,
+            ad_sets_count: 1,
+          });
+        }
+      });
+
+      const performanceList = Array.from(creatorMap.values()).map(perf => ({
+        ...perf,
+        roi: perf.total_spend > 0 ? ((perf.total_revenue - perf.total_spend) / perf.total_spend) * 100 : 0,
+      })).sort((a, b) => b.total_revenue - a.total_revenue);
+
+      setCreators(performanceList);
+
+      const groupedByDate = adSetsData.reduce((acc, ad) => {
+        const date = new Date(ad.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!acc[date]) {
+          acc[date] = { date, spend: 0, revenue: 0 };
+        }
+        acc[date].spend += Number(ad.spend) || 0;
+        acc[date].revenue += Number(ad.revenue) || 0;
+        return acc;
+      }, {} as Record<string, any>);
+
+      setChartData(Object.values(groupedByDate).slice(-10));
     }
+
+    if (contentData) {
+      setContent(contentData);
+    }
+
+    setLoading(false);
   };
 
-  const platformMetrics = adSets.reduce((acc, adSet) => {
-    const platform = adSet.platform;
-    if (!acc[platform]) {
-      acc[platform] = {
-        revenue: 0,
-        spend: 0,
-        conversions: 0,
-        clicks: 0,
-        impressions: 0,
-        count: 0
-      };
-    }
-    acc[platform].revenue += Number(adSet.revenue) || 0;
-    acc[platform].spend += Number(adSet.spend) || 0;
-    acc[platform].conversions += Number(adSet.conversions) || 0;
-    acc[platform].clicks += Number(adSet.clicks) || 0;
-    acc[platform].impressions += Number(adSet.impressions) || 0;
-    acc[platform].count += 1;
-    return acc;
-  }, {} as Record<string, any>);
+  const activeCreators = creators.filter(c => c.ad_sets_count > 0).length;
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}
       onClick={onClose}
     >
       <div
-        className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-6xl rounded-xl border p-6 my-8 animate-fade-in-up"
+        style={{
+          backgroundColor: NUUM_COLORS.surface,
+          borderColor: NUUM_COLORS.border,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle p-4 md:p-6 flex items-start justify-between z-10">
-          <div className="flex-1 min-w-0 pr-4">
-            <h2 className="text-xl md:text-2xl font-medium mb-2 truncate">{campaign.name}</h2>
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className={`inline-flex text-xs px-2.5 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>
+                {campaign.name}
+              </h2>
+              <span className={getStatusColorClass(campaign.status)}>
                 {campaign.status}
               </span>
-              {campaign.brand && (
-                <span className="text-xs px-2.5 py-1 rounded-full dark:bg-linear-accent-subtle light:bg-linear-light-accent-subtle dark:text-linear-accent light:text-linear-light-accent border dark:border-linear-accent-border light:border-linear-light-accent-border">
-                  {campaign.brand}
-                </span>
-              )}
             </div>
+            <p className={TYPOGRAPHY.bodyText} style={{ color: NUUM_COLORS.textSecondary }}>
+              Created {new Date(campaign.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
           </div>
-          <button
-            onClick={onClose}
-            className="flex-shrink-0 p-2 hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover rounded-linear linear-transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" size="sm">
+              <Download className="w-4 h-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button variant="secondary" size="sm">
+              <Edit2 className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg transition-all duration-150"
+              style={{ color: NUUM_COLORS.textSecondary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover;
+                e.currentTarget.style.color = NUUM_COLORS.textPrimary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = NUUM_COLORS.textSecondary;
+              }}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        <div className="p-4 md:p-6 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-linear-success-subtle rounded-linear flex items-center justify-center">
-                  <DollarSign className="w-4 h-4 text-linear-success" />
-                </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
-              </div>
-              <div className="text-xl font-medium">{formatCurrency(campaign.total_revenue)}</div>
-              <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-1">
-                Profit: {formatCurrency(campaign.profit)}
-              </div>
-            </div>
-
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-linear-info-subtle rounded-linear flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-linear-info" />
-                </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
-              </div>
-              <div className={`text-xl font-medium ${campaign.roi_percentage > 0 ? 'text-linear-success' : 'text-linear-error'}`}>
-                {campaign.roi_percentage > 0 ? '+' : ''}{campaign.roi_percentage}%
-              </div>
-              <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-1">
-                Costs: {formatCurrency(campaign.total_spend)}
-              </div>
-            </div>
-
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-linear-warning-subtle rounded-linear flex items-center justify-center">
-                  <Target className="w-4 h-4 text-linear-warning" />
-                </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Conversions</span>
-              </div>
-              <div className="text-xl font-medium">{formatNumber(campaign.total_conversions)}</div>
-              <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-1">
-                {campaign.cost_per_conversion > 0 ? formatCurrency(campaign.cost_per_conversion) : '€0'} per conversion
-              </div>
-            </div>
-
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
-                  <DollarSign className="w-4 h-4 text-linear-accent" />
-                </div>
-                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
-              </div>
-              <div className="text-xl font-medium">{formatCurrency(campaign.total_spend)}</div>
-              <div className="text-xs dark:text-text-secondary light:text-text-light-secondary mt-1">
-                Total investment
-              </div>
-            </div>
+        {loading ? (
+          <div className="py-12 text-center" style={{ color: NUUM_COLORS.textSecondary }}>
+            Loading campaign details...
           </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-4 gap-6">
+              <Card>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(231, 76, 60, 0.1)' }}>
+                    <DollarSign className="w-5 h-5" style={{ color: 'rgba(231, 76, 60, 0.8)' }} />
+                  </div>
+                  <span className={TYPOGRAPHY.sectionHeader} style={{ color: NUUM_COLORS.textSecondary }}>Total Spend</span>
+                </div>
+                <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>
+                  €{campaign.total_spend.toLocaleString()}
+                </div>
+              </Card>
 
-          {Object.keys(platformMetrics).length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium mb-3">Platform Performance</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(platformMetrics).map(([platform, metrics]: [string, any]) => {
-                  const profit = metrics.revenue - metrics.spend;
-                  const roi = metrics.spend > 0 ? ((profit / metrics.spend) * 100).toFixed(2) : '0';
-                  const ctr = metrics.impressions > 0 ? ((metrics.clicks / metrics.impressions) * 100).toFixed(2) : '0';
+              <Card>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(56, 226, 159, 0.1)' }}>
+                    <TrendingUp className="w-5 h-5" style={{ color: 'rgba(56, 226, 159, 0.8)' }} />
+                  </div>
+                  <span className={TYPOGRAPHY.sectionHeader} style={{ color: NUUM_COLORS.textSecondary }}>Total Revenue</span>
+                </div>
+                <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>
+                  €{campaign.total_revenue.toLocaleString()}
+                </div>
+              </Card>
 
-                  return (
-                    <div
-                      key={platform}
-                      className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-sm capitalize">{platform}</h4>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          Number(roi) > 0
-                            ? 'bg-linear-success-subtle text-linear-success border border-linear-success-border'
-                            : 'bg-linear-error-subtle text-linear-error border border-linear-error-border'
-                        }`}>
-                          {Number(roi) > 0 ? '+' : ''}{Math.round(Number(roi))}% ROI
+              <Card>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(42, 83, 208, 0.1)' }}>
+                    <TrendingUp className="w-5 h-5" style={{ color: NUUM_COLORS.accent }} />
+                  </div>
+                  <span className={TYPOGRAPHY.sectionHeader} style={{ color: NUUM_COLORS.textSecondary }}>ROI</span>
+                </div>
+                <div className="text-2xl font-semibold" style={{ color: campaign.roi >= 0 ? 'rgba(56, 226, 159, 0.9)' : 'rgba(231, 76, 60, 0.9)' }}>
+                  {campaign.roi.toFixed(1)}%
+                </div>
+              </Card>
+
+              <Card>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(42, 83, 208, 0.1)' }}>
+                    <Users className="w-5 h-5" style={{ color: NUUM_COLORS.accent }} />
+                  </div>
+                  <span className={TYPOGRAPHY.sectionHeader} style={{ color: NUUM_COLORS.textSecondary }}>Active Creators</span>
+                </div>
+                <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>
+                  {activeCreators}
+                </div>
+              </Card>
+            </div>
+
+            {chartData.length > 0 && (
+              <Card>
+                <h3 className={`${TYPOGRAPHY.sectionHeader} mb-4`} style={{ color: NUUM_COLORS.textSecondary }}>
+                  Spend vs Revenue
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="date" stroke="#666" style={{ fontSize: '12px' }} />
+                    <YAxis stroke="#666" style={{ fontSize: '12px' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: NUUM_COLORS.surface,
+                        border: `1px solid ${NUUM_COLORS.border}`,
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      name="Revenue"
+                      stroke="rgba(56, 226, 159, 0.7)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="spend"
+                      name="Spend"
+                      stroke="rgba(231, 76, 60, 0.6)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Card>
+            )}
+
+            <div className="grid grid-cols-2 gap-6">
+              <Card>
+                <h3 className={`${TYPOGRAPHY.sectionHeader} mb-4`} style={{ color: NUUM_COLORS.textSecondary }}>
+                  Creator Performance
+                </h3>
+                {creators.length === 0 ? (
+                  <p className={TYPOGRAPHY.bodyText} style={{ color: NUUM_COLORS.textMuted }}>
+                    No creators linked to this campaign yet
+                  </p>
+                ) : (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {creators.map(({ creator, total_revenue, roi, ad_sets_count }) => (
+                      <div
+                        key={creator.id}
+                        className="flex items-center justify-between p-3 rounded-lg transition-all duration-150"
+                        style={{ backgroundColor: NUUM_COLORS.background }}
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium" style={{ color: NUUM_COLORS.textPrimary }}>
+                            {creator.name}
+                          </div>
+                          <div className={TYPOGRAPHY.metadata} style={{ color: NUUM_COLORS.textMuted }}>
+                            {ad_sets_count} ad {ad_sets_count === 1 ? 'set' : 'sets'}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium" style={{ color: 'rgba(56, 226, 159, 0.9)' }}>
+                            €{total_revenue.toLocaleString()}
+                          </div>
+                          <div className={TYPOGRAPHY.metadata} style={{ color: roi >= 0 ? 'rgba(56, 226, 159, 0.7)' : 'rgba(231, 76, 60, 0.7)' }}>
+                            {roi.toFixed(1)}% ROI
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+
+              <Card>
+                <h3 className={`${TYPOGRAPHY.sectionHeader} mb-4`} style={{ color: NUUM_COLORS.textSecondary }}>
+                  Content Overview
+                </h3>
+                {content.length === 0 ? (
+                  <p className={TYPOGRAPHY.bodyText} style={{ color: NUUM_COLORS.textMuted }}>
+                    No content uploaded yet
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-3">
+                      {content.slice(0, 6).map((item) => (
+                        <div
+                          key={item.id}
+                          className="aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all duration-150"
+                          style={{ backgroundColor: NUUM_COLORS.background, borderColor: '#1C1C1C' }}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = '#1C1C1C'}
+                        >
+                          {item.media_url ? (
+                            <img src={item.media_url} alt={item.title || 'Content'} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <FileText className="w-8 h-8" style={{ color: NUUM_COLORS.textMuted }} />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {content.length > 6 && (
+                      <div className="text-center">
+                        <span className={TYPOGRAPHY.metadata} style={{ color: NUUM_COLORS.textMuted }}>
+                          +{content.length - 6} more items
                         </span>
                       </div>
-                      <div className="space-y-2 text-xs">
-                        <div className="flex justify-between">
-                          <span className="dark:text-text-secondary light:text-text-light-secondary">Ad Sets</span>
-                          <span className="font-medium">{metrics.count}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="dark:text-text-secondary light:text-text-light-secondary">Revenue</span>
-                          <span className="font-medium">{formatCurrency(metrics.revenue)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="dark:text-text-secondary light:text-text-light-secondary">Conversions</span>
-                          <span className="font-medium">{formatNumber(metrics.conversions)}</span>
-                        </div>
-                        <div className="flex justify-between pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle">
-                          <span className="dark:text-text-secondary light:text-text-light-secondary">CTR</span>
-                          <span className="font-medium">{ctr}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    )}
+                  </div>
+                )}
+              </Card>
             </div>
-          )}
-
-          {campaign.description && (
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
-              <h3 className="text-sm font-medium mb-2">Description</h3>
-              <p className="text-sm dark:text-text-secondary light:text-text-light-secondary whitespace-pre-wrap">
-                {campaign.description}
-              </p>
-            </div>
-          )}
-
-          {campaign.goals && Object.keys(campaign.goals).length > 0 && (
-            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-4">
-              <h3 className="text-sm font-medium mb-2">Campaign Goals</h3>
-              <div className="text-sm dark:text-text-secondary light:text-text-light-secondary">
-                <pre className="whitespace-pre-wrap font-sans">{JSON.stringify(campaign.goals, null, 2)}</pre>
-              </div>
-            </div>
-          )}
-
-          {adSets.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
-                <h3 className="text-sm font-medium">Ad Sets ({adSets.length})</h3>
-              </div>
-              <div className="space-y-2">
-                {adSets.map((adSet) => {
-                  const adSetProfit = Number(adSet.revenue || 0) - Number(adSet.spend || 0);
-                  const adSetROI = Number(adSet.spend) > 0
-                    ? ((adSetProfit / Number(adSet.spend)) * 100).toFixed(2)
-                    : '0';
-
-                  return (
-                    <div
-                      key={adSet.id}
-                      className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{adSet.name}</div>
-                          <div className="flex items-center gap-2 mt-1 text-xs dark:text-text-secondary light:text-text-light-secondary">
-                            <span className="capitalize">{adSet.platform}</span>
-                            <span className="dark:text-text-tertiary light:text-text-light-tertiary">•</span>
-                            <span className="capitalize">{adSet.status}</span>
-                          </div>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <div className="font-medium text-sm">{formatCurrency(Number(adSet.revenue || 0))}</div>
-                          <div className={`text-xs font-medium ${Number(adSetROI) > 0 ? 'text-linear-success' : 'text-linear-error'}`}>
-                            {Number(adSetROI) > 0 ? '+' : ''}{adSetROI}% ROI
-                          </div>
-                        </div>
-                      </div>
-                      {(adSet.conversions || adSet.clicks) && (
-                        <div className="flex gap-4 mt-2 pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-tertiary light:text-text-light-tertiary">
-                          {adSet.conversions && (
-                            <span>{formatNumber(adSet.conversions)} conversions</span>
-                          )}
-                          {adSet.clicks && (
-                            <span>{formatNumber(adSet.clicks)} clicks</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
