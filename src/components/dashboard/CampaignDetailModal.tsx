@@ -5,6 +5,8 @@ import { Card } from '../Card';
 import { Button } from '../Button';
 import { NUUM_COLORS, TYPOGRAPHY, getStatusColorClass } from '../../utils/designSystem';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { AdSetsCard } from '../campaigns/AdSetsCard';
+import { AdSetFormModal } from '../campaigns/AdSetFormModal';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -42,6 +44,8 @@ export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: 
   const [content, setContent] = useState<Content[]>([]);
   const [adSets, setAdSets] = useState<AdSet[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [showAdSetModal, setShowAdSetModal] = useState(false);
+  const [selectedAdSet, setSelectedAdSet] = useState<AdSet | null>(null);
 
   useEffect(() => {
     loadCampaignDetails();
@@ -53,7 +57,8 @@ export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: 
     const { data: adSetsData } = await supabase
       .from('ad_sets')
       .select('*, creators(*)')
-      .eq('campaign_id', campaign.id);
+      .eq('campaign_id', campaign.id)
+      .order('created_at', { ascending: true });
 
     const { data: contentData } = await supabase
       .from('content_media')
@@ -117,7 +122,36 @@ export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: 
 
   const activeCreators = creators.filter(c => c.ad_sets_count > 0).length;
 
+  const handleAddAdSet = () => {
+    setSelectedAdSet(null);
+    setShowAdSetModal(true);
+  };
+
+  const handleEditAdSet = (adSet: AdSet) => {
+    setSelectedAdSet(adSet);
+    setShowAdSetModal(true);
+  };
+
+  const handleCloseAdSetModal = () => {
+    setShowAdSetModal(false);
+    setSelectedAdSet(null);
+  };
+
+  const handleSaveAdSet = () => {
+    loadCampaignDetails();
+  };
+
   return (
+    <>
+      {showAdSetModal && (
+        <AdSetFormModal
+          campaignId={campaign.id}
+          workspaceId={workspace.id}
+          adSet={selectedAdSet}
+          onClose={handleCloseAdSetModal}
+          onSave={handleSaveAdSet}
+        />
+      )}
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}
@@ -268,7 +302,7 @@ export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: 
               </Card>
             )}
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <h3 className={`${TYPOGRAPHY.sectionHeader} mb-4`} style={{ color: NUUM_COLORS.textSecondary }}>
                   Creator Performance
@@ -307,49 +341,56 @@ export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: 
                 )}
               </Card>
 
-              <Card>
-                <h3 className={`${TYPOGRAPHY.sectionHeader} mb-4`} style={{ color: NUUM_COLORS.textSecondary }}>
-                  Content Overview
-                </h3>
-                {content.length === 0 ? (
-                  <p className={TYPOGRAPHY.bodyText} style={{ color: NUUM_COLORS.textMuted }}>
-                    No content uploaded yet
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-3">
-                      {content.slice(0, 6).map((item) => (
-                        <div
-                          key={item.id}
-                          className="aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all duration-150"
-                          style={{ backgroundColor: NUUM_COLORS.background, borderColor: '#1C1C1C' }}
-                          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
-                          onMouseLeave={(e) => e.currentTarget.style.borderColor = '#1C1C1C'}
-                        >
-                          {item.media_url ? (
-                            <img src={item.media_url} alt={item.title || 'Content'} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <FileText className="w-8 h-8" style={{ color: NUUM_COLORS.textMuted }} />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {content.length > 6 && (
-                      <div className="text-center">
-                        <span className={TYPOGRAPHY.metadata} style={{ color: NUUM_COLORS.textMuted }}>
-                          +{content.length - 6} more items
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Card>
+              <AdSetsCard
+                adSets={adSets}
+                onAddAdSet={handleAddAdSet}
+                onEditAdSet={handleEditAdSet}
+              />
             </div>
+
+            <Card>
+              <h3 className={`${TYPOGRAPHY.sectionHeader} mb-4`} style={{ color: NUUM_COLORS.textSecondary }}>
+                Content Overview
+              </h3>
+              {content.length === 0 ? (
+                <p className={TYPOGRAPHY.bodyText} style={{ color: NUUM_COLORS.textMuted }}>
+                  No content uploaded yet
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    {content.slice(0, 6).map((item) => (
+                      <div
+                        key={item.id}
+                        className="aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all duration-150"
+                        style={{ backgroundColor: NUUM_COLORS.background, borderColor: '#1C1C1C' }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#1C1C1C'}
+                      >
+                        {item.media_url ? (
+                          <img src={item.media_url} alt={item.title || 'Content'} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <FileText className="w-8 h-8" style={{ color: NUUM_COLORS.textMuted }} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {content.length > 6 && (
+                    <div className="text-center">
+                      <span className={TYPOGRAPHY.metadata} style={{ color: NUUM_COLORS.textMuted }}>
+                        +{content.length - 6} more items
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
           </div>
         )}
       </div>
     </div>
+    </>
   );
 }
