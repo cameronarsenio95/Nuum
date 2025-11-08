@@ -57,6 +57,7 @@ export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: 
     const { data: adSetsData } = await supabase
       .from('ad_sets')
       .select('*, creators(*)')
+      .eq('workspace_id', workspace.id)
       .eq('campaign_id', campaign.id)
       .order('created_at', { ascending: true });
 
@@ -72,24 +73,24 @@ export function CampaignDetailModal({ campaign, workspace, onClose, onUpdate }: 
       const creatorMap = new Map<string, CreatorPerformance>();
 
       adSetsData.forEach(ad => {
-        if (!ad.creator_id || !ad.creators) return;
+        if (ad.creator_id && ad.creators) {
+          const existing = creatorMap.get(ad.creator_id);
+          const spend = Number(ad.spend) || 0;
+          const revenue = Number(ad.revenue) || 0;
 
-        const existing = creatorMap.get(ad.creator_id);
-        const spend = Number(ad.spend) || 0;
-        const revenue = Number(ad.revenue) || 0;
-
-        if (existing) {
-          existing.total_spend += spend;
-          existing.total_revenue += revenue;
-          existing.ad_sets_count += 1;
-        } else {
-          creatorMap.set(ad.creator_id, {
-            creator: ad.creators as Creator,
-            total_spend: spend,
-            total_revenue: revenue,
-            roi: 0,
-            ad_sets_count: 1,
-          });
+          if (existing) {
+            existing.total_spend += spend;
+            existing.total_revenue += revenue;
+            existing.ad_sets_count += 1;
+          } else {
+            creatorMap.set(ad.creator_id, {
+              creator: ad.creators as Creator,
+              total_spend: spend,
+              total_revenue: revenue,
+              roi: 0,
+              ad_sets_count: 1,
+            });
+          }
         }
       });
 
