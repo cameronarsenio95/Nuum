@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import { TRIAL_DURATION_DAYS } from '../utils/constants';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { OverviewView } from '../components/dashboard/OverviewView';
-import { CampaignsView } from '../components/dashboard/CampaignsView-v2';
+import { CampaignsView } from '../components/dashboard/CampaignsView';
 import { CampaignDetail } from './CampaignDetail';
 import { CreatorsView } from '../components/dashboard/CreatorsView';
 import { TasksView } from '../components/dashboard/TasksView';
