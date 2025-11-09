@@ -153,7 +153,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         *,
         creators(name),
         campaigns(id, name),
-        ad_sets(id, name)
+        ad_sets!left(id, name)
       `)
       .eq('workspace_id', workspace.id)
       .order('created_at', { ascending: false });
