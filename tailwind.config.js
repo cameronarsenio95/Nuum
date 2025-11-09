@@ -5,6 +5,23 @@ export default {
   theme: {
     extend: {
       colors: {
+        nuum: {
+          background: '#0e0e0e',
+          surface: '#161616',
+          border: '#2e2f30',
+          'border-line': '#e2e2e1',
+          'text-main': '#ffffff',
+          'text-secondary': '#cecece',
+          'accent-orange': '#e3a36e',
+          'accent-brown': '#2e2720',
+          'accent-green': '#66a56b',
+          'dark-green': '#1e2921',
+          'accent-blue': '#3e559e',
+          'dark-blue': '#141623',
+          'accent-red': '#9c3e3f',
+          'dark-red': '#251816',
+          neutral: '#2e2f30',
+        },
         linear: {
           bg: '#08090a',
           'bg-elevated': '#0c0d0e',

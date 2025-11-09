@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Target, Users, CheckSquare, TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { Target, Users, CheckSquare, TrendingUp, DollarSign } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
-import { NUUM_COLORS, getStatusColorClass } from '../../utils/designSystem';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -71,7 +70,6 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
       const activeCampaigns = campaigns.filter((c) => c.status === 'active').length;
       const totalBudget = campaigns.reduce((sum, c) => sum + (Number(c.budget) || 0), 0);
 
-      // Get total revenue and costs from ad_sets for this workspace via campaigns
       const { data: adSetsData } = await supabase
         .from('ad_sets')
         .select('revenue, spend, campaigns!inner(workspace_id)')
@@ -137,133 +135,150 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
     setLoading(false);
   };
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-nuum-dark-green text-nuum-accent-green';
+      case 'in_progress':
+        return 'bg-nuum-accent-brown text-nuum-accent-orange';
+      case 'todo':
+        return 'bg-nuum-dark-red text-white';
+      case 'done':
+      case 'completed':
+        return 'bg-nuum-dark-blue text-nuum-accent-blue';
+      default:
+        return 'bg-nuum-neutral text-nuum-text-secondary';
+    }
+  };
 
   if (loading) {
-    return <div style={{ color: NUUM_COLORS.textSecondary }}>Loading overview...</div>;
+    return <div className="text-nuum-text-secondary">Loading overview...</div>;
   }
 
   return (
     <div className="space-y-6 md:space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold mb-2" style={{ color: NUUM_COLORS.textPrimary }}>Overview</h2>
-        <p className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>Dashboard overview of your workspace</p>
+        <h2 className="text-2xl font-semibold mb-2 text-nuum-text-main">Overview</h2>
+        <p className="text-sm text-nuum-text-secondary">Dashboard overview of your workspace</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <button
           onClick={() => onViewChange?.('creators')}
-          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
-          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+          className="bg-nuum-surface border border-nuum-border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150 hover:shadow-lg group"
+          style={{ boxShadow: '0 0 0 0 rgba(62, 85, 158, 0)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 20px 0 rgba(62, 85, 158, 0.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 0 0 rgba(62, 85, 158, 0)';
+          }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(42, 83, 208, 0.1)' }}>
-              <Users className="w-5 h-5" style={{ color: NUUM_COLORS.accent }} />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-nuum-dark-blue">
+              <Users className="w-5 h-5 text-nuum-accent-blue" />
             </div>
-            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Creators</span>
+            <span className="text-xs uppercase tracking-wide text-nuum-text-secondary">Creators</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>{stats.totalCreators}</div>
-            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
-              Total creators
-            </div>
+            <div className="text-2xl font-semibold text-nuum-text-main">{stats.totalCreators}</div>
+            <div className="text-sm text-nuum-text-secondary">Total creators</div>
           </div>
         </button>
 
         <button
           onClick={() => onViewChange?.('campaigns')}
-          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
-          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+          className="bg-nuum-surface border border-nuum-border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150 hover:shadow-lg group"
+          style={{ boxShadow: '0 0 0 0 rgba(62, 85, 158, 0)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 20px 0 rgba(62, 85, 158, 0.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 0 0 rgba(62, 85, 158, 0)';
+          }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(42, 83, 208, 0.1)' }}>
-              <Target className="w-5 h-5" style={{ color: NUUM_COLORS.accent }} />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-nuum-dark-blue">
+              <Target className="w-5 h-5 text-nuum-accent-blue" />
             </div>
-            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Campaigns</span>
+            <span className="text-xs uppercase tracking-wide text-nuum-text-secondary">Campaigns</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>{stats.totalCampaigns}</div>
-            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
-              {stats.activeCampaigns} active
-            </div>
+            <div className="text-2xl font-semibold text-nuum-text-main">{stats.totalCampaigns}</div>
+            <div className="text-sm text-nuum-text-secondary">{stats.activeCampaigns} active</div>
           </div>
         </button>
 
         <button
           onClick={() => onViewChange?.('analytics')}
-          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
-          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+          className="bg-nuum-surface border border-nuum-border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150 hover:shadow-lg group"
+          style={{ boxShadow: '0 0 0 0 rgba(156, 62, 63, 0)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 20px 0 rgba(156, 62, 63, 0.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 0 0 rgba(156, 62, 63, 0)';
+          }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(231, 76, 60, 0.1)' }}>
-              <TrendingUp className="w-5 h-5" style={{ color: NUUM_COLORS.errorMuted }} />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-nuum-dark-red">
+              <TrendingUp className="w-5 h-5 text-nuum-accent-red" />
             </div>
-            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Total Costs</span>
+            <span className="text-xs uppercase tracking-wide text-nuum-text-secondary">Total Costs</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>${stats.totalCosts.toLocaleString()}</div>
-            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
-              Across all ad sets
-            </div>
+            <div className="text-2xl font-semibold text-nuum-accent-red">€{stats.totalCosts.toLocaleString()}</div>
+            <div className="text-sm text-nuum-text-secondary">Across all ad sets</div>
           </div>
         </button>
 
         <button
           onClick={() => onViewChange?.('analytics')}
-          className="border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150"
-          style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.borderHover}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+          className="bg-nuum-surface border border-nuum-border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150 hover:shadow-lg group"
+          style={{ boxShadow: '0 0 0 0 rgba(102, 165, 107, 0)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 20px 0 rgba(102, 165, 107, 0.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 0 0 rgba(102, 165, 107, 0)';
+          }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(56, 226, 159, 0.1)' }}>
-              <DollarSign className="w-5 h-5" style={{ color: NUUM_COLORS.successMuted }} />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-nuum-dark-green">
+              <DollarSign className="w-5 h-5 text-nuum-accent-green" />
             </div>
-            <span className="text-xs uppercase tracking-wide" style={{ color: NUUM_COLORS.textTertiary }}>Total Revenue</span>
+            <span className="text-xs uppercase tracking-wide text-nuum-text-secondary">Total Revenue</span>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>${stats.totalRevenue.toLocaleString()}</div>
-            <div className="text-sm" style={{ color: NUUM_COLORS.textSecondary }}>
-              Across all ad sets
-            </div>
+            <div className="text-2xl font-semibold text-nuum-accent-green">€{stats.totalRevenue.toLocaleString()}</div>
+            <div className="text-sm text-nuum-text-secondary">Across all ad sets</div>
           </div>
         </button>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
-        <div className="border rounded-xl p-6" style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}>
+        <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
           <button
             onClick={() => onViewChange?.('campaigns')}
-            className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150"
-            style={{ color: NUUM_COLORS.textPrimary }}
-            onMouseEnter={(e) => e.currentTarget.style.color = NUUM_COLORS.accent}
-            onMouseLeave={(e) => e.currentTarget.style.color = NUUM_COLORS.textPrimary}
+            className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150 text-nuum-text-main hover:text-nuum-accent-blue"
           >
             <Target className="w-4 h-4" />
             Recent Campaigns
           </button>
           {recentCampaigns.length === 0 ? (
-            <p className="text-sm py-8 text-center" style={{ color: NUUM_COLORS.textSecondary }}>No campaigns yet — start by creating your first one.</p>
+            <p className="text-sm py-8 text-center text-nuum-text-secondary">No campaigns yet — start by creating your first one.</p>
           ) : (
             <div className="space-y-3">
               {recentCampaigns.map((campaign) => (
                 <button
                   key={campaign.id}
                   onClick={() => onViewChange?.('campaigns')}
-                  className="flex items-center justify-between p-3 rounded-lg w-full text-left transition-all duration-150"
-                  style={{ backgroundColor: NUUM_COLORS.background }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.background}
+                  className="flex items-center justify-between p-3 rounded-lg w-full text-left transition-all duration-150 bg-nuum-background hover:bg-nuum-border"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate" style={{ color: NUUM_COLORS.textPrimary }}>{campaign.name}</div>
+                    <div className="font-medium text-sm truncate text-nuum-text-main">{campaign.name}</div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColorClass(campaign.status)}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(campaign.status)}`}>
                     {campaign.status}
                   </span>
                 </button>
@@ -272,35 +287,29 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
           )}
         </div>
 
-        <div className="border rounded-xl p-6" style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}>
+        <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
           <button
             onClick={() => onViewChange?.('tasks')}
-            className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150"
-            style={{ color: NUUM_COLORS.textPrimary }}
-            onMouseEnter={(e) => e.currentTarget.style.color = NUUM_COLORS.accent}
-            onMouseLeave={(e) => e.currentTarget.style.color = NUUM_COLORS.textPrimary}
+            className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150 text-nuum-text-main hover:text-nuum-accent-blue"
           >
             <CheckSquare className="w-4 h-4" />
             Recent Tasks
           </button>
           {recentTasks.length === 0 ? (
-            <p className="text-sm py-8 text-center" style={{ color: NUUM_COLORS.textSecondary }}>No tasks yet — start by creating your first one.</p>
+            <p className="text-sm py-8 text-center text-nuum-text-secondary">No tasks yet — start by creating your first one.</p>
           ) : (
             <div className="space-y-3">
               {recentTasks.map((task) => (
                 <button
                   key={task.id}
                   onClick={() => onViewChange?.('tasks')}
-                  className="flex items-center justify-between p-3 rounded-lg w-full text-left transition-all duration-150"
-                  style={{ backgroundColor: NUUM_COLORS.background }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.background}
+                  className="flex items-center justify-between p-3 rounded-lg w-full text-left transition-all duration-150 bg-nuum-background hover:bg-nuum-border"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate" style={{ color: NUUM_COLORS.textPrimary }}>{task.title}</div>
-                    <div className="text-xs capitalize" style={{ color: NUUM_COLORS.textTertiary }}>{task.priority} priority</div>
+                    <div className="font-medium text-sm truncate text-nuum-text-main">{task.title}</div>
+                    <div className="text-xs capitalize text-nuum-text-secondary">{task.priority} priority</div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColorClass(task.status)}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(task.status)}`}>
                     {task.status.replace('_', ' ')}
                   </span>
                 </button>
@@ -310,35 +319,29 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
         </div>
       </div>
 
-      <div className="border rounded-xl p-6" style={{ backgroundColor: NUUM_COLORS.surface, borderColor: NUUM_COLORS.border }}>
+      <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
         <button
           onClick={() => onViewChange?.('creators')}
-          className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150"
-          style={{ color: NUUM_COLORS.textPrimary }}
-          onMouseEnter={(e) => e.currentTarget.style.color = NUUM_COLORS.accent}
-          onMouseLeave={(e) => e.currentTarget.style.color = NUUM_COLORS.textPrimary}
+          className="text-sm font-semibold mb-4 flex items-center gap-2 transition-colors duration-150 text-nuum-text-main hover:text-nuum-accent-blue"
         >
           <Users className="w-4 h-4" />
           Top Creators
         </button>
         {topCreators.length === 0 ? (
-          <p className="text-sm py-8 text-center" style={{ color: NUUM_COLORS.textSecondary }}>No creators with revenue yet</p>
+          <p className="text-sm py-8 text-center text-nuum-text-secondary">No creators with revenue yet</p>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {topCreators.map((creator, index) => (
               <button
                 key={creator.id}
                 onClick={() => onViewChange?.('creators')}
-                className="p-4 rounded-lg relative w-full text-left transition-all duration-150"
-                style={{ backgroundColor: NUUM_COLORS.background }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_COLORS.background}
+                className="p-4 rounded-lg relative w-full text-left transition-all duration-150 bg-nuum-background hover:bg-nuum-border"
               >
-                <div className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border" style={{ backgroundColor: NUUM_COLORS.surface, color: NUUM_COLORS.warningMuted, borderColor: 'rgba(243, 156, 18, 0.3)' }}>
+                <div className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border border-nuum-accent-orange bg-nuum-accent-brown text-nuum-accent-orange">
                   #{index + 1}
                 </div>
-                <div className="font-semibold mb-3" style={{ color: NUUM_COLORS.textPrimary }}>{creator.name}</div>
-                <div className="space-y-1 text-xs mb-3" style={{ color: NUUM_COLORS.textSecondary }}>
+                <div className="font-semibold mb-3 text-nuum-text-main">{creator.name}</div>
+                <div className="space-y-1 text-xs mb-3 text-nuum-text-secondary">
                   {creator.instagram_handle && (
                     <div className="flex items-center gap-1">
                       <span>@{creator.instagram_handle}</span>
@@ -348,10 +351,10 @@ export function OverviewView({ workspace, onViewChange }: OverviewViewProps) {
                     <div className="truncate">{creator.email}</div>
                   )}
                 </div>
-                <div className="pt-3 border-t" style={{ borderColor: NUUM_COLORS.border }}>
-                  <div className="text-xs uppercase tracking-wide mb-1" style={{ color: NUUM_COLORS.textTertiary }}>Total Revenue</div>
-                  <div className="text-lg font-semibold" style={{ color: NUUM_COLORS.successMuted }}>
-                    ${((creator as any).totalRevenue || 0).toLocaleString()}
+                <div className="pt-3 border-t border-nuum-border">
+                  <div className="text-xs uppercase tracking-wide mb-1 text-nuum-text-secondary">Total Revenue</div>
+                  <div className="text-lg font-semibold text-nuum-accent-green">
+                    €{((creator as any).totalRevenue || 0).toLocaleString()}
                   </div>
                 </div>
               </button>
