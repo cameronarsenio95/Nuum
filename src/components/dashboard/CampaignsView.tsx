@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Plus, ChevronRight, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { PageLayout } from '../PageLayout';
-import { Card } from '../Card';
-import { NUUM_THEME, getStatusBadgeStyle, getROIColor } from '../../styles/nuumTheme';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWritePermission } from '../../hooks/useWritePermission';
 import type { Database } from '../../lib/database.types';
@@ -23,6 +21,27 @@ interface CampaignsViewProps {
   workspace: Workspace;
   onCampaignClick?: (campaign: Campaign) => void;
 }
+
+const getStatusBadgeClasses = (status: string) => {
+  switch (status) {
+    case 'active':
+      return 'bg-nuum-dark-green text-nuum-accent-green';
+    case 'draft':
+      return 'bg-gray-700 text-gray-300';
+    case 'completed':
+      return 'bg-nuum-dark-blue text-nuum-accent-blue';
+    case 'archived':
+      return 'bg-gray-800 text-gray-400';
+    default:
+      return 'bg-gray-700 text-gray-300';
+  }
+};
+
+const getROIColorClass = (roi: number) => {
+  if (roi >= 100) return 'text-nuum-accent-green';
+  if (roi >= 0) return 'text-nuum-accent-blue';
+  return 'text-nuum-accent-red';
+};
 
 export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps) {
   const { user } = useAuth();
@@ -117,7 +136,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
   if (loading) {
     return (
       <PageLayout title="Campaigns" subtitle="Manage your campaigns">
-        <div style={{ color: NUUM_THEME.colors.textSecondary }}>Loading campaigns...</div>
+        <div className="text-nuum-text-secondary">Loading campaigns...</div>
       </PageLayout>
     );
   }
@@ -130,14 +149,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
         action={
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 text-white transition-all duration-200 whitespace-nowrap"
-            style={{
-              backgroundColor: NUUM_THEME.colors.accentBlue,
-              borderRadius: NUUM_THEME.radius.button,
-              boxShadow: NUUM_THEME.shadows.button,
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.accentBlueDark}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.accentBlue}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-accent-blue/90 text-white transition-all duration-200 rounded-lg shadow-lg whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             New Campaign
@@ -145,146 +157,105 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
         }
       >
         {campaigns.length === 0 ? (
-          <Card>
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-8">
             <div className="text-center py-12">
-              <p style={{ color: NUUM_THEME.colors.textSecondary }}>
+              <p className="text-nuum-text-secondary">
                 No campaigns found. Create your first campaign to get started.
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="mt-4 px-4 py-2 text-white transition-all duration-200"
-                style={{
-                  backgroundColor: NUUM_THEME.colors.accentBlue,
-                  borderRadius: NUUM_THEME.radius.button,
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.accentBlueDark}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.accentBlue}
+                className="mt-4 px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-accent-blue/90 text-white transition-all duration-200 rounded-lg"
               >
                 Create Campaign
               </button>
             </div>
-          </Card>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {campaigns.map(campaign => (
-              <Card
+              <button
                 key={campaign.id}
-                hover
                 onClick={() => onCampaignClick?.(campaign)}
+                className="bg-nuum-surface border border-nuum-border rounded-xl p-6 cursor-pointer text-left w-full transition-all duration-150 hover:shadow-lg group"
               >
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-semibold tracking-tight" style={{ color: NUUM_THEME.colors.textPrimary }}>
+                  <h3 className="font-semibold tracking-tight text-nuum-text-primary">
                     {campaign.name}
                   </h3>
-                  <span
-                    className="px-2 py-1 text-xs font-medium"
-                    style={{
-                      backgroundColor: getStatusBadgeStyle(campaign.status).bg,
-                      color: getStatusBadgeStyle(campaign.status).text,
-                      borderRadius: NUUM_THEME.radius.badge,
-                    }}
-                  >
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClasses(campaign.status)}`}>
                     {campaign.status}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mb-4" style={{ fontSize: '13px' }}>
-                  <span style={{ color: NUUM_THEME.colors.textSecondary }}>Spend:</span>
-                  <span style={{ color: NUUM_THEME.colors.textPrimary, fontWeight: 600 }}>€{campaign.total_spend.toLocaleString()}</span>
+                <div className="grid grid-cols-2 gap-2 mb-4 text-[13px]">
+                  <span className="text-nuum-text-secondary">Spend:</span>
+                  <span className="text-nuum-text-primary font-semibold">€{campaign.total_spend.toLocaleString()}</span>
 
-                  <span style={{ color: NUUM_THEME.colors.textSecondary }}>Revenue:</span>
-                  <span style={{ color: NUUM_THEME.colors.accentGreen, fontWeight: 600 }}>€{campaign.total_revenue.toLocaleString()}</span>
+                  <span className="text-nuum-text-secondary">Revenue:</span>
+                  <span className="text-nuum-accent-green font-semibold">€{campaign.total_revenue.toLocaleString()}</span>
 
-                  <span style={{ color: NUUM_THEME.colors.textSecondary }}>ROI:</span>
-                  <span style={{ color: getROIColor(campaign.roi), fontWeight: 600 }}>
+                  <span className="text-nuum-text-secondary">ROI:</span>
+                  <span className={`font-semibold ${getROIColorClass(campaign.roi)}`}>
                     {campaign.roi.toFixed(1)}%
                   </span>
 
-                  <span style={{ color: NUUM_THEME.colors.textSecondary }}>Creators:</span>
-                  <span style={{ color: NUUM_THEME.colors.textPrimary, fontWeight: 600 }}>{campaign.creators_count}</span>
+                  <span className="text-nuum-text-secondary">Creators:</span>
+                  <span className="text-nuum-text-primary font-semibold">{campaign.creators_count}</span>
                 </div>
 
-                <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: NUUM_THEME.colors.border }}>
-                  <span className="text-xs" style={{ color: NUUM_THEME.colors.textSecondary }}>
+                <div className="pt-3 border-t border-nuum-border flex items-center justify-between">
+                  <span className="text-xs text-nuum-text-secondary">
                     {campaign.content_count} content items
                   </span>
-                  <div className="flex items-center gap-1" style={{ color: NUUM_THEME.colors.textSecondary }}>
+                  <div className="flex items-center gap-1 text-nuum-text-secondary group-hover:text-nuum-accent-blue transition-colors">
                     <span className="text-xs">View details</span>
                     <ChevronRight className="w-3 h-3" />
                   </div>
                 </div>
-              </Card>
+              </button>
             ))}
           </div>
         )}
       </PageLayout>
 
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowCreateModal(false)}>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowCreateModal(false)}>
           <div
-            className="w-full max-w-lg p-4 md:p-6 max-h-[90vh] overflow-y-auto"
-            style={{
-              backgroundColor: NUUM_THEME.colors.backgroundSecondary,
-              border: `1px solid ${NUUM_THEME.colors.border}`,
-              borderRadius: NUUM_THEME.radius.modal,
-              boxShadow: NUUM_THEME.shadows.modal,
-            }}
+            className="bg-nuum-surface border border-nuum-border rounded-xl w-full max-w-lg p-4 md:p-6 max-h-[90vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold" style={{ color: NUUM_THEME.colors.textPrimary }}>
+              <h3 className="text-xl font-semibold text-nuum-text-primary">
                 Create New Campaign
               </h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-1 transition-all duration-200"
-                style={{
-                  color: NUUM_THEME.colors.textSecondary,
-                  borderRadius: '8px',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.surfaceHover}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                className="p-1 text-nuum-text-secondary hover:bg-nuum-border rounded-lg transition-all duration-200"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreateCampaign} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: NUUM_THEME.colors.textSecondary }}>
+                <label className="block text-sm font-medium mb-2 text-nuum-text-secondary">
                   Campaign Name
                 </label>
                 <input
                   type="text"
                   value={newCampaign.name}
                   onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                  className="w-full px-4 py-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: NUUM_THEME.colors.background,
-                    border: `1px solid ${NUUM_THEME.colors.border}`,
-                    color: NUUM_THEME.colors.textPrimary,
-                    borderRadius: NUUM_THEME.radius.input,
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = NUUM_THEME.colors.accentBlue}
-                  onBlur={(e) => e.currentTarget.style.borderColor = NUUM_THEME.colors.border}
+                  className="w-full px-4 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg transition-all duration-200 focus:outline-none focus:border-nuum-accent-blue"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: NUUM_THEME.colors.textSecondary }}>
+                <label className="block text-sm font-medium mb-2 text-nuum-text-secondary">
                   Status
                 </label>
                 <select
                   value={newCampaign.status}
                   onChange={(e) => setNewCampaign({ ...newCampaign, status: e.target.value as any })}
-                  className="w-full px-4 py-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: NUUM_THEME.colors.background,
-                    border: `1px solid ${NUUM_THEME.colors.border}`,
-                    color: NUUM_THEME.colors.textPrimary,
-                    borderRadius: NUUM_THEME.radius.input,
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = NUUM_THEME.colors.accentBlue}
-                  onBlur={(e) => e.currentTarget.style.borderColor = NUUM_THEME.colors.border}
+                  className="w-full px-4 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg transition-all duration-200 focus:outline-none focus:border-nuum-accent-blue"
                 >
                   <option value="draft">Draft</option>
                   <option value="active">Active</option>
@@ -296,27 +267,13 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                 <button
                   type="button"
                   onClick={() => { setShowCreateModal(false); setNewCampaign({ name: '', status: 'draft' }); }}
-                  className="flex-1 px-4 py-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: NUUM_THEME.colors.border,
-                    color: NUUM_THEME.colors.textPrimary,
-                    borderRadius: NUUM_THEME.radius.button,
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.borderHover}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.border}
+                  className="flex-1 px-4 py-2 bg-nuum-border hover:bg-nuum-border/80 text-nuum-text-primary rounded-lg transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: NUUM_THEME.colors.accentBlue,
-                    color: NUUM_THEME.colors.textPrimary,
-                    borderRadius: NUUM_THEME.radius.button,
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.accentBlueDark}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = NUUM_THEME.colors.accentBlue}
+                  className="flex-1 px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-accent-blue/90 text-white rounded-lg transition-all duration-200"
                 >
                   Create
                 </button>
