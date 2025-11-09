@@ -47,16 +47,9 @@ const getDealTypeBadge = (dealType: string | null) => {
   return badges[dealType as keyof typeof badges] || 'bg-gray-700 text-gray-300';
 };
 
-const formatDateRange = (start: string | null, end: string | null) => {
-  if (!start && !end) return '—';
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-  };
-  if (start && end) return `${formatDate(start)} – ${formatDate(end)}`;
-  if (start) return `From ${formatDate(start)}`;
-  if (end) return `Until ${formatDate(end)}`;
-  return '—';
+const formatDuration = (durationDays: number | null) => {
+  if (!durationDays) return '—';
+  return `${durationDays} days`;
 };
 
 export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDetailProps) {
@@ -347,7 +340,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                           {Math.round(roi)}%
                         </td>
                         <td className="py-3 px-3 text-xs text-nuum-text-secondary whitespace-nowrap">
-                          {formatDateRange(adSet.ad_start_date, adSet.ad_end_date)}
+                          {formatDuration(adSet.ad_duration_days)}
                         </td>
                         <td className="py-3 px-3">
                           {adSet.deal_type && (

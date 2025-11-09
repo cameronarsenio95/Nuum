@@ -37,7 +37,6 @@ const DEAL_TYPES = [
 export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave }: AdSetFormModalProps) {
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
-  const [dateError, setDateError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     platform: 'instagram',
@@ -46,8 +45,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
     revenue: 0,
     creative_url: '',
     spark_code: '',
-    ad_start_date: '',
-    ad_end_date: '',
+    ad_duration_days: 7,
     deal_type: 'spark',
   });
 
@@ -61,8 +59,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
         revenue: Number(adSet.revenue) || 0,
         creative_url: adSet.creative_url || '',
         spark_code: adSet.spark_code || '',
-        ad_start_date: adSet.ad_start_date || '',
-        ad_end_date: adSet.ad_end_date || '',
+        ad_duration_days: adSet.ad_duration_days || 7,
         deal_type: adSet.deal_type || 'spark',
       });
     }
@@ -77,20 +74,10 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
     return true;
   };
 
-  const validateDates = (startDate: string, endDate: string) => {
-    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-      setDateError('End date must be after start date');
-      return false;
-    }
-    setDateError('');
-    return true;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateUrl(formData.creative_url)) return;
-    if (!validateDates(formData.ad_start_date, formData.ad_end_date)) return;
 
     setLoading(true);
 
@@ -103,8 +90,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
         revenue: formData.revenue,
         creative_url: formData.creative_url || null,
         spark_code: formData.spark_code || null,
-        ad_start_date: formData.ad_start_date || null,
-        ad_end_date: formData.ad_end_date || null,
+        ad_duration_days: formData.ad_duration_days,
         deal_type: formData.deal_type,
       };
 
@@ -284,35 +270,26 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
               Ad Duration
             </label>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <input
-                  type="date"
-                  value={formData.ad_start_date}
-                  onChange={(e) => {
-                    setFormData({ ...formData, ad_start_date: e.target.value });
-                    validateDates(e.target.value, formData.ad_end_date);
-                  }}
-                  className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
-                  placeholder="Start date"
-                />
-              </div>
-              <div>
-                <input
-                  type="date"
-                  value={formData.ad_end_date}
-                  onChange={(e) => {
-                    setFormData({ ...formData, ad_end_date: e.target.value });
-                    validateDates(formData.ad_start_date, e.target.value);
-                  }}
-                  className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
-                  placeholder="End date"
-                />
-              </div>
+            <div className="flex gap-2">
+              {[
+                { label: '7 Days', value: 7 },
+                { label: '14 Days', value: 14 },
+                { label: '30 Days', value: 30 },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, ad_duration_days: option.value })}
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                    formData.ad_duration_days === option.value
+                      ? 'bg-nuum-accent-blue text-white border-nuum-accent-blue'
+                      : 'bg-nuum-background border-nuum-border text-nuum-text-secondary hover:border-nuum-accent-blue/50'
+                  } border`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
-            {dateError && (
-              <p className="text-xs text-nuum-accent-red mt-1">{dateError}</p>
-            )}
           </div>
 
           <div>
