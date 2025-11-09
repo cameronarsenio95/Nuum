@@ -499,6 +499,15 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                         <td className="py-3 px-3">
                           <button
                             onClick={() => {
+                              console.log('[CampaignDetail] Opening LinkContentModal with:', {
+                                adSetId: adSet.id,
+                                adSetName: adSet.name,
+                                creatorId: adSet.creator_id,
+                                creatorName: creator?.name,
+                                campaignId: adSet.campaign_id,
+                                platform: adSet.platform,
+                                workspaceId: workspaceId
+                              });
                               setLinkContentAdSet(adSet);
                               setShowLinkContentModal(true);
                             }}

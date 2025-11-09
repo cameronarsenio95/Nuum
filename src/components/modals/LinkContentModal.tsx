@@ -90,8 +90,14 @@ export function LinkContentModal({
       const { data, error } = await query;
 
       if (error) {
-        console.error('[LinkContentModal] Error loading content:', error);
-        showToast('Failed to load content', 'error');
+        console.error('[LinkContentModal] ❌ Supabase error loading content:', {
+          error: error,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        showToast(`Failed to load content: ${error.message}`, 'error');
         setItems([]);
         return;
       }
@@ -245,6 +251,14 @@ export function LinkContentModal({
           </div>
 
           <div className="px-6 py-4">
+            {!loading && !creatorId && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p className="text-sm text-red-400">
+                  ⚠️ No creator selected for this ad set. Please assign a creator to the ad set first.
+                </p>
+              </div>
+            )}
+
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <LoadingSpinner />
