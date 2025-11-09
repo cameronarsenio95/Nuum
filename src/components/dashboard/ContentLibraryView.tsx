@@ -6,12 +6,14 @@ import type { Database } from '../../lib/database.types';
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
+type AdSet = Database['public']['Tables']['ad_sets']['Row'];
 
 interface ContentMediaItem {
   id: string;
   workspace_id: string;
   creator_id: string;
   campaign_id: string | null;
+  ad_set_id: string | null;
   platform: 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | null;
   file_name: string;
   file_type: string;
@@ -23,6 +25,7 @@ interface ContentMediaItem {
   created_at: string;
   creators?: { name: string } | null;
   campaigns?: { id: string; name: string } | null;
+  ad_sets?: { id: string; name: string } | null;
 }
 
 interface ContentLibraryViewProps {
@@ -33,6 +36,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const [content, setContent] = useState<ContentMediaItem[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [adSets, setAdSets] = useState<AdSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -48,6 +52,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     file: null as File | null,
     creator_id: '',
     campaign_id: '',
+    ad_set_id: '',
     platform: '' as 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | ''
   });
 
@@ -82,7 +87,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     await Promise.all([
       loadContent(),
       loadCreators(),
-      loadCampaigns()
+      loadCampaigns(),
+      loadAdSets()
     ]);
     setLoading(false);
   };
@@ -93,7 +99,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       .select(`
         *,
         creators(name),
-        campaigns(id, name)
+        campaigns(id, name),
+        ad_sets(id, name)
       `)
       .eq('workspace_id', workspace.id)
       .order('created_at', { ascending: false });
@@ -133,6 +140,20 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     }
   };
 
+  const loadAdSets = async () => {
+    const { data, error } = await supabase
+      .from('ad_sets')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .order('name');
+
+    if (error) {
+      console.error('Error loading ad sets:', error);
+    } else {
+      setAdSets(data || []);
+    }
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadForm.file) return;
@@ -159,6 +180,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
           workspace_id: workspace.id,
           creator_id: uploadForm.creator_id,
           campaign_id: uploadForm.campaign_id || null,
+          ad_set_id: uploadForm.ad_set_id || null,
           platform: uploadForm.platform || null,
           file_name: uploadForm.file.name,
           file_type: uploadForm.file.type,
@@ -174,12 +196,13 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         file: null,
         creator_id: '',
         campaign_id: '',
+        ad_set_id: '',
         platform: ''
       });
       loadContent();
     } catch (error: any) {
       console.error('Upload error:', error);
-      alert(`Upload failed: ${error.message}`);
+      alert('Failed to upload content. Please try again.');
     }
 
     setUploading(false);
@@ -378,7 +401,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Campaign</label>
+                <label className="block text-sm font-medium mb-2">Campaign (Optional)</label>
                 <select
                   value={uploadForm.campaign_id}
                   onChange={(e) => setUploadForm({ ...uploadForm, campaign_id: e.target.value })}
@@ -392,7 +415,36 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Platform</label>
+                <label className="block text-sm font-medium mb-2">Ad Set (Optional)</label>
+                <select
+                  value={uploadForm.ad_set_id}
+                  onChange={(e) => setUploadForm({ ...uploadForm, ad_set_id: e.target.value })}
+                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!uploadForm.campaign_id && !uploadForm.creator_id}
+                >
+                  <option value="">
+                    {!uploadForm.campaign_id && !uploadForm.creator_id
+                      ? 'Select campaign or creator first'
+                      : 'Select Ad Set (Optional)'}
+                  </option>
+                  {adSets
+                    .filter(adSet => {
+                      if (uploadForm.campaign_id) {
+                        return adSet.campaign_id === uploadForm.campaign_id;
+                      }
+                      if (uploadForm.creator_id) {
+                        return adSet.creator_id === uploadForm.creator_id;
+                      }
+                      return false;
+                    })
+                    .map(adSet => (
+                      <option key={adSet.id} value={adSet.id}>{adSet.name}</option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Platform (Optional)</label>
                 <select
                   value={uploadForm.platform}
                   onChange={(e) => setUploadForm({ ...uploadForm, platform: e.target.value as any })}
@@ -516,6 +568,13 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                     <p className="text-base font-medium">{selectedContent.platform || '—'}</p>
                   </div>
                 </div>
+
+                {selectedContent.ad_sets?.name && (
+                  <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
+                    <p className="text-xs uppercase dark:text-text-tertiary light:text-text-light-tertiary mb-2 opacity-70">Linked Ad Set</p>
+                    <p className="text-base font-medium">{selectedContent.ad_sets.name}</p>
+                  </div>
+                )}
 
                 <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
                   <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">File Information</p>

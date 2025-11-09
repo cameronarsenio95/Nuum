@@ -116,15 +116,26 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     } else if (adSetsData) {
       const adSetsWithContent = await Promise.all(
         adSetsData.map(async (adSet) => {
-          const { count } = await supabase
+          const { count: directCount } = await supabase
             .from('content_media')
             .select('*', { count: 'exact', head: true })
-            .eq('creator_id', adSet.creator_id)
-            .eq('campaign_id', campaignId);
+            .eq('ad_set_id', adSet.id);
+
+          let count = directCount || 0;
+
+          if (count === 0) {
+            const { count: fallbackCount } = await supabase
+              .from('content_media')
+              .select('*', { count: 'exact', head: true })
+              .eq('creator_id', adSet.creator_id)
+              .eq('campaign_id', campaignId);
+
+            count = fallbackCount || 0;
+          }
 
           return {
             ...adSet,
-            content_count: count || 0,
+            content_count: count,
           };
         })
       );
@@ -209,21 +220,37 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     loadCampaignData();
   };
 
-  const handleViewContent = async (creatorId: string) => {
+  const handleViewContent = async (adSetId: string, creatorId: string) => {
     setLoadingContent(true);
     setShowContentModal(true);
 
-    const { data, error } = await supabase
+    const { data: directData, error: directError } = await supabase
+      .from('content_media')
+      .select('*')
+      .eq('ad_set_id', adSetId)
+      .order('created_at', { ascending: false });
+
+    if (directError) {
+      console.error('Error loading direct content:', directError);
+    }
+
+    if (directData && directData.length > 0) {
+      setSelectedContent(directData);
+      setLoadingContent(false);
+      return;
+    }
+
+    const { data: fallbackData, error: fallbackError } = await supabase
       .from('content_media')
       .select('*')
       .eq('creator_id', creatorId)
       .eq('campaign_id', campaignId)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error loading content:', error);
+    if (fallbackError) {
+      console.error('Error loading fallback content:', fallbackError);
     } else {
-      setSelectedContent(data || []);
+      setSelectedContent(fallbackData || []);
     }
 
     setLoadingContent(false);
@@ -450,7 +477,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                         <td className="py-3 px-3">
                           {contentCount > 0 ? (
                             <button
-                              onClick={() => handleViewContent(adSet.creator_id)}
+                              onClick={() => handleViewContent(adSet.id, adSet.creator_id)}
                               className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-nuum-dark-blue text-nuum-accent-blue rounded-lg hover:bg-nuum-accent-blue/20 transition-all"
                             >
                               <FileText className="w-3 h-3" />
