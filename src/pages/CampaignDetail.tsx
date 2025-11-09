@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, DollarSign, TrendingUp, Users, Target, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, DollarSign, TrendingUp, Users, Target, Edit2, Trash2, FileText, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { AdSetFormModal } from '../components/campaigns/AdSetFormModal';
@@ -8,6 +8,7 @@ import type { Database } from '../lib/database.types';
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
+type ContentMedia = Database['public']['Tables']['content_media']['Row'];
 
 interface CampaignDetailProps {
   campaignId: string;
@@ -18,6 +19,11 @@ interface CampaignDetailProps {
 interface CreatorWithRevenue extends Creator {
   total_revenue: number;
   ad_sets_count: number;
+}
+
+interface AdSetWithContent extends AdSet {
+  creators: Creator | null;
+  content_count?: number;
 }
 
 const getStatusBadgeClasses = (status: string) => {
@@ -56,10 +62,13 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [adSets, setAdSets] = useState<AdSet[]>([]);
+  const [adSets, setAdSets] = useState<AdSetWithContent[]>([]);
   const [creators, setCreators] = useState<CreatorWithRevenue[]>([]);
   const [showAdSetModal, setShowAdSetModal] = useState(false);
   const [selectedAdSet, setSelectedAdSet] = useState<AdSet | null>(null);
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<ContentMedia[]>([]);
+  const [loadingContent, setLoadingContent] = useState(false);
 
   const [metrics, setMetrics] = useState({
     totalSpend: 0,
@@ -105,7 +114,22 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     if (adSetsError) {
       console.error('Error loading ad sets:', adSetsError);
     } else if (adSetsData) {
-      setAdSets(adSetsData);
+      const adSetsWithContent = await Promise.all(
+        adSetsData.map(async (adSet) => {
+          const { count } = await supabase
+            .from('content_media')
+            .select('*', { count: 'exact', head: true })
+            .eq('creator_id', adSet.creator_id)
+            .eq('campaign_id', campaignId);
+
+          return {
+            ...adSet,
+            content_count: count || 0,
+          };
+        })
+      );
+
+      setAdSets(adSetsWithContent);
 
       let totalSpend = 0;
       let totalRevenue = 0;
@@ -185,6 +209,26 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     loadCampaignData();
   };
 
+  const handleViewContent = async (creatorId: string) => {
+    setLoadingContent(true);
+    setShowContentModal(true);
+
+    const { data, error } = await supabase
+      .from('content_media')
+      .select('*')
+      .eq('creator_id', creatorId)
+      .eq('campaign_id', campaignId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading content:', error);
+    } else {
+      setSelectedContent(data || []);
+    }
+
+    setLoadingContent(false);
+  };
+
 
   if (loading) {
     return (
@@ -208,6 +252,56 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           onClose={handleCloseAdSetModal}
           onSave={handleSaveAdSet}
         />
+      )}
+
+      {showContentModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}
+          onClick={() => setShowContentModal(false)}
+        >
+          <div
+            className="w-full max-w-4xl bg-nuum-surface border border-nuum-border rounded-xl p-6 max-h-[80vh] overflow-y-auto"
+            style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-nuum-text-primary">Content</h2>
+              <button
+                onClick={() => setShowContentModal(false)}
+                className="p-2 rounded-lg transition-all duration-150 text-nuum-text-secondary hover:bg-nuum-border hover:text-nuum-text-primary"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {loadingContent ? (
+              <div className="text-center py-12 text-nuum-text-secondary">Loading content...</div>
+            ) : selectedContent.length === 0 ? (
+              <div className="text-center py-12 text-nuum-text-secondary">No content found</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {selectedContent.map((content) => (
+                  <div key={content.id} className="bg-nuum-background rounded-lg p-3 border border-nuum-border hover:border-nuum-accent-blue/50 transition-all">
+                    {content.thumbnail_url && (
+                      <img
+                        src={content.thumbnail_url}
+                        alt={content.title || content.file_name}
+                        className="w-full h-32 object-cover rounded-lg mb-2"
+                      />
+                    )}
+                    <div className="text-sm text-nuum-text-primary font-medium truncate">
+                      {content.title || content.file_name}
+                    </div>
+                    <div className="text-xs text-nuum-text-secondary mt-1">
+                      {content.platform && <span className="capitalize">{content.platform}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       <div className="space-y-6">
@@ -309,14 +403,14 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                 <thead>
                   <tr className="border-b border-nuum-border">
                     <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Name</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Status</th>
                     <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Platform</th>
                     <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Creator</th>
                     <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Spend</th>
                     <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Revenue</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">ROI</th>
                     <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Duration</th>
                     <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Deal Type</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Status</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Content</th>
                     <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Actions</th>
                   </tr>
                 </thead>
@@ -326,19 +420,22 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                     const revenue = Number(adSet.revenue) || 0;
                     const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0;
                     const creator = adSet.creators as Creator | null;
+                    const contentCount = adSet.content_count || 0;
 
                     return (
                       <tr key={adSet.id} className="border-b border-nuum-border hover:bg-nuum-background transition-all duration-200">
                         <td className="py-3 px-3 text-sm text-nuum-text-primary">{adSet.name}</td>
+                        <td className="py-3 px-3">
+                          <span className={`inline-block text-xs px-2 py-0.5 rounded-full ${getStatusBadgeClasses(adSet.status)}`}>
+                            {adSet.status}
+                          </span>
+                        </td>
                         <td className="py-3 px-3 text-sm text-nuum-text-secondary capitalize">{adSet.platform}</td>
                         <td className="py-3 px-3 text-sm text-nuum-text-secondary">
-                          {creator ? creator.name : '-'}
+                          {creator ? creator.name : '—'}
                         </td>
                         <td className="py-3 px-3 text-sm text-right text-nuum-text-primary">€{spend.toLocaleString()}</td>
                         <td className="py-3 px-3 text-sm text-right text-nuum-accent-green">€{revenue.toLocaleString()}</td>
-                        <td className={`py-3 px-3 text-sm text-right font-semibold ${roi >= 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}`}>
-                          {Math.round(roi)}%
-                        </td>
                         <td className="py-3 px-3 text-xs text-nuum-text-secondary whitespace-nowrap">
                           {formatDuration(adSet.ad_duration_days)}
                         </td>
@@ -351,9 +448,17 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                           {!adSet.deal_type && <span className="text-nuum-text-secondary text-xs">—</span>}
                         </td>
                         <td className="py-3 px-3">
-                          <span className={`inline-block text-xs px-2 py-0.5 rounded-full ${getStatusBadgeClasses(adSet.status)}`}>
-                            {adSet.status}
-                          </span>
+                          {contentCount > 0 ? (
+                            <button
+                              onClick={() => handleViewContent(adSet.creator_id)}
+                              className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-nuum-dark-blue text-nuum-accent-blue rounded-lg hover:bg-nuum-accent-blue/20 transition-all"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Content ({contentCount})
+                            </button>
+                          ) : (
+                            <span className="text-nuum-text-secondary text-xs">No content</span>
+                          )}
                         </td>
                         <td className="py-3 px-3">
                           <div className="flex items-center justify-end gap-2">
