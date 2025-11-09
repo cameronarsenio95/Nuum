@@ -208,8 +208,13 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       .order('name');
 
     if (error) {
-      console.error('Error loading creators:', error);
+      console.error('[ContentLibrary] Error loading creators:', error);
     } else {
+      console.log('[ContentLibrary] Loaded creators from Supabase:', {
+        workspace_id: workspace.id,
+        count: data?.length || 0,
+        creators: data?.map(c => ({ id: c.id, name: c.name }))
+      });
       setCreators(data || []);
     }
   };
@@ -222,8 +227,13 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
       .order('name');
 
     if (error) {
-      console.error('Error loading campaigns:', error);
+      console.error('[ContentLibrary] Error loading campaigns:', error);
     } else {
+      console.log('[ContentLibrary] Loaded campaigns from Supabase:', {
+        workspace_id: workspace.id,
+        count: data?.length || 0,
+        campaigns: data?.map(c => ({ id: c.id, name: c.name }))
+      });
       setCampaigns(data || []);
     }
   };
