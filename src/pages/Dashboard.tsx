@@ -7,6 +7,7 @@ import { TRIAL_DURATION_DAYS } from '../utils/constants';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { OverviewView } from '../components/dashboard/OverviewView';
 import { CampaignsView } from '../components/dashboard/CampaignsView-v2';
+import { CampaignDetail } from './CampaignDetail';
 import { CreatorsView } from '../components/dashboard/CreatorsView';
 import { TasksView } from '../components/dashboard/TasksView';
 import { TeamView } from '../components/dashboard/TeamView';
@@ -33,6 +34,7 @@ function DashboardContent() {
   const [currentView, setCurrentView] = useState<
     | 'overview'
     | 'campaigns'
+    | 'campaign-detail'
     | 'creators'
     | 'tasks'
     | 'team'
@@ -298,7 +300,7 @@ function DashboardContent() {
       return;
     }
     setSelectedCampaign(campaign);
-    setCurrentView('ad-sets');
+    setCurrentView('campaign-detail');
   };
 
   const handleBackToCampaigns = () => {
@@ -323,7 +325,9 @@ function DashboardContent() {
       <DashboardLayout
         workspace={workspace}
         currentView={
-          currentView === 'ad-sets'
+          currentView === 'campaign-detail'
+            ? 'campaigns'
+            : currentView === 'ad-sets'
             ? 'campaigns'
             : currentView === 'shopify'
             ? 'shopify'
@@ -337,6 +341,13 @@ function DashboardContent() {
         {currentView === 'analytics' && <AnalyticsView workspace={workspace} />}
         {currentView === 'campaigns' && (
           <CampaignsView workspace={workspace} onCampaignClick={handleCampaignClick} />
+        )}
+        {currentView === 'campaign-detail' && selectedCampaign && (
+          <CampaignDetail
+            campaignId={selectedCampaign.id}
+            workspaceId={workspace.id}
+            onBack={handleBackToCampaigns}
+          />
         )}
         {currentView === 'ad-sets' && selectedCampaign && (
           <AdSetsView campaign={selectedCampaign} onBack={handleBackToCampaigns} />

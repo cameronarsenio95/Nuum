@@ -5,7 +5,6 @@ import { PageLayout } from '../PageLayout';
 import { Card } from '../Card';
 import { Button } from '../Button';
 import { NUUM_COLORS, TYPOGRAPHY, getStatusColorClass } from '../../utils/designSystem';
-import { CampaignDetailModal } from './CampaignDetailModal';
 import type { Database } from '../../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -21,12 +20,12 @@ interface CampaignWithMetrics extends Campaign {
 
 interface CampaignsViewProps {
   workspace: Workspace;
+  onCampaignClick?: (campaign: Campaign) => void;
 }
 
-export function CampaignsView({ workspace }: CampaignsViewProps) {
+export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps) {
   const [campaigns, setCampaigns] = useState<CampaignWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCampaign, setSelectedCampaign] = useState<CampaignWithMetrics | null>(null);
 
   useEffect(() => {
     loadCampaigns();
@@ -105,7 +104,7 @@ export function CampaignsView({ workspace }: CampaignsViewProps) {
               <Card
                 key={campaign.id}
                 hover
-                onClick={() => setSelectedCampaign(campaign)}
+                onClick={() => onCampaignClick?.(campaign)}
               >
                 <div className="flex justify-between items-start mb-4">
                   <h3 className={TYPOGRAPHY.numeric} style={{ color: NUUM_COLORS.textPrimary }}>
@@ -147,14 +146,6 @@ export function CampaignsView({ workspace }: CampaignsViewProps) {
         )}
       </PageLayout>
 
-      {selectedCampaign && (
-        <CampaignDetailModal
-          campaign={selectedCampaign}
-          workspace={workspace}
-          onClose={() => setSelectedCampaign(null)}
-          onUpdate={loadCampaigns}
-        />
-      )}
     </>
   );
 }
