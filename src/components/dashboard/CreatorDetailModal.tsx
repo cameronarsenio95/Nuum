@@ -266,7 +266,7 @@ export default function CreatorDetailModal({ creator, campaigns, rank, onClose }
                 <h3 className="text-sm font-medium">Discount Code</h3>
               </div>
               <div className="mt-2 px-4 py-3 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear border-2 dark:border-linear-accent light:border-linear-light-accent">
-                <div className="font-mono text-lg font-medium text-linear-accent text-center tracking-wider">
+                <div className="font-mono text-lg font-medium dark:text-white light:text-black text-center tracking-wider">
                   {creator.discount_code}
                 </div>
               </div>
