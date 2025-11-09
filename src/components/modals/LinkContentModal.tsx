@@ -51,22 +51,41 @@ export function LinkContentModal({
   }, [isOpen, workspaceId, creatorId, campaignId]);
 
   const loadContent = async () => {
+    console.log('[LinkContentModal] Loading content with params:', {
+      workspaceId,
+      creatorId,
+      campaignId,
+      adSetId
+    });
+
+    if (!workspaceId || !creatorId) {
+      console.warn('[LinkContentModal] Missing required params: workspaceId or creatorId');
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     try {
       let query = supabase
         .from('content_media')
-        .select('*')
+        .select(`
+          id,
+          file_name,
+          file_type,
+          file_url,
+          platform,
+          created_at,
+          ad_set_id,
+          thumbnail_url,
+          creator_id,
+          workspace_id,
+          campaign_id
+        `)
         .eq('workspace_id', workspaceId)
+        .eq('creator_id', creatorId)
         .order('created_at', { ascending: false });
-
-      if (creatorId) {
-        query = query.eq('creator_id', creatorId);
-      }
-
-      if (campaignId) {
-        query = query.eq('campaign_id', campaignId);
-      }
 
       const { data, error } = await query;
 
@@ -77,6 +96,16 @@ export function LinkContentModal({
         return;
       }
 
+      console.log('[LinkContentModal] Successfully loaded content:', {
+        total: data?.length || 0,
+        items: data?.map(item => ({
+          id: item.id,
+          file_name: item.file_name,
+          ad_set_id: item.ad_set_id,
+          campaign_id: item.campaign_id
+        }))
+      });
+
       setItems(data || []);
 
       const alreadyLinked = (data || [])
@@ -85,9 +114,9 @@ export function LinkContentModal({
 
       setSelectedIds(alreadyLinked);
 
-      console.log('[LinkContentModal] Loaded content:', {
-        total: data?.length || 0,
-        alreadyLinked: alreadyLinked.length
+      console.log('[LinkContentModal] Pre-selected linked items:', {
+        count: alreadyLinked.length,
+        ids: alreadyLinked
       });
     } catch (err) {
       console.error('[LinkContentModal] Unexpected error:', err);
@@ -223,7 +252,8 @@ export function LinkContentModal({
             ) : items.length === 0 ? (
               <div className="text-center py-12">
                 <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400">No content found for this creator/campaign</p>
+                <p className="text-gray-400">No content uploaded yet for this creator</p>
+                <p className="text-gray-500 text-sm mt-2">Upload content in the Content Library first</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[400px] overflow-y-auto">
