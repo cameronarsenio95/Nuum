@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, DollarSign, TrendingUp, Users, Target, Edit2, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { AdSetFormModal } from '../components/campaigns/AdSetFormModal';
 import type { Database } from '../lib/database.types';
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
-type Content = Database['public']['Tables']['content_media']['Row'];
 
 interface CampaignDetailProps {
   campaignId: string;
@@ -28,7 +26,6 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [adSets, setAdSets] = useState<AdSet[]>([]);
   const [creators, setCreators] = useState<CreatorWithRevenue[]>([]);
-  const [content, setContent] = useState<Content[]>([]);
   const [showAdSetModal, setShowAdSetModal] = useState(false);
   const [selectedAdSet, setSelectedAdSet] = useState<AdSet | null>(null);
 
@@ -51,10 +48,16 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
       .select('*')
       .eq('id', campaignId)
       .eq('workspace_id', workspaceId)
-      .single();
+      .maybeSingle();
 
     if (campaignError) {
       console.error('Error loading campaign:', campaignError);
+      setLoading(false);
+      return;
+    }
+
+    if (!campaignData) {
+      console.error('Campaign not found');
       setLoading(false);
       return;
     }
@@ -111,19 +114,6 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
       setCreators(Array.from(creatorMap.values()).sort((a, b) => b.total_revenue - a.total_revenue));
     }
 
-    const { data: contentData, error: contentError } = await supabase
-      .from('content_media')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .order('uploaded_at', { ascending: false })
-      .limit(6);
-
-    if (contentError) {
-      console.error('Error loading content:', contentError);
-    } else {
-      setContent(contentData || []);
-    }
-
     setLoading(false);
   };
 
@@ -167,29 +157,27 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'text-linear-success bg-linear-success/10 border-linear-success-border/20';
+        return 'text-nuum-accent-green bg-nuum-dark-green border-nuum-accent-green/20';
       case 'completed':
-        return 'text-linear-info bg-linear-info/10 border-linear-info-border/20';
+        return 'text-nuum-accent-blue bg-nuum-dark-blue border-nuum-accent-blue/20';
       case 'paused':
-        return 'text-linear-warning bg-linear-warning/10 border-linear-warning-border/20';
+        return 'text-nuum-accent-orange bg-nuum-accent-brown border-nuum-accent-orange/20';
+      case 'archived':
+        return 'text-nuum-text-secondary bg-nuum-border border-nuum-border';
       default:
-        return 'text-text-tertiary bg-text-tertiary/10 border-linear-border/20';
+        return 'text-nuum-text-secondary bg-nuum-border border-nuum-border';
     }
   };
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="text-text-secondary">Loading campaign...</div>
-      </DashboardLayout>
+      <div className="text-nuum-text-secondary">Loading campaign...</div>
     );
   }
 
   if (!campaign) {
     return (
-      <DashboardLayout>
-        <div className="text-text-secondary">Campaign not found</div>
-      </DashboardLayout>
+      <div className="text-nuum-text-secondary">Campaign not found</div>
     );
   }
 
@@ -205,186 +193,187 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
         />
       )}
 
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+      <div className="space-y-6">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm text-nuum-text-secondary hover:text-nuum-text-main linear-transition"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Campaigns
+        </button>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl md:text-3xl font-medium text-nuum-text-main">{campaign.name}</h1>
+              <span className={`text-xs px-2.5 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
+                {campaign.status}
+              </span>
+            </div>
+            <p className="text-sm text-nuum-text-secondary">
+              Created on {new Date(campaign.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-red/40 linear-transition">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-nuum-dark-red rounded-lg flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-nuum-accent-red" />
+              </div>
+            </div>
+            <div className="text-xs text-nuum-text-secondary mb-1">Total Spend</div>
+            <div className="text-2xl font-medium text-nuum-text-main">€{metrics.totalSpend.toLocaleString()}</div>
+          </div>
+
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-green/40 linear-transition">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-nuum-dark-green rounded-lg flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-nuum-accent-green" />
+              </div>
+            </div>
+            <div className="text-xs text-nuum-text-secondary mb-1">Total Revenue</div>
+            <div className="text-2xl font-medium text-nuum-accent-green">€{metrics.totalRevenue.toLocaleString()}</div>
+          </div>
+
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-blue/40 linear-transition">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-nuum-accent-blue" />
+              </div>
+            </div>
+            <div className="text-xs text-nuum-text-secondary mb-1">ROI</div>
+            <div className={`text-2xl font-medium ${metrics.roi >= 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}`}>
+              {Math.round(metrics.roi)}%
+            </div>
+          </div>
+
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-blue/40 linear-transition">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-nuum-accent-blue" />
+              </div>
+            </div>
+            <div className="text-xs text-nuum-text-secondary mb-1">Creators</div>
+            <div className="text-2xl font-medium text-nuum-text-main">{metrics.totalCreators}</div>
+          </div>
+        </div>
+
+        <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-nuum-accent-blue" />
+              <h2 className="text-lg font-medium text-nuum-text-main">Ad Sets (Meta)</h2>
+            </div>
             <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary linear-transition"
+              onClick={handleAddAdSet}
+              className="flex items-center gap-2 px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition text-sm"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Campaigns
+              <Plus className="w-4 h-4" />
+              Add Ad Set
             </button>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-semibold">{campaign.name}</h1>
-                <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
-                  {campaign.status}
-                </span>
-              </div>
-              <p className="text-sm text-text-secondary">
-                Created on {new Date(campaign.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
+          {adSets.length === 0 ? (
+            <div className="text-center py-12">
+              <Target className="w-12 h-12 text-nuum-text-secondary mx-auto mb-3 opacity-50" />
+              <p className="text-nuum-text-secondary mb-4">No ad sets yet</p>
+              <button
+                onClick={handleAddAdSet}
+                className="px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition text-sm"
+              >
+                Create your first ad set
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-nuum-border">
+                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Name</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Platform</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Creator</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Spend</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Revenue</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">ROI</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Status</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adSets.map((adSet) => {
+                    const spend = Number(adSet.spend) || 0;
+                    const revenue = Number(adSet.revenue) || 0;
+                    const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0;
+                    const creator = adSet.creators as Creator | null;
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-xl p-6">
-                <h2 className="text-sm font-semibold text-text-primary mb-4">Campaign Overview</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm text-text-tertiary block mb-1">Spend</span>
-                    <span className="text-base font-medium">€{metrics.totalSpend.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-text-tertiary block mb-1">Revenue</span>
-                    <span className="text-base font-medium text-linear-success">€{metrics.totalRevenue.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-text-tertiary block mb-1">ROI</span>
-                    <span className={`text-base font-medium ${metrics.roi >= 0 ? 'text-linear-success' : 'text-linear-error'}`}>
-                      {metrics.roi > 0 ? '+' : ''}{Math.round(metrics.roi)}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-text-tertiary block mb-1">Total Creators</span>
-                    <span className="text-base font-medium">{metrics.totalCreators}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-text-primary">Ad Sets (Meta)</h2>
-                  <button
-                    onClick={handleAddAdSet}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white hover:bg-gray-100 text-black rounded-lg linear-transition"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Ad Set
-                  </button>
-                </div>
-
-                {adSets.length === 0 ? (
-                  <p className="text-sm text-text-tertiary">No ad sets yet. Click "Add Ad Set" to get started.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {adSets.map((adSet) => {
-                      const spend = Number(adSet.spend) || 0;
-                      const revenue = Number(adSet.revenue) || 0;
-                      const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0;
-
-                      return (
-                        <div
-                          key={adSet.id}
-                          className="bg-linear-bg-subtle border border-linear-border-subtle rounded-lg p-4 hover:border-linear-border linear-transition"
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="font-medium text-sm mb-1">{adSet.name}</h3>
-                              <span className="text-xs text-text-tertiary">Platform: Meta</span>
-                            </div>
-                            <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(adSet.status)}`}>
-                              {adSet.status}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-3 text-xs mb-3">
-                            <div>
-                              <span className="text-text-tertiary block mb-1">Spend</span>
-                              <span className="font-medium">€{spend.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className="text-text-tertiary block mb-1">Revenue</span>
-                              <span className="font-medium text-linear-success">€{revenue.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className="text-text-tertiary block mb-1">ROI</span>
-                              <span className={`font-medium ${roi >= 0 ? 'text-linear-success' : 'text-linear-error'}`}>
-                                {roi > 0 ? '+' : ''}{Math.round(roi)}%
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2 pt-3 border-t border-linear-border-subtle">
+                    return (
+                      <tr key={adSet.id} className="border-b border-nuum-border hover:bg-nuum-border linear-transition">
+                        <td className="py-3 px-3 text-sm text-nuum-text-main">{adSet.name}</td>
+                        <td className="py-3 px-3 text-sm text-nuum-text-secondary capitalize">{adSet.platform}</td>
+                        <td className="py-3 px-3 text-sm text-nuum-text-secondary">
+                          {creator ? creator.name : '-'}
+                        </td>
+                        <td className="py-3 px-3 text-sm text-right text-nuum-text-main">€{spend.toLocaleString()}</td>
+                        <td className="py-3 px-3 text-sm text-right text-nuum-accent-green">€{revenue.toLocaleString()}</td>
+                        <td className={`py-3 px-3 text-sm text-right font-medium ${roi >= 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}`}>
+                          {Math.round(roi)}%
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className={`inline-block text-xs px-2 py-0.5 rounded-full border ${getStatusColor(adSet.status)}`}>
+                            {adSet.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleEditAdSet(adSet)}
-                              className="flex-1 px-3 py-1.5 text-xs bg-linear-bg hover:bg-linear-bg-subtle rounded-lg linear-transition"
+                              className="p-1.5 hover:bg-nuum-border rounded-lg linear-transition text-nuum-text-secondary hover:text-nuum-text-main"
+                              title="Edit ad set"
                             >
-                              Edit
+                              <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteAdSet(adSet.id)}
-                              className="px-3 py-1.5 text-xs text-linear-error hover:bg-linear-error/10 rounded-lg linear-transition"
+                              className="p-1.5 hover:bg-nuum-dark-red rounded-lg linear-transition text-nuum-text-secondary hover:text-nuum-accent-red"
+                              title="Delete ad set"
                             >
-                              Remove
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
+          )}
+        </div>
 
-            <div className="space-y-6">
-              <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-xl p-6">
-                <h2 className="text-sm font-semibold text-text-primary mb-4">Linked Creators</h2>
-                {creators.length === 0 ? (
-                  <p className="text-sm text-text-tertiary">No creators linked yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {creators.slice(0, 5).map((creator) => (
-                      <div key={creator.id} className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-medium">{creator.name}</div>
-                          <div className="text-xs text-text-tertiary">
-                            {creator.ad_sets_count} ad {creator.ad_sets_count === 1 ? 'set' : 'sets'}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-linear-success">
-                            €{creator.total_revenue.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+        {creators.length > 0 && (
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-5 h-5 text-nuum-accent-blue" />
+              <h2 className="text-lg font-medium text-nuum-text-main">Linked Creators</h2>
+            </div>
+            <div className="space-y-3">
+              {creators.slice(0, 5).map((creator) => (
+                <div key={creator.id} className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="text-sm font-medium text-nuum-text-main">{creator.name}</div>
+                    <div className="text-xs text-nuum-text-secondary">{creator.ad_sets_count} ad set{creator.ad_sets_count !== 1 ? 's' : ''}</div>
                   </div>
-                )}
-              </div>
-
-              <div className="bg-linear-bg-secondary border border-linear-border-subtle rounded-xl p-6">
-                <h2 className="text-sm font-semibold text-text-primary mb-4">Recent Content</h2>
-                {content.length === 0 ? (
-                  <p className="text-sm text-text-tertiary">No content uploaded yet</p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    {content.map((item) => (
-                      <div
-                        key={item.id}
-                        className="aspect-square rounded-lg overflow-hidden bg-linear-bg-subtle border border-linear-border-subtle"
-                      >
-                        {item.media_url && (
-                          <img
-                            src={item.media_url}
-                            alt={item.title || 'Content'}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
-                    ))}
+                  <div className="text-sm font-medium text-nuum-accent-green">
+                    €{creator.total_revenue.toLocaleString()}
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </DashboardLayout>
+        )}
+      </div>
     </>
   );
 }
