@@ -1,29 +1,29 @@
 export const NUUM_COLORS = {
-  background: '#0E0E0E',
-  surface: '#111111',
-  surfaceHover: '#151515',
-  border: '#1C1C1C',
-  borderHover: '#2A53D0',
-  accent: '#2A53D0',
-  accentHover: '#1E3BA1',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  textMuted: '#666666',
-  success: '#38E29F',
-  successMuted: 'rgba(56, 226, 159, 0.6)',
-  error: '#C34B4B',
-  errorMuted: 'rgba(231, 76, 60, 0.5)',
-  warning: '#E6B450',
-  warningMuted: 'rgba(230, 180, 80, 0.5)',
+  background: '#0e0e0e',
+  surface: '#161616',
+  surfaceHover: '#1b1b1b',
+  border: 'rgba(226,226,225,0.1)',
+  borderHover: 'rgba(226,226,225,0.15)',
+  accent: '#3e559e',
+  accentHover: '#324885',
+  textPrimary: '#ffffff',
+  textSecondary: '#cecece',
+  textMuted: '#cecece',
+  success: '#66a56b',
+  successMuted: 'rgba(102, 165, 107, 0.6)',
+  error: '#9c3e3f',
+  errorMuted: 'rgba(156, 62, 63, 0.5)',
+  warning: '#e3a36e',
+  warningMuted: 'rgba(227, 163, 110, 0.5)',
 } as const;
 
 export const STATUS_COLORS = {
-  active: '#3E7C6D',
-  completed: '#3B4A5C',
-  done: '#36454F',
-  draft: '#5A5454',
-  pending: '#6B5B3A',
-  cancelled: '#4A3B3B',
+  active: '#66a56b',
+  completed: '#3e559e',
+  done: '#3e559e',
+  draft: '#e3a36e',
+  pending: '#e3a36e',
+  cancelled: '#9c3e3f',
 } as const;
 
 export const TRANSITIONS = {
@@ -70,21 +70,21 @@ export const getStatusColorClass = (status: string): string => {
     case 'active':
     case 'in progress':
     case 'in_progress':
-      return 'bg-[#3E7C6D] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
+      return 'bg-[#1e2921] text-[#66a56b] text-xs font-medium px-2 py-0.5 rounded-full';
     case 'completed':
-      return 'bg-[#3B4A5C] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
+      return 'bg-[#141623] text-[#3e559e] text-xs font-medium px-2 py-0.5 rounded-full';
     case 'done':
-      return 'bg-[#36454F] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
+      return 'bg-[#141623] text-[#3e559e] text-xs font-medium px-2 py-0.5 rounded-full';
     case 'draft':
-      return 'bg-[#5A5454] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
+      return 'bg-[#2e2720] text-[#e3a36e] text-xs font-medium px-2 py-0.5 rounded-full';
     case 'pending':
     case 'todo':
-      return 'bg-[#6B5B3A] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
+      return 'bg-[#2e2720] text-[#e3a36e] text-xs font-medium px-2 py-0.5 rounded-full';
     case 'cancelled':
     case 'archived':
-      return 'bg-[#4A3B3B] text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full';
+      return 'bg-[#251816] text-[#9c3e3f] text-xs font-medium px-2 py-0.5 rounded-full';
     default:
-      return 'bg-[#2A2A2A] text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full';
+      return 'bg-[#2e2f30] text-[#cecece] text-xs font-medium px-2 py-0.5 rounded-full';
   }
 };
 

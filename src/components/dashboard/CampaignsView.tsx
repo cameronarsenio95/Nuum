@@ -253,13 +253,13 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'text-linear-success bg-linear-success/10 border-linear-success-border/20';
+        return 'text-[#66a56b] bg-[#1e2921] border-[#66a56b]/20';
       case 'completed':
-        return 'text-linear-info bg-linear-info/10 border-linear-info-border/20';
+        return 'text-[#3e559e] bg-[#141623] border-[#3e559e]/20';
       case 'archived':
-        return 'text-text-tertiary bg-text-tertiary/10 border-linear-border/20';
+        return 'text-[#cecece] bg-[#2e2f30] border-[#e2e2e1]/10';
       default:
-        return 'text-linear-warning bg-linear-warning/10 border-linear-warning-border/20';
+        return 'text-[#e3a36e] bg-[#2e2720] border-[#e3a36e]/20';
     }
   };
 
@@ -276,7 +276,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition whitespace-nowrap"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-[#3e559e] hover:bg-[#324885] text-white rounded-[10px] transition-all duration-200 whitespace-nowrap shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
         >
           <Plus className="w-4 h-4" />
           New Campaign
@@ -284,13 +284,13 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
       </div>
 
       {campaigns.length === 0 ? (
-        <div className="text-center py-12 md:py-20 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
-          <Target className="w-10 h-10 md:w-12 md:h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-4" />
-          <h3 className="text-base md:text-lg font-medium mb-2">No campaigns yet</h3>
-          <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary mb-6 px-4">Create your first campaign to get started</p>
+        <div className="text-center py-12 md:py-20 bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
+          <Target className="w-10 h-10 md:w-12 md:h-12 text-[#cecece] mx-auto mb-4" />
+          <h3 className="text-base md:text-lg font-semibold mb-2 text-white">No campaigns yet</h3>
+          <p className="text-sm md:text-base text-[#cecece] mb-6 px-4">Create your first campaign to get started</p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
+            className="px-4 py-2 bg-[#3e559e] hover:bg-[#324885] text-white rounded-[10px] transition-all duration-200"
           >
             Create Campaign
           </button>
@@ -300,11 +300,11 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
           {campaigns.map((campaign) => (
             <div
               key={campaign.id}
-              className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6 hover:dark:border-linear-border light:border-linear-light-border linear-transition cursor-pointer group flex flex-col"
+              className="bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] p-4 md:p-6 hover:bg-[#1b1b1b] hover:border-[rgba(226,226,225,0.15)] transition-all duration-200 cursor-pointer group flex flex-col shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
               onClick={() => onCampaignClick?.(campaign)}
             >
               <div className="flex items-start justify-between mb-4">
-                <h3 className="font-medium text-base md:text-lg">{campaign.name}</h3>
+                <h3 className="font-semibold text-base md:text-lg text-white">{campaign.name}</h3>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
                     {campaign.status}
@@ -324,32 +324,32 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
               </div>
 
               {campaign.total_ad_sets > 0 && (
-                <div className="mb-4 pb-4 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
+                <div className="mb-4 pb-4 border-b border-[rgba(226,226,225,0.1)]">
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Ad Sets</span>
-                      <span className="font-medium">{campaign.total_ad_sets}</span>
+                      <span className="text-[#cecece] block mb-1">Ad Sets</span>
+                      <span className="font-semibold text-white">{campaign.total_ad_sets}</span>
                     </div>
                     <div>
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Active</span>
-                      <span className="font-medium text-linear-success">{campaign.active_ad_sets}</span>
+                      <span className="text-[#cecece] block mb-1">Active</span>
+                      <span className="font-semibold text-[#66a56b]">{campaign.active_ad_sets}</span>
                     </div>
                     <div>
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Costs</span>
-                      <span className="font-medium">€{campaign.total_spend.toLocaleString()}</span>
+                      <span className="text-[#cecece] block mb-1">Costs</span>
+                      <span className="font-semibold text-white">€{campaign.total_spend.toLocaleString()}</span>
                     </div>
                     <div>
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">Revenue</span>
-                      <span className="font-medium text-linear-success">€{campaign.total_revenue.toLocaleString()}</span>
+                      <span className="text-[#cecece] block mb-1">Revenue</span>
+                      <span className="font-semibold text-[#66a56b]">€{campaign.total_revenue.toLocaleString()}</span>
                     </div>
                     <div className="col-span-2">
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary block mb-1">ROI</span>
-                      <span className={`font-medium ${
+                      <span className="text-[#cecece] block mb-1">ROI</span>
+                      <span className={`font-semibold ${
                         campaign.total_spend > 0
                           ? ((campaign.total_revenue - campaign.total_spend) / campaign.total_spend) * 100 >= 0
-                            ? 'text-linear-success'
-                            : 'text-linear-error'
-                          : 'dark:text-text-secondary light:text-text-light-secondary'
+                            ? 'text-[#66a56b]'
+                            : 'text-[#9c3e3f]'
+                          : 'text-[#cecece]'
                       }`}>
                         {campaign.total_spend > 0
                           ? `${Math.round(((campaign.total_revenue - campaign.total_spend) / campaign.total_spend * 100))}%`
@@ -367,30 +367,30 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowCreateModal(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.15)] rounded-[14px] p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_8px_32px_rgba(0,0,0,0.4)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-medium">Create New Campaign</h3>
-              <button onClick={() => setShowCreateModal(false)} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+              <h3 className="text-xl font-semibold text-white">Create New Campaign</h3>
+              <button onClick={() => setShowCreateModal(false)} className="p-1 hover:bg-[#1b1b1b] rounded-[8px] transition-all duration-200">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreateCampaign} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Campaign Name</label>
+                <label className="block text-sm font-medium mb-2 text-[#cecece]">Campaign Name</label>
                 <input
                   type="text"
                   value={newCampaign.name}
                   onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  className="w-full px-4 py-2 bg-[#0e0e0e] border border-[rgba(226,226,225,0.15)] rounded-[10px] focus:outline-none focus:border-[#3e559e] text-white transition-all duration-200"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Status</label>
+                <label className="block text-sm font-medium mb-2 text-[#cecece]">Status</label>
                 <select
                   value={newCampaign.status}
                   onChange={(e) => setNewCampaign({ ...newCampaign, status: e.target.value as any })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  className="w-full px-4 py-2 bg-[#0e0e0e] border border-[rgba(226,226,225,0.15)] rounded-[10px] focus:outline-none focus:border-[#3e559e] text-white transition-all duration-200"
                 >
                   <option value="draft">Draft</option>
                   <option value="active">Active</option>
@@ -402,13 +402,13 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                 <button
                   type="button"
                   onClick={() => { setShowCreateModal(false); resetForm(); }}
-                  className="flex-1 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
+                  className="flex-1 px-4 py-2 bg-[#2e2f30] hover:bg-[#3a3b3c] text-white rounded-[10px] transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
+                  className="flex-1 px-4 py-2 bg-[#3e559e] hover:bg-[#324885] text-white rounded-[10px] transition-all duration-200"
                 >
                   Create
                 </button>
@@ -420,30 +420,30 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
       {showEditModal && selectedCampaign && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowEditModal(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.15)] rounded-[14px] p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_8px_32px_rgba(0,0,0,0.4)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-medium">Edit Campaign</h3>
-              <button onClick={() => setShowEditModal(false)} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
+              <h3 className="text-xl font-semibold text-white">Edit Campaign</h3>
+              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-[#1b1b1b] rounded-[8px] transition-all duration-200">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleUpdateCampaign} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Campaign Name</label>
+                <label className="block text-sm font-medium mb-2 text-[#cecece]">Campaign Name</label>
                 <input
                   type="text"
                   value={newCampaign.name}
                   onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  className="w-full px-4 py-2 bg-[#0e0e0e] border border-[rgba(226,226,225,0.15)] rounded-[10px] focus:outline-none focus:border-[#3e559e] text-white transition-all duration-200"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Status</label>
+                <label className="block text-sm font-medium mb-2 text-[#cecece]">Status</label>
                 <select
                   value={newCampaign.status}
                   onChange={(e) => setNewCampaign({ ...newCampaign, status: e.target.value as any })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
+                  className="w-full px-4 py-2 bg-[#0e0e0e] border border-[rgba(226,226,225,0.15)] rounded-[10px] focus:outline-none focus:border-[#3e559e] text-white transition-all duration-200"
                 >
                   <option value="draft">Draft</option>
                   <option value="active">Active</option>
@@ -455,7 +455,7 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                 <button
                   type="button"
                   onClick={() => openDeleteConfirm(selectedCampaign)}
-                  className="px-4 py-2 bg-linear-error-subtle hover:bg-red-500/20 text-linear-error border border-linear-error-border/20 rounded-linear linear-transition"
+                  className="px-4 py-2 bg-[#251816] hover:bg-[#9c3e3f]/20 text-[#9c3e3f] border border-[#9c3e3f]/20 rounded-[10px] transition-all duration-200"
                 >
                   Delete
                 </button>
@@ -463,13 +463,13 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
                 <button
                   type="button"
                   onClick={() => { setShowEditModal(false); resetForm(); }}
-                  className="px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
+                  className="px-4 py-2 bg-[#2e2f30] hover:bg-[#3a3b3c] text-white rounded-[10px] transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
+                  className="px-4 py-2 bg-[#3e559e] hover:bg-[#324885] text-white rounded-[10px] transition-all duration-200"
                 >
                   Save
                 </button>
@@ -481,21 +481,21 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
       {showDeleteConfirm && campaignToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 md:p-6 z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-4 md:p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-medium mb-4">Delete Campaign</h3>
-            <p className="dark:text-text-secondary light:text-text-light-secondary mb-6">
-              Are you sure you want to delete <span className="font-medium dark:text-text-primary light:text-text-light-primary">{campaignToDelete.name}</span>? This action cannot be undone.
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.15)] rounded-[14px] p-4 md:p-6 w-full max-w-md shadow-[0_8px_32px_rgba(0,0,0,0.4)]" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-semibold mb-4 text-white">Delete Campaign</h3>
+            <p className="text-[#cecece] mb-6">
+              Are you sure you want to delete <span className="font-semibold text-white">{campaignToDelete.name}</span>? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
+                className="flex-1 px-4 py-2 bg-[#2e2f30] hover:bg-[#3a3b3c] text-white rounded-[10px] transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteCampaign}
-                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-linear linear-transition"
+                className="flex-1 px-4 py-2 bg-[#9c3e3f] hover:bg-[#8a3738] text-white rounded-[10px] transition-all duration-200"
               >
                 Delete
               </button>

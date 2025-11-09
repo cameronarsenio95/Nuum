@@ -156,27 +156,27 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'text-nuum-accent-green bg-nuum-dark-green border-nuum-accent-green/20';
+        return 'text-[#66a56b] bg-[#1e2921] border-[#66a56b]/20';
       case 'completed':
-        return 'text-nuum-accent-blue bg-nuum-dark-blue border-nuum-accent-blue/20';
+        return 'text-[#3e559e] bg-[#141623] border-[#3e559e]/20';
       case 'paused':
-        return 'text-nuum-accent-orange bg-nuum-accent-brown border-nuum-accent-orange/20';
+        return 'text-[#e3a36e] bg-[#2e2720] border-[#e3a36e]/20';
       case 'archived':
-        return 'text-nuum-text-secondary bg-nuum-border border-nuum-border';
+        return 'text-[#cecece] bg-[#2e2f30] border-[rgba(226,226,225,0.1)]';
       default:
-        return 'text-nuum-text-secondary bg-nuum-border border-nuum-border';
+        return 'text-[#cecece] bg-[#2e2f30] border-[rgba(226,226,225,0.1)]';
     }
   };
 
   if (loading) {
     return (
-      <div className="text-nuum-text-secondary">Loading campaign...</div>
+      <div className="text-[#cecece]">Loading campaign...</div>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="text-nuum-text-secondary">Campaign not found</div>
+      <div className="text-[#cecece]">Campaign not found</div>
     );
   }
 
@@ -195,7 +195,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
       <div className="space-y-6">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm text-nuum-text-secondary hover:text-nuum-text-main linear-transition"
+          className="flex items-center gap-2 text-sm text-[#cecece] hover:text-white transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Campaigns
@@ -204,70 +204,70 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl md:text-3xl font-medium text-nuum-text-main">{campaign.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-semibold text-white">{campaign.name}</h1>
               <span className={`text-xs px-2.5 py-1 rounded-full border ${getStatusColor(campaign.status)}`}>
                 {campaign.status}
               </span>
             </div>
-            <p className="text-sm text-nuum-text-secondary">
+            <p className="text-sm text-[#cecece]">
               Created on {new Date(campaign.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-red/40 linear-transition">
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] p-6 hover:border-[#9c3e3f]/40 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-nuum-dark-red rounded-lg flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-nuum-accent-red" />
+              <div className="w-10 h-10 bg-[#161616] rounded-lg flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-[#9c3e3f]" />
               </div>
             </div>
-            <div className="text-xs text-nuum-text-secondary mb-1">Total Spend</div>
-            <div className="text-2xl font-medium text-nuum-text-main">€{metrics.totalSpend.toLocaleString()}</div>
+            <div className="text-xs text-[#cecece] mb-1">Total Spend</div>
+            <div className="text-2xl font-semibold text-white">€{metrics.totalSpend.toLocaleString()}</div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-green/40 linear-transition">
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] p-6 hover:border-[#66a56b]/40 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-nuum-dark-green rounded-lg flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-nuum-accent-green" />
+              <div className="w-10 h-10 bg-[#161616] rounded-lg flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-[#66a56b]" />
               </div>
             </div>
-            <div className="text-xs text-nuum-text-secondary mb-1">Total Revenue</div>
-            <div className="text-2xl font-medium text-nuum-accent-green">€{metrics.totalRevenue.toLocaleString()}</div>
+            <div className="text-xs text-[#cecece] mb-1">Total Revenue</div>
+            <div className="text-2xl font-semibold text-[#66a56b]">€{metrics.totalRevenue.toLocaleString()}</div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-blue/40 linear-transition">
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] p-6 hover:border-[#3e559e]/40 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-nuum-accent-blue" />
+              <div className="w-10 h-10 bg-[#161616] rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-[#3e559e]" />
               </div>
             </div>
-            <div className="text-xs text-nuum-text-secondary mb-1">ROI</div>
-            <div className={`text-2xl font-medium ${metrics.roi >= 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}`}>
+            <div className="text-xs text-[#cecece] mb-1">ROI</div>
+            <div className={`text-2xl font-semibold ${metrics.roi >= 0 ? 'text-[#66a56b]' : 'text-[#9c3e3f]'}`}>
               {Math.round(metrics.roi)}%
             </div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-blue/40 linear-transition">
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] p-6 hover:border-[#e3a36e]/40 transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-nuum-accent-blue" />
+              <div className="w-10 h-10 bg-[#161616] rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-[#e3a36e]" />
               </div>
             </div>
-            <div className="text-xs text-nuum-text-secondary mb-1">Creators</div>
-            <div className="text-2xl font-medium text-nuum-text-main">{metrics.totalCreators}</div>
+            <div className="text-xs text-[#cecece] mb-1">Creators</div>
+            <div className="text-2xl font-semibold text-white">{metrics.totalCreators}</div>
           </div>
         </div>
 
-        <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
+        <div className="bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-nuum-accent-blue" />
-              <h2 className="text-lg font-medium text-nuum-text-main">Ad Sets (Meta)</h2>
+              <Target className="w-5 h-5 text-[#3e559e]" />
+              <h2 className="text-lg font-semibold text-white">Ad Sets (Meta)</h2>
             </div>
             <button
               onClick={handleAddAdSet}
-              className="flex items-center gap-2 px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-[#3e559e] hover:bg-[#324885] text-white rounded-[10px] transition-all duration-200 text-sm"
             >
               <Plus className="w-4 h-4" />
               Add Ad Set
@@ -276,11 +276,11 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
 
           {adSets.length === 0 ? (
             <div className="text-center py-12">
-              <Target className="w-12 h-12 text-nuum-text-secondary mx-auto mb-3 opacity-50" />
-              <p className="text-nuum-text-secondary mb-4">No ad sets yet</p>
+              <Target className="w-12 h-12 text-[#cecece] mx-auto mb-3 opacity-50" />
+              <p className="text-[#cecece] mb-4">No ad sets yet</p>
               <button
                 onClick={handleAddAdSet}
-                className="px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition text-sm"
+                className="px-4 py-2 bg-[#3e559e] hover:bg-[#324885] text-white rounded-[10px] transition-all duration-200 text-sm"
               >
                 Create your first ad set
               </button>
@@ -289,15 +289,15 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-nuum-border">
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Name</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Platform</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Creator</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Spend</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Revenue</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">ROI</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Status</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Actions</th>
+                  <tr className="border-b border-[rgba(226,226,225,0.1)] bg-[#161616]">
+                    <th className="text-left py-3 px-3 text-xs font-medium text-[#cecece]">Name</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-[#cecece]">Platform</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-[#cecece]">Creator</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-[#cecece]">Spend</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-[#cecece]">Revenue</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-[#cecece]">ROI</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-[#cecece]">Status</th>
+                    <th className="text-right py-3 px-3 text-xs font-medium text-[#cecece]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -308,15 +308,15 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                     const creator = adSet.creators as Creator | null;
 
                     return (
-                      <tr key={adSet.id} className="border-b border-nuum-border hover:bg-nuum-border linear-transition">
-                        <td className="py-3 px-3 text-sm text-nuum-text-main">{adSet.name}</td>
-                        <td className="py-3 px-3 text-sm text-nuum-text-secondary capitalize">{adSet.platform}</td>
-                        <td className="py-3 px-3 text-sm text-nuum-text-secondary">
+                      <tr key={adSet.id} className="border-b border-[rgba(226,226,225,0.1)] hover:bg-[#1b1b1b] transition-all duration-200 even:bg-[#0e0e0e] odd:bg-[#161616]">
+                        <td className="py-3 px-3 text-sm text-white">{adSet.name}</td>
+                        <td className="py-3 px-3 text-sm text-[#cecece] capitalize">{adSet.platform}</td>
+                        <td className="py-3 px-3 text-sm text-[#cecece]">
                           {creator ? creator.name : '-'}
                         </td>
-                        <td className="py-3 px-3 text-sm text-right text-nuum-text-main">€{spend.toLocaleString()}</td>
-                        <td className="py-3 px-3 text-sm text-right text-nuum-accent-green">€{revenue.toLocaleString()}</td>
-                        <td className={`py-3 px-3 text-sm text-right font-medium ${roi >= 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}`}>
+                        <td className="py-3 px-3 text-sm text-right text-white">€{spend.toLocaleString()}</td>
+                        <td className="py-3 px-3 text-sm text-right text-[#66a56b]">€{revenue.toLocaleString()}</td>
+                        <td className={`py-3 px-3 text-sm text-right font-semibold ${roi >= 0 ? 'text-[#66a56b]' : 'text-[#9c3e3f]'}`}>
                           {Math.round(roi)}%
                         </td>
                         <td className="py-3 px-3">
@@ -328,14 +328,14 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleEditAdSet(adSet)}
-                              className="p-1.5 hover:bg-nuum-border rounded-lg linear-transition text-nuum-text-secondary hover:text-nuum-text-main"
+                              className="p-1.5 hover:bg-[#2e2720] rounded-lg transition-all duration-200 text-[#cecece] hover:text-[#e3a36e]"
                               title="Edit ad set"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteAdSet(adSet.id)}
-                              className="p-1.5 hover:bg-nuum-dark-red rounded-lg linear-transition text-nuum-text-secondary hover:text-nuum-accent-red"
+                              className="p-1.5 hover:bg-[#251816] rounded-lg transition-all duration-200 text-[#cecece] hover:text-[#9c3e3f]"
                               title="Delete ad set"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -352,19 +352,19 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
         </div>
 
         {creators.length > 0 && (
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
+          <div className="bg-[#161616] border border-[rgba(226,226,225,0.1)] rounded-[14px] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-2 mb-4">
-              <Users className="w-5 h-5 text-nuum-accent-blue" />
-              <h2 className="text-lg font-medium text-nuum-text-main">Linked Creators</h2>
+              <Users className="w-5 h-5 text-[#3e559e]" />
+              <h2 className="text-lg font-semibold text-white">Linked Creators</h2>
             </div>
             <div className="space-y-3">
               {creators.slice(0, 5).map((creator) => (
-                <div key={creator.id} className="flex items-center justify-between py-2">
+                <div key={creator.id} className="flex items-center justify-between py-2 hover:bg-[#1b1b1b] rounded-lg px-3 -mx-3 transition-all duration-200">
                   <div>
-                    <div className="text-sm font-medium text-nuum-text-main">{creator.name}</div>
-                    <div className="text-xs text-nuum-text-secondary">{creator.ad_sets_count} ad set{creator.ad_sets_count !== 1 ? 's' : ''}</div>
+                    <div className="text-sm font-medium text-white">{creator.name}</div>
+                    <div className="text-xs text-[#cecece]">{creator.ad_sets_count} ad set{creator.ad_sets_count !== 1 ? 's' : ''}</div>
                   </div>
-                  <div className="text-sm font-medium text-nuum-accent-green">
+                  <div className="text-sm font-semibold text-[#66a56b]">
                     €{creator.total_revenue.toLocaleString()}
                   </div>
                 </div>
