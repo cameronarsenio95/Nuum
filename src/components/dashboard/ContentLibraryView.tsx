@@ -147,22 +147,52 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   };
 
   const loadContent = async () => {
-    const { data, error } = await supabase
+    const { data: contentData, error } = await supabase
       .from('content_media')
       .select(`
         *,
         creators(name),
-        campaigns(id, name),
-        ad_sets!left(id, name)
+        campaigns(id, name)
       `)
       .eq('workspace_id', workspace.id)
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error loading content:', error);
-    } else {
-      setContent(data || []);
+      setContent([]);
+      return;
     }
+
+    if (!contentData || contentData.length === 0) {
+      setContent([]);
+      return;
+    }
+
+    const adSetIds = contentData
+      .map(item => item.ad_set_id)
+      .filter((id): id is string => id !== null);
+
+    let adSetsMap = new Map<string, { id: string; name: string }>();
+
+    if (adSetIds.length > 0) {
+      const { data: adSetsData } = await supabase
+        .from('ad_sets')
+        .select('id, name')
+        .in('id', adSetIds);
+
+      if (adSetsData) {
+        adSetsData.forEach(adSet => {
+          adSetsMap.set(adSet.id, adSet);
+        });
+      }
+    }
+
+    const enrichedContent = contentData.map(item => ({
+      ...item,
+      ad_sets: item.ad_set_id ? adSetsMap.get(item.ad_set_id) || null : null
+    }));
+
+    setContent(enrichedContent);
   };
 
   const loadCreators = async () => {
