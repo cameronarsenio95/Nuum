@@ -442,7 +442,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
                 {creator.discount_code && (
                   <div className="flex items-center gap-2 text-sm text-nuum-text-secondary">
                     <Tag className="w-4 h-4" />
-                    <span className="font-mono text-nuum-accent-orange">{creator.discount_code}</span>
+                    <span className="font-mono text-white">{creator.discount_code}</span>
                   </div>
                 )}
               </div>
