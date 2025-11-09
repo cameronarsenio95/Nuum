@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, DollarSign, TrendingUp, Users, Target, Edit2, Trash2, FileText, X } from 'lucide-react';
+import { ArrowLeft, Plus, DollarSign, TrendingUp, Users, Target, Edit2, Trash2, FileText, X, Link2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { AdSetFormModal } from '../components/campaigns/AdSetFormModal';
+import { LinkContentModal } from '../components/modals/LinkContentModal';
 import type { Database } from '../lib/database.types';
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
@@ -66,6 +67,8 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
   const [creators, setCreators] = useState<CreatorWithRevenue[]>([]);
   const [showAdSetModal, setShowAdSetModal] = useState(false);
   const [selectedAdSet, setSelectedAdSet] = useState<AdSet | null>(null);
+  const [showLinkContentModal, setShowLinkContentModal] = useState(false);
+  const [linkContentAdSet, setLinkContentAdSet] = useState<AdSetWithContent | null>(null);
   const [showContentModal, setShowContentModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState<ContentMedia[]>([]);
   const [loadingContent, setLoadingContent] = useState(false);
@@ -281,6 +284,25 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
         />
       )}
 
+      {showLinkContentModal && linkContentAdSet && (
+        <LinkContentModal
+          isOpen={showLinkContentModal}
+          onClose={() => {
+            setShowLinkContentModal(false);
+            setLinkContentAdSet(null);
+          }}
+          adSetId={linkContentAdSet.id}
+          adSetName={linkContentAdSet.name}
+          campaignId={linkContentAdSet.campaign_id}
+          creatorId={linkContentAdSet.creator_id}
+          platform={linkContentAdSet.platform}
+          workspaceId={workspaceId}
+          onLinked={() => {
+            loadCampaignData();
+          }}
+        />
+      )}
+
       {showContentModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -475,17 +497,25 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                           {!adSet.deal_type && <span className="text-nuum-text-secondary text-xs">—</span>}
                         </td>
                         <td className="py-3 px-3">
-                          {contentCount > 0 ? (
-                            <button
-                              onClick={() => handleViewContent(adSet.id, adSet.creator_id)}
-                              className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-nuum-dark-blue text-nuum-accent-blue rounded-lg hover:bg-nuum-accent-blue/20 transition-all"
-                            >
-                              <FileText className="w-3 h-3" />
-                              Content ({contentCount})
-                            </button>
-                          ) : (
-                            <span className="text-nuum-text-secondary text-xs">No content</span>
-                          )}
+                          <button
+                            onClick={() => {
+                              setLinkContentAdSet(adSet);
+                              setShowLinkContentModal(true);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-nuum-dark-blue text-nuum-accent-blue rounded-lg hover:bg-nuum-accent-blue/20 transition-all"
+                          >
+                            {contentCount > 0 ? (
+                              <>
+                                <FileText className="w-3 h-3" />
+                                {contentCount} {contentCount === 1 ? 'item' : 'items'}
+                              </>
+                            ) : (
+                              <>
+                                <Link2 className="w-3 h-3" />
+                                Link Content
+                              </>
+                            )}
+                          </button>
                         </td>
                         <td className="py-3 px-3">
                           <div className="flex items-center justify-end gap-2">

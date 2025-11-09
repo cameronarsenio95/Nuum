@@ -36,9 +36,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const [content, setContent] = useState<ContentMediaItem[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [adSets, setAdSets] = useState<AdSet[]>([]);
-  const [filteredAdSets, setFilteredAdSets] = useState<AdSet[]>([]);
-  const [loadingAdSets, setLoadingAdSets] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -54,7 +51,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     file: null as File | null,
     creator_id: '',
     campaign_id: '',
-    ad_set_id: '',
     platform: '' as 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | ''
   });
 
@@ -63,61 +59,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     setupRealtime();
   }, [workspace.id]);
 
-  useEffect(() => {
-    const loadFilteredAdSets = async () => {
-      const hasCampaign = uploadForm.campaign_id && uploadForm.campaign_id !== '';
-      const hasCreator = uploadForm.creator_id && uploadForm.creator_id !== '';
-
-      if (!hasCampaign && !hasCreator) {
-        setFilteredAdSets([]);
-        if (uploadForm.ad_set_id) {
-          setUploadForm(prev => ({ ...prev, ad_set_id: '' }));
-        }
-        return;
-      }
-
-      setLoadingAdSets(true);
-
-      console.log('[AddContentModal] Filters', {
-        selectedCampaignId: uploadForm.campaign_id,
-        selectedCreatorId: uploadForm.creator_id,
-        workspace: workspace.id,
-        hasCampaign,
-        hasCreator
-      });
-
-      let query = supabase
-        .from('ad_sets')
-        .select('id, name, campaign_id, creator_id')
-        .eq('workspace_id', workspace.id);
-
-      if (hasCampaign) {
-        query = query.eq('campaign_id', uploadForm.campaign_id);
-      } else if (hasCreator) {
-        query = query.eq('creator_id', uploadForm.creator_id);
-      }
-
-      const { data, error } = await query.order('name');
-
-      if (error) {
-        console.error('[AddContentModal] Failed to load ad sets', error);
-        setFilteredAdSets([]);
-      } else {
-        console.log('[AddContentModal] Ad sets result', data);
-        setFilteredAdSets(data || []);
-
-        if (uploadForm.ad_set_id && data && !data.find(as => as.id === uploadForm.ad_set_id)) {
-          setUploadForm(prev => ({ ...prev, ad_set_id: '' }));
-        }
-      }
-
-      setLoadingAdSets(false);
-    };
-
-    if (showUploadModal) {
-      loadFilteredAdSets();
-    }
-  }, [uploadForm.campaign_id, uploadForm.creator_id, workspace.id, showUploadModal]);
 
   const setupRealtime = () => {
     const channel = supabase
@@ -145,8 +86,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     await Promise.all([
       loadContent(),
       loadCreators(),
-      loadCampaigns(),
-      loadAdSets()
+      loadCampaigns()
     ]);
     setLoading(false);
   };
@@ -238,19 +178,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     }
   };
 
-  const loadAdSets = async () => {
-    const { data, error } = await supabase
-      .from('ad_sets')
-      .select('*')
-      .eq('workspace_id', workspace.id)
-      .order('name');
-
-    if (error) {
-      console.error('Error loading ad sets:', error);
-    } else {
-      setAdSets(data || []);
-    }
-  };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,7 +205,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
           workspace_id: workspace.id,
           creator_id: uploadForm.creator_id,
           campaign_id: uploadForm.campaign_id || null,
-          ad_set_id: uploadForm.ad_set_id || null,
           platform: uploadForm.platform || null,
           file_name: uploadForm.file.name,
           file_type: uploadForm.file.type,
@@ -294,7 +220,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         file: null,
         creator_id: '',
         campaign_id: '',
-        ad_set_id: '',
         platform: ''
       });
       loadContent();
@@ -437,7 +362,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                     </p>
                   </div>
 
-                  {(item.campaigns?.name || item.platform) && (
+                  {(item.campaigns?.name || item.platform || item.ad_sets?.name) && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {item.campaigns?.name && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-secondary light:text-text-light-secondary">
@@ -447,6 +372,11 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                       {item.platform && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-blue-500/10 light:bg-blue-500/10 dark:text-blue-400 light:text-blue-600">
                           {item.platform}
+                        </span>
+                      )}
+                      {item.ad_sets?.name && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-green-500/10 light:bg-green-500/10 dark:text-green-400 light:text-green-600">
+                          🔗 {item.ad_sets.name}
                         </span>
                       )}
                     </div>
@@ -512,27 +442,10 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Ad Set (Optional)</label>
-                <select
-                  value={uploadForm.ad_set_id}
-                  onChange={(e) => setUploadForm({ ...uploadForm, ad_set_id: e.target.value })}
-                  className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={(!uploadForm.campaign_id || uploadForm.campaign_id === '') && (!uploadForm.creator_id || uploadForm.creator_id === '')}
-                >
-                  <option value="">
-                    {(!uploadForm.campaign_id || uploadForm.campaign_id === '') && (!uploadForm.creator_id || uploadForm.creator_id === '')
-                      ? 'Select campaign or creator first'
-                      : loadingAdSets
-                      ? 'Loading ad sets...'
-                      : filteredAdSets.length === 0
-                      ? 'No ad sets found for this selection'
-                      : 'Select Ad Set (Optional)'}
-                  </option>
-                  {filteredAdSets.map(adSet => (
-                    <option key={adSet.id} value={adSet.id}>{adSet.name}</option>
-                  ))}
-                </select>
+              <div className="dark:bg-blue-500/10 light:bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-sm dark:text-blue-400 light:text-blue-600">
+                  <strong>💡 Tip:</strong> To link content to an Ad Set, upload it here first. Then go to your Campaign detail page → Ad Sets (Meta) section → click "Link Content" on the relevant ad set.
+                </p>
               </div>
 
               <div>
