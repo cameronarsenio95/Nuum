@@ -362,22 +362,20 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'active':
-        return 'text-nuum-accent-green bg-nuum-dark-green border-nuum-accent-green/20';
+        return 'text-linear-success bg-linear-success/10 border-linear-success-border/20';
       case 'completed':
-        return 'text-nuum-accent-blue bg-nuum-dark-blue border-nuum-accent-blue/20';
+        return 'text-linear-info bg-linear-info/10 border-linear-info-border/20';
       case 'archived':
-        return 'text-nuum-text-secondary bg-nuum-neutral border-nuum-border';
-      case 'draft':
-        return 'text-nuum-accent-orange bg-nuum-accent-brown border-nuum-accent-orange/20';
+        return 'text-text-tertiary bg-text-tertiary/10 border-linear-border/20';
       default:
-        return 'text-nuum-accent-orange bg-nuum-accent-brown border-nuum-accent-orange/20';
+        return 'text-linear-warning bg-linear-warning/10 border-linear-warning-border/20';
     }
   };
 
   const getRoiColor = (roi: number) => {
-    if (roi > 0) return 'text-nuum-accent-green';
+    if (roi > 0) return 'text-linear-success';
     if (roi < 0) return 'text-linear-error';
-    return 'text-nuum-text-secondary';
+    return 'dark:text-text-secondary light:text-text-light-secondary';
   };
 
   const handleExportPdf = () => {
@@ -434,8 +432,8 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       onClick={onClick}
       className={`px-3 py-1.5 rounded-linear text-xs md:text-sm border linear-transition ${
         active
-          ? 'bg-nuum-accent-blue border-nuum-accent-blue text-white'
-          : 'bg-transparent border-transparent text-nuum-text-secondary hover:bg-nuum-border'
+          ? 'dark:bg-linear-bg-subtle dark:border-linear-border dark:text-text-primary light:bg-linear-light-bg-subtle light:border-linear-light-border light:text-text-light-primary'
+          : 'dark:bg-transparent dark:border-transparent dark:text-text-secondary dark:hover:bg-linear-bg-subtle/60 light:bg-transparent light:border-transparent light:text-text-light-secondary light:hover:bg-linear-light-bg-subtle/60'
       }`}
     >
       {children}
@@ -457,16 +455,16 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           }}
         />
 
-        <div className="relative z-10 bg-nuum-surface border border-nuum-border rounded-linear-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
-          <div className="sticky top-0 bg-nuum-surface border-b border-nuum-border px-4 md:px-6 py-4 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-nuum-text-main">Compare Campaigns</h3>
+        <div className="relative z-10 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+          <div className="sticky top-0 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-b dark:border-linear-border-subtle light:border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between">
+            <h3 className="text-sm font-medium dark:text-text-primary light:text-gray-900">Compare Campaigns</h3>
             <button
               onClick={() => {
                 setIsCompareOpen(false);
                 setCompareCampaignAId(null);
                 setCompareCampaignBId(null);
               }}
-              className="text-nuum-text-secondary hover:text-nuum-text-main linear-transition"
+              className="dark:text-text-secondary light:text-gray-500 hover:dark:text-text-primary hover:light:text-gray-900 linear-transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -475,13 +473,13 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           <div className="p-4 md:p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-nuum-text-secondary mb-2">
+                <label className="block text-xs dark:text-text-secondary light:text-gray-600 mb-2">
                   Campaign A
                 </label>
                 <select
                   value={compareCampaignAId || ''}
                   onChange={(e) => setCompareCampaignAId(e.target.value || null)}
-                  className="w-full px-3 py-2 rounded-linear border border-nuum-border bg-nuum-background text-nuum-text-main text-sm"
+                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-primary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
                 >
                   <option value="">Select campaign...</option>
                   {campaignsFiltered.map(c => (
@@ -493,13 +491,13 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               </div>
 
               <div>
-                <label className="block text-xs text-nuum-text-secondary mb-2">
+                <label className="block text-xs dark:text-text-secondary light:text-gray-600 mb-2">
                   Campaign B
                 </label>
                 <select
                   value={compareCampaignBId || ''}
                   onChange={(e) => setCompareCampaignBId(e.target.value || null)}
-                  className="w-full px-3 py-2 rounded-linear border border-nuum-border bg-nuum-background text-nuum-text-main text-sm"
+                  className="w-full px-3 py-2 rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:bg-linear-bg-primary light:bg-white dark:text-text-primary light:text-gray-900 text-sm"
                 >
                   <option value="">Select campaign...</option>
                   {campaignsFiltered.map(c => (
@@ -513,85 +511,85 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
             {campaignA && campaignB && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-nuum-background border border-nuum-border rounded-linear-lg p-4">
-                  <h4 className="text-sm font-medium text-nuum-text-main mb-4 truncate" title={campaignA.name}>
+                <div className="dark:bg-linear-bg-primary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
+                  <h4 className="text-sm font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignA.name}>
                     {campaignA.name}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Status</div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Status</div>
                       <span className={`inline-block text-xs px-2 py-0.5 rounded-full border ${getStatusColor(campaignA.status)}`}>
                         {campaignA.status}
                       </span>
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Spend</div>
-                      <div className="text-sm text-nuum-text-main">
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Spend</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignA.total_spend)}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Revenue</div>
-                      <div className="text-sm text-nuum-text-main">
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Revenue</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignA.total_revenue)}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">ROI</div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">ROI</div>
                       <div className={`text-sm font-medium ${getRoiColor(campaignA.roi)}`}>
                         {Math.round(campaignA.roi)}%
                       </div>
                       {campaignA.roi > campaignB.roi && (
-                        <div className="text-xs text-nuum-accent-green mt-1">Higher ROI</div>
+                        <div className="text-xs text-linear-success mt-1">Higher ROI</div>
                       )}
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Ad Sets</div>
-                      <div className="text-sm text-nuum-text-main">
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Ad Sets</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {campaignA.total_ad_sets} ({campaignA.active_ad_sets} active)
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-nuum-background border border-nuum-border rounded-linear-lg p-4">
-                  <h4 className="text-sm font-medium text-nuum-text-main mb-4 truncate" title={campaignB.name}>
+                <div className="dark:bg-linear-bg-primary light:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-4">
+                  <h4 className="text-sm font-medium dark:text-text-primary light:text-gray-900 mb-4 truncate" title={campaignB.name}>
                     {campaignB.name}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Status</div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Status</div>
                       <span className={`inline-block text-xs px-2 py-0.5 rounded-full border ${getStatusColor(campaignB.status)}`}>
                         {campaignB.status}
                       </span>
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Spend</div>
-                      <div className="text-sm text-nuum-text-main">
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Spend</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignB.total_spend)}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Revenue</div>
-                      <div className="text-sm text-nuum-text-main">
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Revenue</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {formatCurrency(campaignB.total_revenue)}
                       </div>
                       {campaignB.total_revenue > campaignA.total_revenue && (
-                        <div className="text-xs text-nuum-accent-green mt-1">Higher Revenue</div>
+                        <div className="text-xs text-linear-success mt-1">Higher Revenue</div>
                       )}
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">ROI</div>
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">ROI</div>
                       <div className={`text-sm font-medium ${getRoiColor(campaignB.roi)}`}>
                         {Math.round(campaignB.roi)}%
                       </div>
                       {campaignB.roi > campaignA.roi && (
-                        <div className="text-xs text-nuum-accent-green mt-1">Higher ROI</div>
+                        <div className="text-xs text-linear-success mt-1">Higher ROI</div>
                       )}
                     </div>
                     <div>
-                      <div className="text-xs text-nuum-text-secondary mb-1">Ad Sets</div>
-                      <div className="text-sm text-nuum-text-main">
+                      <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-1">Ad Sets</div>
+                      <div className="text-sm dark:text-text-primary light:text-gray-900">
                         {campaignB.total_ad_sets} ({campaignB.active_ad_sets} active)
                       </div>
                     </div>
@@ -608,7 +606,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-nuum-text-secondary">Loading analytics...</div>
+        <div className="dark:text-text-secondary light:text-text-light-secondary">Loading analytics...</div>
       </div>
     );
   }
@@ -618,19 +616,19 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl md:text-2xl font-medium mb-2">Campaign Performance</h2>
-          <p className="text-sm md:text-base text-nuum-text-secondary">
+          <p className="text-sm md:text-base dark:text-text-secondary light:text-text-light-secondary">
             Comprehensive performance insights for your campaigns
           </p>
         </div>
 
         {campaignsFiltered.length > 0 && (
-          <div className="inline-flex items-center rounded-linear border border-nuum-border text-xs overflow-hidden">
+          <div className="inline-flex items-center rounded-linear border dark:border-linear-border-subtle light:border-gray-300 text-xs overflow-hidden">
             <button
               type="button"
               className={`px-3 py-1.5 linear-transition flex items-center gap-1.5 ${
                 viewMode === 'visual'
-                  ? 'bg-nuum-accent-blue text-nuum-text-main'
-                  : 'text-nuum-text-secondary hover:bg-nuum-border'
+                  ? 'dark:bg-linear-bg-subtle light:bg-gray-100 dark:text-text-primary light:text-gray-900'
+                  : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-subtle/60 hover:light:bg-gray-50'
               }`}
               onClick={() => setViewMode('visual')}
             >
@@ -641,8 +639,8 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               type="button"
               className={`px-3 py-1.5 linear-transition flex items-center gap-1.5 ${
                 viewMode === 'data'
-                  ? 'bg-nuum-accent-blue text-nuum-text-main'
-                  : 'text-nuum-text-secondary hover:bg-nuum-border'
+                  ? 'dark:bg-linear-bg-subtle light:bg-gray-100 dark:text-text-primary light:text-gray-900'
+                  : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-subtle/60 hover:light:bg-gray-50'
               }`}
               onClick={() => setViewMode('data')}
             >
@@ -654,24 +652,24 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       </div>
 
       {error && (
-        <div className="bg-nuum-dark-red border border-nuum-accent-red rounded-linear-lg p-4">
-          <p className="text-sm text-nuum-accent-red">
+        <div className="dark:bg-linear-error-subtle light:bg-red-50 border dark:border-linear-error-border light:border-red-200 rounded-linear-lg p-4">
+          <p className="text-sm dark:text-linear-error light:text-red-800">
             We couldn't load analytics right now. Please try again later.
           </p>
         </div>
       )}
 
       {campaignsWithMetrics.length > 0 && (
-        <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-nuum-text-secondary" />
+              <Filter className="w-4 h-4 dark:text-text-tertiary light:text-text-light-tertiary" />
               <span className="text-sm md:text-base font-medium">Filters</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-xs md:text-sm text-nuum-text-secondary">
+                <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
                   Time:
                 </span>
                 <div className="flex gap-1">
@@ -688,7 +686,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs md:text-sm text-nuum-text-secondary">
+                <span className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
                   Status:
                 </span>
                 <div className="flex gap-1 flex-wrap">
@@ -718,26 +716,26 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
         <div className="space-y-6 animate-pulse">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-nuum-border rounded-linear-lg h-32" />
+              <div key={i} className="dark:bg-linear-bg-tertiary/40 light:bg-gray-200 rounded-linear-lg h-32" />
             ))}
           </div>
-          <div className="bg-nuum-border rounded-linear-lg h-48" />
-          <div className="bg-nuum-border rounded-linear-lg h-64" />
+          <div className="dark:bg-linear-bg-tertiary/40 light:bg-gray-200 rounded-linear-lg h-48" />
+          <div className="dark:bg-linear-bg-tertiary/40 light:bg-gray-200 rounded-linear-lg h-64" />
         </div>
       )}
 
       {!filterLoading && campaignsFiltered.length > 0 && (
-        <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
           <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-nuum-dark-blue rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Lightbulb className="w-5 h-5 text-nuum-accent-blue" />
+              <div className="w-10 h-10 bg-linear-accent/10 rounded-linear flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Lightbulb className="w-5 h-5 text-linear-accent" />
               </div>
               <div className="flex-1">
-                <div className="text-xs text-nuum-text-secondary mb-1">
+                <div className="text-xs dark:text-text-tertiary light:text-text-light-tertiary mb-1">
                   Key Insight
                 </div>
-                <p className="text-sm text-nuum-text-main">
+                <p className="text-sm dark:text-text-primary light:text-text-light-primary">
                   {campaignsFiltered.length > 0
                     ? `Your campaigns generated ${formatCurrency(totalRevenue)} in revenue with an average ROI of ${Math.round(averageRoi)}%. ${
                         topCampaignByRoi ? topCampaignByRoi.name : 'No campaign'
@@ -750,10 +748,10 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             {topCampaignByRoi && topCampaignByRevenue && (
               <div className="flex flex-col gap-2 md:border-l md:dark:border-linear-border-subtle md:light:border-linear-light-border-subtle md:pl-6">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-nuum-text-secondary">
+                  <span className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                     Top ROI:
                   </span>
-                  <span className="text-sm font-medium text-nuum-text-main">
+                  <span className="text-sm font-medium dark:text-text-primary light:text-text-light-primary">
                     {topCampaignByRoi.name.length > 20
                       ? topCampaignByRoi.name.substring(0, 20) + '...'
                       : topCampaignByRoi.name}
@@ -763,15 +761,15 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-nuum-text-secondary">
+                  <span className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                     Top Revenue:
                   </span>
-                  <span className="text-sm font-medium text-nuum-text-main">
+                  <span className="text-sm font-medium dark:text-text-primary light:text-text-light-primary">
                     {topCampaignByRevenue.name.length > 20
                       ? topCampaignByRevenue.name.substring(0, 20) + '...'
                       : topCampaignByRevenue.name}
                   </span>
-                  <span className="text-sm font-medium text-nuum-accent-green">
+                  <span className="text-sm font-medium text-linear-success">
                     {formatCurrency(topCampaignByRevenue.total_revenue)}
                   </span>
                 </div>
@@ -783,69 +781,69 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
 
       {!filterLoading && (
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 transition-opacity duration-300 ${hasMounted ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6" title="Sum of all ad set spend within selected filters">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Sum of all ad set spend within selected filters">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-nuum-dark-red rounded-linear flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-nuum-accent-red" />
+            <div className="w-10 h-10 bg-red-500/10 rounded-linear flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-red-500" />
             </div>
-            <span className="text-xs text-nuum-text-secondary">Costs</span>
+            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Costs</span>
           </div>
           <div className="space-y-1">
             <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={totalSpend} prefix="€" />
             </div>
-            <div className="text-xs md:text-sm text-nuum-text-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Total investment
             </div>
           </div>
         </div>
 
-        <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6" title="Total revenue generated by campaigns within selected filters">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Total revenue generated by campaigns within selected filters">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-nuum-dark-green rounded-linear flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-nuum-accent-green" />
+            <div className="w-10 h-10 bg-green-500/10 rounded-linear flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-500" />
             </div>
-            <span className="text-xs text-nuum-text-secondary">Revenue</span>
+            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Revenue</span>
           </div>
           <div className="space-y-1">
             <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={totalRevenue} prefix="€" />
             </div>
-            <div className="text-xs md:text-sm text-nuum-text-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Total generated
             </div>
           </div>
         </div>
 
-        <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6" title="Average return on investment = (Revenue − Costs) ÷ Costs">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Average return on investment = (Revenue − Costs) ÷ Costs">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-nuum-dark-blue rounded-linear flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-nuum-accent-blue" />
+            <div className="w-10 h-10 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-linear-accent" />
             </div>
-            <span className="text-xs text-nuum-text-secondary">ROI</span>
+            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">ROI</span>
           </div>
           <div className="space-y-1">
             <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={isNaN(averageRoi) ? 0 : averageRoi} suffix="%" />
             </div>
-            <div className="text-xs md:text-sm text-nuum-text-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Average return
             </div>
           </div>
         </div>
 
-        <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6" title="Number of campaigns currently active within selected filters">
+        <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6" title="Number of campaigns currently active within selected filters">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-nuum-dark-blue rounded-linear flex items-center justify-center">
-              <Target className="w-5 h-5 text-nuum-accent-blue" />
+            <div className="w-10 h-10 bg-linear-info-subtle rounded-linear flex items-center justify-center">
+              <Target className="w-5 h-5 text-linear-info" />
             </div>
-            <span className="text-xs text-nuum-text-secondary">Active</span>
+            <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active</span>
           </div>
           <div className="space-y-1">
             <div className="text-xl md:text-2xl font-medium">
               <AnimatedNumber value={activeCampaigns} />
             </div>
-            <div className="text-xs md:text-sm text-nuum-text-secondary">
+            <div className="text-xs md:text-sm dark:text-text-secondary light:text-text-light-secondary">
               Active campaigns
             </div>
           </div>
@@ -854,11 +852,11 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       )}
 
       {!filterLoading && campaignsFiltered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 text-sm text-nuum-text-secondary bg-nuum-surface border border-nuum-border rounded-linear-lg">
-          <div className="w-16 h-16 mb-4 rounded-full flex items-center justify-center bg-nuum-border">
-            <BarChart3 className="w-8 h-8 text-nuum-text-secondary" />
+        <div className="flex flex-col items-center justify-center h-48 text-sm dark:text-text-secondary light:text-text-light-secondary dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg">
+          <div className="w-16 h-16 mb-4 rounded-full flex items-center justify-center dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle">
+            <BarChart3 className="w-8 h-8 dark:text-text-tertiary light:text-text-light-tertiary" />
           </div>
-          <div className="mb-2 text-nuum-text-main">No campaign data yet</div>
+          <div className="mb-2 dark:text-text-primary light:text-text-light-primary">No campaign data yet</div>
           <div className="text-xs max-w-sm text-center">
             {campaignsWithMetrics.length === 0
               ? 'Create a new campaign to see performance analytics here.'
@@ -868,26 +866,26 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
       ) : !filterLoading && viewMode === 'data' ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-nuum-text-secondary">
+            <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
               Data view shows your current campaigns in a flat table. Filters still apply.
             </p>
             <button
               onClick={handleExportPdf}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-linear border border-nuum-border text-nuum-text-main hover:bg-nuum-border linear-transition"
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:text-text-primary light:text-gray-700 dark:hover:bg-linear-bg-subtle light:hover:bg-gray-50 linear-transition"
             >
               <Download className="w-3.5 h-3.5" />
               Export PDF
             </button>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
               <Target className="w-4 h-4" />
               Campaign Data
             </h3>
             <div className="overflow-x-auto">
               <div className="min-w-full">
-                <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b border-nuum-border text-xs text-nuum-text-secondary">
+                <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-secondary light:text-text-light-secondary">
                   <div className="col-span-2">Campaign</div>
                   <div>Status</div>
                   <div>Ad Sets</div>
@@ -910,18 +908,18 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                           {campaign.status}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 sm:block text-nuum-text-secondary">
+                      <div className="flex items-center gap-2 sm:block dark:text-text-secondary light:text-text-light-secondary">
                         <span className="sm:hidden text-text-tertiary">Ad Sets:</span>
                         {campaign.total_ad_sets}
                         {campaign.active_ad_sets > 0 && (
-                          <span className="text-nuum-accent-green ml-1">({campaign.active_ad_sets})</span>
+                          <span className="text-linear-success ml-1">({campaign.active_ad_sets})</span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-2 text-nuum-text-secondary">
+                      <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
                         <span className="sm:hidden text-text-tertiary">Spend:</span>
                         {formatCurrency(campaign.total_spend)}
                       </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-2 text-nuum-text-secondary">
+                      <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
                         <span className="sm:hidden text-text-tertiary">Revenue:</span>
                         {formatCurrency(campaign.total_revenue)}
                       </div>
@@ -936,21 +934,21 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <div className="mb-4">
               <h3 className="text-sm md:text-base font-medium mb-1 flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 Creator Data
               </h3>
-              <p className="text-xs text-nuum-text-secondary">
+              <p className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                 Creators ranked by total revenue within the current filters
               </p>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs md:text-sm">
-                <thead className="text-nuum-text-secondary">
-                  <tr className="border-b border-nuum-border">
+                <thead className="dark:text-text-secondary light:text-text-light-secondary">
+                  <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                     <th className="py-2 pr-4 font-medium">#</th>
                     <th className="py-2 pr-4 font-medium">Creator</th>
                     <th className="py-2 pr-4 font-medium">Handle</th>
@@ -961,7 +959,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 <tbody>
                   {topCreators.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-4 text-xs text-nuum-text-secondary">
+                      <td colSpan={5} className="py-4 text-xs dark:text-text-secondary light:text-text-light-secondary">
                         No creator data for the selected filters
                       </td>
                     </tr>
@@ -974,21 +972,21 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                       return (
                         <tr
                           key={creator.id}
-                          className="border-b last:border-b-0 border-nuum-border hover:bg-nuum-border"
+                          className="border-b last:border-b-0 dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-subtle/40 hover:light:bg-gray-50"
                         >
-                          <td className="py-3 pr-4 align-middle text-xs text-nuum-text-secondary">
+                          <td className="py-3 pr-4 align-middle text-xs dark:text-text-secondary light:text-text-light-secondary">
                             {index + 1}
                           </td>
-                          <td className="py-3 pr-4 align-middle text-nuum-text-main">
+                          <td className="py-3 pr-4 align-middle dark:text-text-primary light:text-gray-900">
                             {creator.name || 'Unnamed creator'}
                           </td>
-                          <td className="py-3 pr-4 align-middle text-nuum-text-secondary">
+                          <td className="py-3 pr-4 align-middle dark:text-text-secondary light:text-text-light-secondary">
                             {handle ? `@${handle}` : '—'}
                           </td>
-                          <td className="py-3 pr-4 align-middle text-nuum-text-secondary">
+                          <td className="py-3 pr-4 align-middle dark:text-text-secondary light:text-text-light-secondary">
                             {platform || '—'}
                           </td>
-                          <td className="py-3 pl-4 align-middle text-right font-medium text-nuum-text-main">
+                          <td className="py-3 pl-4 align-middle text-right font-medium dark:text-text-primary light:text-gray-900">
                             {formatCurrency(revenue)}
                           </td>
                         </tr>
@@ -1000,21 +998,21 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6">
+          <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
             <div className="mb-4">
               <h3 className="text-sm md:text-base font-medium mb-1 flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 Platform Data
               </h3>
-              <p className="text-xs text-nuum-text-secondary">
+              <p className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                 Creator and revenue distribution across social platforms
               </p>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs md:text-sm">
-                <thead className="text-nuum-text-secondary">
-                  <tr className="border-b border-nuum-border">
+                <thead className="dark:text-text-secondary light:text-text-light-secondary">
+                  <tr className="border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle">
                     <th className="py-2 pr-4 font-medium">Platform</th>
                     <th className="py-2 pr-4 font-medium">Creators</th>
                     <th className="py-2 pr-4 text-right font-medium">Total revenue</th>
@@ -1024,7 +1022,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 <tbody>
                   {platformStats.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-4 text-xs text-nuum-text-secondary">
+                      <td colSpan={4} className="py-4 text-xs dark:text-text-secondary light:text-text-light-secondary">
                         No platform data for the selected filters
                       </td>
                     </tr>
@@ -1032,18 +1030,18 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                     platformStats.map(({ platform, count, revenue, percentage }) => (
                       <tr
                         key={platform}
-                        className="border-b last:border-b-0 border-nuum-border hover:bg-nuum-border"
+                        className="border-b last:border-b-0 dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:dark:bg-linear-bg-subtle/40 hover:light:bg-gray-50"
                       >
-                        <td className="py-3 pr-4 align-middle text-nuum-text-main">
+                        <td className="py-3 pr-4 align-middle dark:text-text-primary light:text-gray-900">
                           {platform}
                         </td>
-                        <td className="py-3 pr-4 align-middle text-nuum-text-secondary">
+                        <td className="py-3 pr-4 align-middle dark:text-text-secondary light:text-text-light-secondary">
                           {count} {count === 1 ? 'creator' : 'creators'}
                         </td>
-                        <td className="py-3 pl-4 align-middle text-right font-medium text-nuum-text-main">
+                        <td className="py-3 pl-4 align-middle text-right font-medium dark:text-text-primary light:text-gray-900">
                           {formatCurrency(revenue)}
                         </td>
-                        <td className="py-3 pl-4 align-middle text-right text-nuum-text-secondary">
+                        <td className="py-3 pl-4 align-middle text-right dark:text-text-secondary light:text-text-light-secondary">
                           {percentage}%
                         </td>
                       </tr>
@@ -1060,7 +1058,7 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             <div></div>
             <button
               onClick={() => setIsCompareOpen(true)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-linear border border-nuum-border text-nuum-text-main hover:bg-nuum-border linear-transition"
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-linear border dark:border-linear-border-subtle light:border-gray-300 dark:text-text-primary light:text-gray-700 dark:hover:bg-linear-bg-subtle light:hover:bg-gray-50 linear-transition"
             >
               <GitCompare className="w-3.5 h-3.5" />
               Compare campaigns
@@ -1068,14 +1066,14 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
-            <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
               <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Spend vs Revenue
               </h3>
               {chartData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-nuum-text-secondary">
-                  <BarChart3 className="w-10 h-10 mb-3 text-nuum-text-secondary" />
+                <div className="flex flex-col items-center justify-center h-64 dark:text-text-secondary light:text-text-light-secondary">
+                  <BarChart3 className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-text-light-tertiary" />
                   <div className="text-sm">No data available</div>
                 </div>
               ) : (
@@ -1133,14 +1131,14 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
               )}
             </div>
 
-            <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-4 md:p-6">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4 md:p-6">
               <h3 className="text-sm md:text-base font-medium mb-4 flex items-center gap-2">
                 <Target className="w-4 h-4" />
                 Campaign Breakdown
               </h3>
               <div className="overflow-x-auto">
                 <div className="min-w-full">
-                  <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b border-nuum-border text-xs text-nuum-text-secondary">
+                  <div className="hidden sm:grid grid-cols-7 gap-2 pb-2 border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs dark:text-text-secondary light:text-text-light-secondary">
                     <div className="col-span-2">Campaign</div>
                     <div>Status</div>
                     <div>Ad Sets</div>
@@ -1166,18 +1164,18 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                             {campaign.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 sm:block text-nuum-text-secondary">
+                        <div className="flex items-center gap-2 sm:block dark:text-text-secondary light:text-text-light-secondary">
                           <span className="sm:hidden text-text-tertiary">Ad Sets:</span>
                           {campaign.total_ad_sets}
                           {campaign.active_ad_sets > 0 && (
-                            <span className="text-nuum-accent-green ml-1">({campaign.active_ad_sets})</span>
+                            <span className="text-linear-success ml-1">({campaign.active_ad_sets})</span>
                           )}
                         </div>
-                        <div className="flex items-center justify-between sm:justify-end gap-2 text-nuum-text-secondary">
+                        <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
                           <span className="sm:hidden text-text-tertiary">Spend:</span>
                           {formatCurrency(campaign.total_spend)}
                         </div>
-                        <div className="flex items-center justify-between sm:justify-end gap-2 text-nuum-text-secondary">
+                        <div className="flex items-center justify-between sm:justify-end gap-2 dark:text-text-secondary light:text-text-light-secondary">
                           <span className="sm:hidden text-text-tertiary">Revenue:</span>
                           {formatCurrency(campaign.total_revenue)}
                         </div>
@@ -1193,17 +1191,17 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
             </div>
 
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:col-span-2">
-              <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-5 md:p-6">
+              <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-5 md:p-6">
                 <div className="flex items-center gap-2.5 mb-4">
-                  <Users className="w-5 h-5 text-nuum-text-secondary" />
-                  <h3 className="text-base font-medium text-nuum-text-main">Top Creators</h3>
+                  <Users className="w-5 h-5 dark:text-text-secondary light:text-gray-600" />
+                  <h3 className="text-base font-medium dark:text-text-primary light:text-gray-900">Top Creators</h3>
                 </div>
 
                 {topCreators.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-48 text-nuum-text-secondary">
-                    <Users className="w-10 h-10 mb-3 text-nuum-text-secondary" />
+                  <div className="flex flex-col items-center justify-center h-48 dark:text-text-secondary light:text-text-light-secondary">
+                    <Users className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-gray-400" />
                     <div className="text-sm text-center">No creators yet</div>
-                    <div className="text-xs text-center mt-1 text-nuum-text-secondary">Add creators to see them highlighted here</div>
+                    <div className="text-xs text-center mt-1 dark:text-text-tertiary light:text-gray-500">Add creators to see them highlighted here</div>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -1215,29 +1213,29 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                       return (
                         <div
                           key={creator.id}
-                          className="flex items-center justify-between py-3 px-4 bg-nuum-background rounded-lg hover:bg-nuum-border linear-transition cursor-pointer"
+                          className="flex items-center justify-between py-3 px-4 dark:bg-[#1a1a1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#252525] linear-transition cursor-pointer"
                           onClick={() => {
                             console.log('Navigate to creator:', creator.id);
                           }}
                         >
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-nuum-accent-brown flex items-center justify-center border border-nuum-accent-orange">
-                              <span className="text-xs font-semibold text-nuum-accent-orange">#{index + 1}</span>
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full dark:bg-linear-warning/10 light:bg-amber-100 flex items-center justify-center border dark:border-linear-warning/20 light:border-amber-200">
+                              <span className="text-xs font-semibold dark:text-linear-warning light:text-amber-700">#{index + 1}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-nuum-text-main">
+                              <div className="text-sm font-medium dark:text-text-primary light:text-gray-900">
                                 {creator.name}
                               </div>
-                              <div className="text-xs text-nuum-text-secondary">
+                              <div className="text-xs dark:text-text-secondary light:text-gray-500">
                                 @{handle}
                               </div>
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <div className="text-xs text-nuum-text-secondary mb-0.5">
+                            <div className="text-xs dark:text-text-tertiary light:text-gray-500 mb-0.5">
                               Total Revenue
                             </div>
-                            <div className="text-base font-semibold text-nuum-accent-green">
+                            <div className="text-base font-semibold dark:text-linear-success light:text-green-600">
                               {formatCurrency(revenue)}
                             </div>
                           </div>
@@ -1248,35 +1246,35 @@ export default function AnalyticsView({ workspace }: AnalyticsViewProps) {
                 )}
               </div>
 
-              <div className="bg-nuum-surface border border-nuum-border rounded-linear-lg p-5 md:p-6">
+              <div className="dark:bg-linear-bg-secondary light:bg-white border dark:border-linear-border-subtle light:border-gray-200 rounded-linear-lg p-5 md:p-6">
                 <div className="flex items-center gap-2.5 mb-4">
-                  <Zap className="w-5 h-5 text-nuum-text-secondary" />
-                  <h3 className="text-base font-medium text-nuum-text-main">Platform Performance</h3>
+                  <Zap className="w-5 h-5 dark:text-text-secondary light:text-gray-600" />
+                  <h3 className="text-base font-medium dark:text-text-primary light:text-gray-900">Platform Performance</h3>
                 </div>
 
                 {platformStats.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-48 text-nuum-text-secondary">
-                    <Zap className="w-10 h-10 mb-3 text-nuum-text-secondary" />
+                  <div className="flex flex-col items-center justify-center h-48 dark:text-text-secondary light:text-text-light-secondary">
+                    <Zap className="w-10 h-10 mb-3 dark:text-text-tertiary light:text-gray-400" />
                     <div className="text-sm text-center">Platform data is not available yet</div>
-                    <div className="text-xs text-center mt-1 text-nuum-text-secondary">
+                    <div className="text-xs text-center mt-1 dark:text-text-tertiary light:text-gray-500">
                       Connect creator platform data to unlock these insights
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {platformStats.map(({ platform, count, revenue, percentage }) => (
-                      <div key={platform} className="flex items-center justify-between py-3 px-4 bg-nuum-background rounded-lg hover:bg-nuum-border linear-transition">
-                        <div className="text-base font-medium text-nuum-text-main">
+                      <div key={platform} className="flex items-center justify-between py-3 px-4 dark:bg-[#1a1a1a] light:bg-gray-50 rounded-lg hover:dark:bg-[#252525] linear-transition">
+                        <div className="text-base font-medium dark:text-text-primary light:text-gray-900">
                           {platform}
                         </div>
                         <div className="flex items-center gap-6">
-                          <div className="text-sm text-nuum-text-secondary">
+                          <div className="text-sm dark:text-text-secondary light:text-gray-600">
                             {count} {count === 1 ? 'creator' : 'creators'}
                           </div>
-                          <div className="text-base font-semibold text-nuum-accent-green">
+                          <div className="text-base font-semibold dark:text-linear-success light:text-green-600">
                             {formatCurrency(revenue)}
                           </div>
-                          <div className="text-sm text-nuum-text-secondary min-w-[3rem] text-right">
+                          <div className="text-sm dark:text-text-tertiary light:text-gray-500 min-w-[3rem] text-right">
                             {percentage}%
                           </div>
                         </div>
