@@ -43,6 +43,8 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
   const loadCampaignData = async () => {
     setLoading(true);
 
+    console.log('[CampaignDetail] Loading campaign:', { campaignId, workspaceId });
+
     const { data: campaignData, error: campaignError } = await supabase
       .from('campaigns')
       .select('*')
@@ -51,17 +53,18 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
       .maybeSingle();
 
     if (campaignError) {
-      console.error('Error loading campaign:', campaignError);
+      console.error('[CampaignDetail] Error loading campaign:', campaignError);
       setLoading(false);
       return;
     }
 
     if (!campaignData) {
-      console.error('Campaign not found');
+      console.error('[CampaignDetail] Campaign not found');
       setLoading(false);
       return;
     }
 
+    console.log('[CampaignDetail] Campaign loaded:', campaignData.name);
     setCampaign(campaignData);
 
     const { data: adSetsData, error: adSetsError } = await supabase
@@ -71,9 +74,16 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
 
+    console.log('[CampaignDetail] Ad sets query result:', {
+      count: adSetsData?.length || 0,
+      error: adSetsError,
+      adSetsData
+    });
+
     if (adSetsError) {
-      console.error('Error loading ad sets:', adSetsError);
+      console.error('[CampaignDetail] Error loading ad sets:', adSetsError);
     } else if (adSetsData) {
+      console.log('[CampaignDetail] Setting ad sets:', adSetsData);
       setAdSets(adSetsData);
 
       let totalSpend = 0;
