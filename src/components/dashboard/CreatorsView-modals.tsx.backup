@@ -50,10 +50,10 @@ export function CreatorFormModal({
 }: CreatorFormProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onCancel}>
-      <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium">{title}</h3>
-          <button onClick={onCancel} className="p-1 hover:bg-nuum-border rounded-lg">
+          <button onClick={onCancel} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -61,13 +61,13 @@ export function CreatorFormModal({
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Name <span className="text-nuum-accent-red">*</span>
+                Name <span className="text-linear-error">*</span>
               </label>
               <input
                 type="text"
                 value={newCreator.name}
                 onChange={(e) => setNewCreator({ ...newCreator, name: e.target.value })}
-                className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                 required
               />
             </div>
@@ -76,7 +76,7 @@ export function CreatorFormModal({
               <select
                 value={newCreator.status}
                 onChange={(e) => setNewCreator({ ...newCreator, status: e.target.value as any })}
-                className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -94,7 +94,7 @@ export function CreatorFormModal({
                 type="email"
                 value={newCreator.email}
                 onChange={(e) => setNewCreator({ ...newCreator, email: e.target.value })}
-                className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                 placeholder="creator@example.com"
               />
             </div>
@@ -106,7 +106,7 @@ export function CreatorFormModal({
                 type="tel"
                 value={newCreator.phone}
                 onChange={(e) => setNewCreator({ ...newCreator, phone: e.target.value })}
-                className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                 placeholder="+31 6 12345678"
               />
             </div>
@@ -119,7 +119,7 @@ export function CreatorFormModal({
                 type="text"
                 value={newCreator.instagram_handle}
                 onChange={(e) => setNewCreator({ ...newCreator, instagram_handle: e.target.value })}
-                className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                 placeholder="username"
               />
             </div>
@@ -129,7 +129,7 @@ export function CreatorFormModal({
                 type="text"
                 value={newCreator.tiktok_handle}
                 onChange={(e) => setNewCreator({ ...newCreator, tiktok_handle: e.target.value })}
-                className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                 placeholder="username"
               />
             </div>
@@ -139,7 +139,7 @@ export function CreatorFormModal({
                 type="text"
                 value={newCreator.snapchat_handle}
                 onChange={(e) => setNewCreator({ ...newCreator, snapchat_handle: e.target.value })}
-                className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+                className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
                 placeholder="username"
               />
             </div>
@@ -151,7 +151,7 @@ export function CreatorFormModal({
               type="text"
               value={newCreator.discount_code || ''}
               onChange={(e) => setNewCreator({ ...newCreator, discount_code: e.target.value })}
-              className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue"
+              className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent"
               placeholder="e.g., CREATOR10"
             />
           </div>
@@ -161,7 +161,7 @@ export function CreatorFormModal({
             <textarea
               value={newCreator.notes}
               onChange={(e) => setNewCreator({ ...newCreator, notes: e.target.value })}
-              className="w-full px-4 py-2 bg-nuum-background border border-nuum-border rounded-lg focus:outline-none focus:border-nuum-accent-blue h-24"
+              className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear focus:outline-none focus:border-linear-accent h-24"
             />
           </div>
 
@@ -170,7 +170,7 @@ export function CreatorFormModal({
               <button
                 type="button"
                 onClick={onDelete}
-                className="px-4 py-2 bg-nuum-dark-red hover:bg-nuum-accent-red text-nuum-accent-red hover:text-white border border-nuum-accent-red/20 rounded-lg linear-transition"
+                className="px-4 py-2 bg-linear-error-subtle hover:bg-red-500/20 text-linear-error border border-linear-error-border/20 rounded-linear linear-transition"
               >
                 Delete
               </button>
@@ -179,13 +179,13 @@ export function CreatorFormModal({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 bg-nuum-border hover:bg-nuum-border/70 rounded-lg linear-transition"
+              className="px-4 py-2 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition"
+              className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
             >
               {submitLabel}
             </button>
@@ -314,13 +314,13 @@ export function CreatorDetailModal({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'text-nuum-accent-green bg-nuum-dark-green border-nuum-accent-green/20';
+        return 'text-linear-success bg-linear-success-subtle border-linear-success-border';
       case 'inactive':
-        return 'text-nuum-text-secondary bg-nuum-border border-nuum-border';
+        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
       case 'blacklisted':
-        return 'text-nuum-accent-red bg-nuum-dark-red border-nuum-accent-red/20';
+        return 'text-linear-error bg-linear-error-subtle border-linear-error-border';
       default:
-        return 'text-nuum-text-secondary bg-nuum-border border-nuum-border';
+        return 'text-text-tertiary bg-linear-bg-hover border-linear-border';
     }
   };
 
@@ -442,14 +442,14 @@ export function CreatorDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-300" onClick={onClose}>
-      <div className="bg-nuum-background border border-nuum-border rounded-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto transition-opacity duration-300" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 bg-nuum-surface border-b border-nuum-border p-4 flex items-center justify-between z-10">
+      <div className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-linear-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto transition-opacity duration-300" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border-b dark:border-linear-border-subtle light:border-linear-light-border-subtle p-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h2 className="text-lg font-semibold">{creator.name}</h2>
                 {getPrimaryHandle() && (
-                  <span className="text-sm text-nuum-text-secondary">
+                  <span className="text-sm dark:text-text-tertiary light:text-text-light-tertiary">
                     @{getPrimaryHandle()}
                   </span>
                 )}
@@ -460,7 +460,7 @@ export function CreatorDetailModal({
             <button
               onClick={handleExportPDF}
               disabled={isExporting || campaignPerformance.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-nuum-background hover:bg-nuum-border border border-nuum-border rounded-lg linear-transition disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs dark:bg-linear-bg-primary light:bg-white hover:dark:bg-linear-bg-hover light:hover:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-300 rounded-linear linear-transition disabled:opacity-50"
               title="Export PDF Report"
             >
               <FileText className="w-3.5 h-3.5" />
@@ -469,7 +469,7 @@ export function CreatorDetailModal({
             <button
               onClick={handleExportCSV}
               disabled={campaignPerformance.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-nuum-background hover:bg-nuum-border border border-nuum-border rounded-lg linear-transition disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs dark:bg-linear-bg-primary light:bg-white hover:dark:bg-linear-bg-hover light:hover:bg-gray-50 border dark:border-linear-border-subtle light:border-gray-300 rounded-linear linear-transition disabled:opacity-50"
               title="Export CSV Data"
             >
               <Download className="w-3.5 h-3.5" />
@@ -480,13 +480,13 @@ export function CreatorDetailModal({
             </span>
             <button
               onClick={onEdit}
-              className="p-2 hover:bg-nuum-border rounded-lg linear-transition"
+              className="p-2 hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover rounded-linear linear-transition"
             >
               <Edit2 className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-nuum-border rounded-lg linear-transition"
+              className="p-2 hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover rounded-linear linear-transition"
             >
               <X className="w-4 h-4" />
             </button>
@@ -495,63 +495,63 @@ export function CreatorDetailModal({
 
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-4 gap-3">
-            <div className="bg-nuum-surface border border-nuum-border hover:border-[#3e559e] rounded-xl p-4 linear-transition">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 bg-nuum-dark-red rounded-lg flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-nuum-accent-red" />
+                <div className="w-9 h-9 bg-red-500/10 rounded-linear flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-red-500" />
                 </div>
-                <span className="text-xs text-nuum-text-secondary">Total Spend</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Spend</span>
               </div>
               <div>
                 <div className="text-xl font-semibold">{formatCurrency(totalSpend)}</div>
-                <div className="text-sm text-nuum-text-secondary mt-0.5">
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
                   Investment
                 </div>
               </div>
             </div>
 
-            <div className="bg-nuum-surface border border-nuum-border hover:border-[#3e559e] rounded-xl p-4 linear-transition">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 bg-nuum-dark-green rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-4 h-4 text-nuum-accent-green" />
+                <div className="w-9 h-9 bg-green-500/10 rounded-linear flex items-center justify-center">
+                  <DollarSign className="w-4 h-4 text-green-500" />
                 </div>
-                <span className="text-xs text-nuum-text-secondary">Total Revenue</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Total Revenue</span>
               </div>
               <div>
                 <div className="text-xl font-semibold">{formatCurrency(totalRevenue)}</div>
-                <div className="text-sm text-nuum-text-secondary mt-0.5">
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
                   Generated
                 </div>
               </div>
             </div>
 
-            <div className="bg-nuum-surface border border-nuum-border hover:border-[#3e559e] rounded-xl p-4 linear-transition">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-4 h-4 text-nuum-accent-blue" />
+                <div className="w-9 h-9 bg-linear-accent-subtle rounded-linear flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-linear-accent" />
                 </div>
-                <span className="text-xs text-nuum-text-secondary">Avg ROI</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Avg ROI</span>
               </div>
               <div>
-                <div className={`text-xl font-semibold ${roi > 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}`}>
+                <div className={`text-xl font-semibold ${roi > 0 ? 'text-linear-success' : 'text-linear-error'}`}>
                   {roi > 0 ? '+' : ''}{Math.round(roi)}%
                 </div>
-                <div className="text-sm text-nuum-text-secondary mt-0.5">
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
                   Return
                 </div>
               </div>
             </div>
 
-            <div className="bg-nuum-surface border border-nuum-border hover:border-[#3e559e] rounded-xl p-4 linear-transition">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle hover:border-[#2A53D0] rounded-linear-lg p-4 linear-transition">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
-                  <Target className="w-4 h-4 text-nuum-accent-blue" />
+                <div className="w-9 h-9 bg-linear-info-subtle rounded-linear flex items-center justify-center">
+                  <Target className="w-4 h-4 text-linear-info" />
                 </div>
-                <span className="text-xs text-nuum-text-secondary">Active Campaigns</span>
+                <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">Active Campaigns</span>
               </div>
               <div>
                 <div className="text-xl font-semibold">{activeCount}</div>
-                <div className="text-sm text-nuum-text-secondary mt-0.5">
+                <div className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-0.5">
                   {adSets.length} total
                 </div>
               </div>
@@ -559,14 +559,14 @@ export function CreatorDetailModal({
           </div>
 
           {chartData.length > 0 && (
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
               <h3 className="text-sm font-medium mb-3">Performance per Campaign</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={chartData}>
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3e559e" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3e559e" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#2A53D0" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#2A53D0" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.1} />
@@ -592,10 +592,10 @@ export function CreatorDetailModal({
                   <Line
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#3e559e"
+                    stroke="#2A53D0"
                     strokeWidth={2}
                     fill="url(#revenueGradient)"
-                    dot={{ fill: '#3e559e', r: 4 }}
+                    dot={{ fill: '#2A53D0', r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -603,20 +603,20 @@ export function CreatorDetailModal({
           )}
 
           {campaignPerformance.length > 0 && (
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
-              <p className="text-xs text-nuum-text-secondary mb-3">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+              <p className="text-xs dark:text-text-secondary light:text-text-light-secondary mb-3">
                 {performanceSummary}
               </p>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium">Campaign History</h3>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-nuum-text-secondary">Sort by:</span>
+                  <span className="dark:text-text-tertiary light:text-text-light-tertiary">Sort by:</span>
                   <button
                     onClick={() => setSortBy('roi')}
                     className={`px-2 py-1 rounded linear-transition ${
                       sortBy === 'roi'
-                        ? 'bg-nuum-dark-blue text-nuum-accent-blue'
-                        : 'text-nuum-text-secondary hover:bg-nuum-border'
+                        ? 'dark:bg-linear-accent-subtle light:bg-blue-100 text-linear-accent'
+                        : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-hover light:hover:bg-gray-100'
                     }`}
                   >
                     ROI
@@ -625,8 +625,8 @@ export function CreatorDetailModal({
                     onClick={() => setSortBy('revenue')}
                     className={`px-2 py-1 rounded linear-transition ${
                       sortBy === 'revenue'
-                        ? 'bg-nuum-dark-blue text-nuum-accent-blue'
-                        : 'text-nuum-text-secondary hover:bg-nuum-border'
+                        ? 'dark:bg-linear-accent-subtle light:bg-blue-100 text-linear-accent'
+                        : 'dark:text-text-secondary light:text-gray-600 hover:dark:bg-linear-bg-hover light:hover:bg-gray-100'
                     }`}
                   >
                     Revenue
@@ -636,29 +636,29 @@ export function CreatorDetailModal({
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-nuum-border">
-                      <th className="text-left py-2 px-2 text-xs text-nuum-text-secondary font-medium">Campaign</th>
-                      <th className="text-left py-2 px-2 text-xs text-nuum-text-secondary font-medium">Status</th>
-                      <th className="text-right py-2 px-2 text-xs text-nuum-text-secondary font-medium">Ad Sets</th>
-                      <th className="text-right py-2 px-2 text-xs text-nuum-text-secondary font-medium">Spend</th>
-                      <th className="text-right py-2 px-2 text-xs text-nuum-text-secondary font-medium">Revenue</th>
-                      <th className="text-right py-2 px-2 text-xs text-nuum-text-secondary font-medium">ROI</th>
+                    <tr className="border-b dark:border-linear-border-subtle light:border-gray-200">
+                      <th className="text-left py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Campaign</th>
+                      <th className="text-left py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Status</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Ad Sets</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Spend</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">Revenue</th>
+                      <th className="text-right py-2 px-2 text-xs dark:text-text-tertiary light:text-gray-600 font-medium">ROI</th>
                     </tr>
                   </thead>
                   <tbody>
                     {campaignPerformance.map((cp, idx) => (
-                      <tr key={cp.campaign.id} className="border-b border-nuum-border hover:bg-nuum-border linear-transition">
+                      <tr key={cp.campaign.id} className="border-b dark:border-linear-border-subtle/50 light:border-gray-100 hover:dark:bg-linear-bg-hover/30 light:hover:bg-gray-50 linear-transition">
                         <td className="py-2 px-2 font-medium">{cp.campaign.name}</td>
                         <td className="py-2 px-2">
                           <span className={`text-xs px-2 py-0.5 rounded-full border ${getStatusColor(cp.status)}`}>
                             {cp.status}
                           </span>
                         </td>
-                        <td className="py-2 px-2 text-right text-nuum-text-secondary">{cp.adSetCount}</td>
-                        <td className="py-2 px-2 text-right text-nuum-text-secondary">{formatCurrency(cp.spend)}</td>
+                        <td className="py-2 px-2 text-right dark:text-text-secondary light:text-gray-600">{cp.adSetCount}</td>
+                        <td className="py-2 px-2 text-right dark:text-text-secondary light:text-gray-600">{formatCurrency(cp.spend)}</td>
                         <td className="py-2 px-2 text-right font-medium">{formatCurrency(cp.revenue)}</td>
                         <td className="py-2 px-2 text-right font-semibold">
-                          <span className={cp.roi > 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}>
+                          <span className={cp.roi > 0 ? 'text-linear-success' : 'text-linear-error'}>
                             {cp.roi > 0 ? '+' : ''}{Math.round(cp.roi)}%
                           </span>
                         </td>
@@ -666,12 +666,12 @@ export function CreatorDetailModal({
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="border-t-2 border-nuum-border font-semibold">
+                    <tr className="border-t-2 dark:border-linear-border light:border-gray-300 font-semibold">
                       <td className="py-2 px-2" colSpan={3}>Total</td>
                       <td className="py-2 px-2 text-right">{formatCurrency(totalSpend)}</td>
                       <td className="py-2 px-2 text-right">{formatCurrency(totalRevenue)}</td>
                       <td className="py-2 px-2 text-right">
-                        <span className={roi > 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}>
+                        <span className={roi > 0 ? 'text-linear-success' : 'text-linear-error'}>
                           {roi > 0 ? '+' : ''}{Math.round(roi)}%
                         </span>
                       </td>
@@ -683,17 +683,17 @@ export function CreatorDetailModal({
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
-              <h3 className="text-sm font-medium mb-3 text-nuum-text-main">Contact & Details</h3>
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+              <h3 className="text-sm font-medium mb-3 dark:text-text-primary light:text-gray-900">Contact & Details</h3>
               <div className="space-y-2">
                 {creator.email && (
                   <div className="flex items-start gap-2">
-                    <Mail className="w-4 h-4 text-nuum-text-secondary flex-shrink-0 mt-0.5" />
+                    <Mail className="w-4 h-4 dark:text-gray-400 light:text-gray-500 flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-nuum-text-secondary">Email</div>
+                      <div className="text-xs dark:text-gray-400 light:text-gray-500">Email</div>
                       <a
                         href={`mailto:${creator.email}`}
-                        className="text-sm text-nuum-text-main hover:text-nuum-accent-blue truncate block linear-transition"
+                        className="text-sm dark:text-white light:text-gray-900 hover:text-linear-accent truncate block linear-transition"
                       >
                         {creator.email}
                       </a>
@@ -702,12 +702,12 @@ export function CreatorDetailModal({
                 )}
                 {creator.phone && (
                   <div className="flex items-start gap-2">
-                    <Phone className="w-4 h-4 text-nuum-text-secondary flex-shrink-0 mt-0.5" />
+                    <Phone className="w-4 h-4 dark:text-gray-400 light:text-gray-500 flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-nuum-text-secondary">Phone</div>
+                      <div className="text-xs dark:text-gray-400 light:text-gray-500">Phone</div>
                       <a
                         href={`tel:${creator.phone}`}
-                        className="text-sm text-nuum-text-main hover:text-nuum-accent-blue linear-transition"
+                        className="text-sm dark:text-white light:text-gray-900 hover:text-linear-accent linear-transition"
                       >
                         {creator.phone}
                       </a>
@@ -715,22 +715,22 @@ export function CreatorDetailModal({
                   </div>
                 )}
                 {!creator.email && !creator.phone && (
-                  <p className="text-xs text-nuum-text-secondary">No contact information</p>
+                  <p className="text-xs dark:text-text-tertiary light:text-gray-500">No contact information</p>
                 )}
               </div>
             </div>
 
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
-              <h3 className="text-sm font-medium mb-3 text-nuum-text-main">Social Media & Code</h3>
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
+              <h3 className="text-sm font-medium mb-3 dark:text-text-primary light:text-gray-900">Social Media & Code</h3>
               <div className="space-y-2">
                 {creator.discount_code && (
                   <div className="mb-3">
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Award className="w-3.5 h-3.5 text-nuum-text-secondary" />
-                      <div className="text-xs text-nuum-text-secondary">Discount Code</div>
+                      <Award className="w-3.5 h-3.5 dark:text-gray-400 light:text-gray-500" />
+                      <div className="text-xs dark:text-gray-400 light:text-gray-500">Discount Code</div>
                     </div>
-                    <div className="px-3 py-2 bg-nuum-background rounded-lg border border-nuum-accent-orange/50">
-                      <div className="font-mono text-sm font-semibold text-nuum-accent-orange text-center tracking-wider">
+                    <div className="px-3 py-2 dark:bg-linear-bg light:bg-linear-light-bg rounded-linear border dark:border-linear-accent/50 light:border-linear-light-accent">
+                      <div className="font-mono text-sm font-semibold text-linear-accent text-center tracking-wider">
                         {creator.discount_code}
                       </div>
                     </div>
@@ -744,8 +744,8 @@ export function CreatorDetailModal({
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-xs group"
                     >
-                      <span className="w-16 text-nuum-text-secondary">Instagram</span>
-                      <span className="text-nuum-text-main group-hover:text-nuum-accent-blue linear-transition truncate">@{creator.instagram_handle}</span>
+                      <span className="w-16 dark:text-gray-400 light:text-gray-500">Instagram</span>
+                      <span className="dark:text-white light:text-gray-900 group-hover:text-linear-accent linear-transition truncate">@{creator.instagram_handle}</span>
                     </a>
                   )}
                   {creator.tiktok_handle && (
@@ -755,8 +755,8 @@ export function CreatorDetailModal({
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-xs group"
                     >
-                      <span className="w-16 text-nuum-text-secondary">TikTok</span>
-                      <span className="text-nuum-text-main group-hover:text-nuum-accent-blue linear-transition truncate">@{creator.tiktok_handle}</span>
+                      <span className="w-16 dark:text-gray-400 light:text-gray-500">TikTok</span>
+                      <span className="dark:text-white light:text-gray-900 group-hover:text-linear-accent linear-transition truncate">@{creator.tiktok_handle}</span>
                     </a>
                   )}
                   {creator.snapchat_handle && (
@@ -766,12 +766,12 @@ export function CreatorDetailModal({
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-xs group"
                     >
-                      <span className="w-16 text-nuum-text-secondary">Snapchat</span>
-                      <span className="text-nuum-text-main group-hover:text-nuum-accent-blue linear-transition truncate">@{creator.snapchat_handle}</span>
+                      <span className="w-16 dark:text-gray-400 light:text-gray-500">Snapchat</span>
+                      <span className="dark:text-white light:text-gray-900 group-hover:text-linear-accent linear-transition truncate">@{creator.snapchat_handle}</span>
                     </a>
                   )}
                   {!creator.instagram_handle && !creator.tiktok_handle && !creator.snapchat_handle && !creator.discount_code && (
-                    <p className="text-xs text-nuum-text-secondary">No social media linked</p>
+                    <p className="text-xs dark:text-text-tertiary light:text-gray-500">No social media linked</p>
                   )}
                 </div>
               </div>
@@ -779,13 +779,13 @@ export function CreatorDetailModal({
           </div>
 
           {creator.tags && creator.tags.length > 0 && (
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
               <h3 className="text-sm font-medium mb-3">Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {creator.tags.map((tag, i) => (
                   <span
                     key={i}
-                    className="px-2.5 py-1 text-xs bg-nuum-dark-blue text-nuum-accent-blue rounded-full border border-nuum-accent-blue/20"
+                    className="px-2.5 py-1 text-xs dark:bg-linear-info-subtle light:bg-linear-light-info-subtle dark:text-linear-info light:text-linear-light-info rounded-full border dark:border-linear-info-border light:border-linear-light-info-border"
                   >
                     {tag}
                   </span>
@@ -795,16 +795,16 @@ export function CreatorDetailModal({
           )}
 
           {creator.notes && (
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
               <h3 className="text-sm font-medium mb-2">Notes</h3>
-              <p className="text-sm text-nuum-text-secondary whitespace-pre-wrap">
+              <p className="text-sm dark:text-text-secondary light:text-text-light-secondary whitespace-pre-wrap">
                 {creator.notes}
               </p>
             </div>
           )}
 
           {adSets.length > 0 && (
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium flex items-center gap-2">
                   <Target className="w-4 h-4" />
@@ -812,7 +812,7 @@ export function CreatorDetailModal({
                 </h3>
                 <button
                   onClick={onAddToCampaign}
-                  className="text-xs px-3 py-1.5 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition"
+                  className="text-xs px-3 py-1.5 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
                 >
                   Add Ad Set
                 </button>
@@ -827,38 +827,38 @@ export function CreatorDetailModal({
                   return (
                     <div
                       key={adSet.id}
-                      className="bg-nuum-background border border-nuum-border rounded-lg p-3 hover:bg-nuum-border linear-transition"
+                      className="dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear p-3 hover:dark:bg-linear-bg-hover light:hover:bg-linear-light-bg-hover linear-transition"
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm truncate mb-1">{adSet.name}</div>
                           <span className={`inline-flex text-xs px-2 py-0.5 rounded-full border ${
-                            adSet.status === 'active' ? 'text-nuum-accent-green bg-nuum-dark-green border-nuum-accent-green/20' :
-                            adSet.status === 'completed' ? 'text-nuum-accent-blue bg-nuum-dark-blue border-nuum-accent-blue/20' :
-                            'text-nuum-text-secondary bg-nuum-border border-nuum-border'
+                            adSet.status === 'active' ? 'text-linear-success bg-linear-success-subtle border-linear-success-border' :
+                            adSet.status === 'completed' ? 'text-linear-info bg-linear-info-subtle border-linear-info-border' :
+                            'text-text-tertiary bg-linear-bg-hover border-linear-border'
                           }`}>
                             {adSet.status}
                           </span>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="font-semibold text-sm">{formatCurrency(adSetRevenue)}</div>
-                          <div className={`text-xs ${adSetRoi > 0 ? 'text-nuum-accent-green' : 'text-nuum-accent-red'}`}>
+                          <div className={`text-xs ${adSetRoi > 0 ? 'text-linear-success' : 'text-linear-error'}`}>
                             {adSetRoi > 0 ? '+' : ''}{Math.round(adSetRoi)}% ROI
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-nuum-border text-xs">
+                      <div className="flex items-center justify-between pt-2 border-t dark:border-linear-border-subtle light:border-linear-light-border-subtle text-xs">
                         <div>
-                          <div className="text-nuum-text-secondary">Costs</div>
+                          <div className="dark:text-text-tertiary light:text-text-light-tertiary">Costs</div>
                           <div className="font-medium mt-0.5">{formatCurrency(adSetSpend)}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-nuum-text-secondary">Profit</div>
+                          <div className="dark:text-text-tertiary light:text-text-light-tertiary">Profit</div>
                           <div className="font-medium mt-0.5">{formatCurrency(adSetProfit)}</div>
                         </div>
                         <button
                           onClick={() => onRemoveAdSet(adSet.id)}
-                          className="text-xs text-nuum-accent-red hover:text-red-400 linear-transition"
+                          className="text-xs text-linear-error hover:text-red-400 linear-transition"
                         >
                           Remove
                         </button>
@@ -871,7 +871,7 @@ export function CreatorDetailModal({
           )}
 
           {adSets.length === 0 && (
-            <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
+            <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border-subtle light:border-linear-light-border-subtle rounded-linear-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium flex items-center gap-2">
                   <Target className="w-4 h-4" />
@@ -879,12 +879,12 @@ export function CreatorDetailModal({
                 </h3>
                 <button
                   onClick={onAddToCampaign}
-                  className="text-xs px-3 py-1.5 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition"
+                  className="text-xs px-3 py-1.5 bg-white hover:bg-gray-100 text-black rounded-linear linear-transition"
                 >
                   Add Ad Set
                 </button>
               </div>
-              <p className="text-sm text-nuum-text-secondary py-6 text-center">
+              <p className="text-sm dark:text-text-secondary light:text-text-light-secondary py-6 text-center">
                 No ad sets created yet. Click "Add Ad Set" to get started.
               </p>
             </div>
@@ -904,26 +904,26 @@ interface CampaignModalProps {
 export function AddToCampaignModal({ campaigns, onSelect, onClose }: CampaignModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={onClose}>
-      <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary border dark:border-linear-border light:border-linear-light-border rounded-linear-lg p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium">Add to Campaign</h3>
-          <button onClick={onClose} className="p-1 hover:bg-nuum-border rounded-lg">
+          <button onClick={onClose} className="p-1 hover:dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-linear">
             <X className="w-5 h-5" />
           </button>
         </div>
         {campaigns.length === 0 ? (
-          <p className="text-nuum-text-secondary py-8 text-center">No campaigns available</p>
+          <p className="dark:text-text-secondary light:text-text-light-secondary py-8 text-center">No campaigns available</p>
         ) : (
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {campaigns.map((campaign) => (
               <button
                 key={campaign.id}
                 onClick={() => onSelect(campaign.id)}
-                className="w-full text-left p-4 bg-nuum-border hover:bg-nuum-border/70 rounded-lg linear-transition"
+                className="w-full text-left p-4 dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle hover:bg-linear-border-subtle rounded-linear linear-transition"
               >
                 <p className="font-medium">{campaign.name}</p>
                 {campaign.description && (
-                  <p className="text-sm text-nuum-text-secondary mt-1">{campaign.description}</p>
+                  <p className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-1">{campaign.description}</p>
                 )}
               </button>
             ))}
