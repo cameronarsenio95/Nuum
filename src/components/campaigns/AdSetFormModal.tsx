@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { NUUM_COLORS, TYPOGRAPHY } from '../../utils/designSystem';
 import { Button } from '../Button';
 import type { Database } from '../../lib/database.types';
 
@@ -29,14 +28,27 @@ const STATUSES = [
   { value: 'completed', label: 'Completed' },
 ];
 
+const DEAL_TYPES = [
+  { value: 'spark', label: 'Spark' },
+  { value: 'barter', label: 'Barter' },
+  { value: 'gifting', label: 'Gifting' },
+];
+
 export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave }: AdSetFormModalProps) {
   const [loading, setLoading] = useState(false);
+  const [urlError, setUrlError] = useState('');
+  const [dateError, setDateError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     platform: 'instagram',
     status: 'active',
     spend: 0,
     revenue: 0,
+    creative_url: '',
+    spark_code: '',
+    ad_start_date: '',
+    ad_end_date: '',
+    deal_type: 'spark',
   });
 
   useEffect(() => {
@@ -47,24 +59,60 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
         status: adSet.status,
         spend: Number(adSet.spend) || 0,
         revenue: Number(adSet.revenue) || 0,
+        creative_url: adSet.creative_url || '',
+        spark_code: adSet.spark_code || '',
+        ad_start_date: adSet.ad_start_date || '',
+        ad_end_date: adSet.ad_end_date || '',
+        deal_type: adSet.deal_type || 'spark',
       });
     }
   }, [adSet]);
 
+  const validateUrl = (url: string) => {
+    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+      setUrlError('URL must start with http:// or https://');
+      return false;
+    }
+    setUrlError('');
+    return true;
+  };
+
+  const validateDates = (startDate: string, endDate: string) => {
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      setDateError('End date must be after start date');
+      return false;
+    }
+    setDateError('');
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateUrl(formData.creative_url)) return;
+    if (!validateDates(formData.ad_start_date, formData.ad_end_date)) return;
+
     setLoading(true);
 
     try {
+      const adSetData = {
+        name: formData.name,
+        platform: formData.platform,
+        status: formData.status,
+        spend: formData.spend,
+        revenue: formData.revenue,
+        creative_url: formData.creative_url || null,
+        spark_code: formData.spark_code || null,
+        ad_start_date: formData.ad_start_date || null,
+        ad_end_date: formData.ad_end_date || null,
+        deal_type: formData.deal_type,
+      };
+
       if (adSet) {
         const { error } = await supabase
           .from('ad_sets')
           .update({
-            name: formData.name,
-            platform: formData.platform,
-            status: formData.status,
-            spend: formData.spend,
-            revenue: formData.revenue,
+            ...adSetData,
             updated_at: new Date().toISOString(),
           })
           .eq('id', adSet.id);
@@ -76,11 +124,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
           .insert({
             workspace_id: workspaceId,
             campaign_id: campaignId,
-            name: formData.name,
-            platform: formData.platform,
-            status: formData.status,
-            spend: formData.spend,
-            revenue: formData.revenue,
+            ...adSetData,
           });
 
         if (error) throw error;
@@ -103,30 +147,17 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-xl border p-6 animate-fade-in-up"
-        style={{
-          backgroundColor: NUUM_COLORS.surface,
-          borderColor: NUUM_COLORS.border,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-        }}
+        className="w-full max-w-2xl bg-nuum-surface border border-nuum-border rounded-xl p-6 animate-fade-in-up max-h-[90vh] overflow-y-auto"
+        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold" style={{ color: NUUM_COLORS.textPrimary }}>
+          <h2 className="text-xl font-semibold text-nuum-text-primary">
             {adSet ? 'Edit Ad Set' : 'Add Ad Set'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg transition-all duration-150"
-            style={{ color: NUUM_COLORS.textSecondary }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = NUUM_COLORS.surfaceHover;
-              e.currentTarget.style.color = NUUM_COLORS.textPrimary;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = NUUM_COLORS.textSecondary;
-            }}
+            className="p-2 rounded-lg transition-all duration-150 text-nuum-text-secondary hover:bg-nuum-border hover:text-nuum-text-primary"
           >
             <X className="w-5 h-5" />
           </button>
@@ -134,7 +165,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: NUUM_COLORS.textSecondary }}>
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
               Name
             </label>
             <input
@@ -142,34 +173,20 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border text-sm transition-all duration-150"
-              style={{
-                backgroundColor: NUUM_COLORS.background,
-                borderColor: NUUM_COLORS.border,
-                color: NUUM_COLORS.textPrimary,
-              }}
-              onFocus={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
-              onBlur={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+              className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               placeholder="Enter ad set name"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: NUUM_COLORS.textSecondary }}>
+              <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
                 Platform
               </label>
               <select
                 value={formData.platform}
                 onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border text-sm transition-all duration-150"
-                style={{
-                  backgroundColor: NUUM_COLORS.background,
-                  borderColor: NUUM_COLORS.border,
-                  color: NUUM_COLORS.textPrimary,
-                }}
-                onFocus={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
-                onBlur={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+                className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               >
                 {PLATFORMS.map((platform) => (
                   <option key={platform.value} value={platform.value}>
@@ -180,20 +197,13 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             </div>
 
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: NUUM_COLORS.textSecondary }}>
+              <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
                 Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border text-sm transition-all duration-150"
-                style={{
-                  backgroundColor: NUUM_COLORS.background,
-                  borderColor: NUUM_COLORS.border,
-                  color: NUUM_COLORS.textPrimary,
-                }}
-                onFocus={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
-                onBlur={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+                className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               >
                 {STATUSES.map((status) => (
                   <option key={status.value} value={status.value}>
@@ -206,7 +216,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: NUUM_COLORS.textSecondary }}>
+              <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
                 Spend (€)
               </label>
               <input
@@ -216,20 +226,13 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
                 required
                 value={formData.spend}
                 onChange={(e) => setFormData({ ...formData, spend: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border text-sm transition-all duration-150"
-                style={{
-                  backgroundColor: NUUM_COLORS.background,
-                  borderColor: NUUM_COLORS.border,
-                  color: NUUM_COLORS.textPrimary,
-                }}
-                onFocus={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
-                onBlur={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+                className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
                 placeholder="0"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: NUUM_COLORS.textSecondary }}>
+              <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
                 Revenue (€)
               </label>
               <input
@@ -239,20 +242,102 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
                 required
                 value={formData.revenue}
                 onChange={(e) => setFormData({ ...formData, revenue: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border text-sm transition-all duration-150"
-                style={{
-                  backgroundColor: NUUM_COLORS.background,
-                  borderColor: NUUM_COLORS.border,
-                  color: NUUM_COLORS.textPrimary,
-                }}
-                onFocus={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.accent}
-                onBlur={(e) => e.currentTarget.style.borderColor = NUUM_COLORS.border}
+                className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
                 placeholder="0"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t" style={{ borderColor: NUUM_COLORS.border }}>
+          <div>
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+              Creative URL
+            </label>
+            <input
+              type="text"
+              value={formData.creative_url}
+              onChange={(e) => {
+                setFormData({ ...formData, creative_url: e.target.value });
+                validateUrl(e.target.value);
+              }}
+              className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
+              placeholder="https://..."
+            />
+            {urlError && (
+              <p className="text-xs text-nuum-accent-red mt-1">{urlError}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+              Spark Code
+            </label>
+            <input
+              type="text"
+              value={formData.spark_code}
+              onChange={(e) => setFormData({ ...formData, spark_code: e.target.value })}
+              className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
+              placeholder="Enter spark / ad code"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+              Ad Duration
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <input
+                  type="date"
+                  value={formData.ad_start_date}
+                  onChange={(e) => {
+                    setFormData({ ...formData, ad_start_date: e.target.value });
+                    validateDates(e.target.value, formData.ad_end_date);
+                  }}
+                  className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
+                  placeholder="Start date"
+                />
+              </div>
+              <div>
+                <input
+                  type="date"
+                  value={formData.ad_end_date}
+                  onChange={(e) => {
+                    setFormData({ ...formData, ad_end_date: e.target.value });
+                    validateDates(formData.ad_start_date, e.target.value);
+                  }}
+                  className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
+                  placeholder="End date"
+                />
+              </div>
+            </div>
+            {dateError && (
+              <p className="text-xs text-nuum-accent-red mt-1">{dateError}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+              Deal Type
+            </label>
+            <div className="flex gap-2">
+              {DEAL_TYPES.map((dealType) => (
+                <button
+                  key={dealType.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, deal_type: dealType.value })}
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                    formData.deal_type === dealType.value
+                      ? 'bg-nuum-accent-blue text-white border-nuum-accent-blue'
+                      : 'bg-nuum-background border-nuum-border text-nuum-text-secondary hover:border-nuum-accent-blue/50'
+                  } border`}
+                >
+                  {dealType.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-nuum-border">
             <Button
               type="button"
               variant="ghost"
