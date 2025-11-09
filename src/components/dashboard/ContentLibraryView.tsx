@@ -37,6 +37,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [adSets, setAdSets] = useState<AdSet[]>([]);
+  const [filteredAdSets, setFilteredAdSets] = useState<AdSet[]>([]);
+  const [loadingAdSets, setLoadingAdSets] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -60,6 +62,57 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     loadData();
     setupRealtime();
   }, [workspace.id]);
+
+  useEffect(() => {
+    const loadFilteredAdSets = async () => {
+      if (!uploadForm.campaign_id && !uploadForm.creator_id) {
+        setFilteredAdSets([]);
+        if (uploadForm.ad_set_id) {
+          setUploadForm(prev => ({ ...prev, ad_set_id: '' }));
+        }
+        return;
+      }
+
+      setLoadingAdSets(true);
+
+      console.log('[AddContentModal] Filters', {
+        selectedCampaignId: uploadForm.campaign_id,
+        selectedCreatorId: uploadForm.creator_id,
+        workspace: workspace.id,
+      });
+
+      let query = supabase
+        .from('ad_sets')
+        .select('id, name, campaign_id, creator_id')
+        .eq('workspace_id', workspace.id);
+
+      if (uploadForm.campaign_id) {
+        query = query.eq('campaign_id', uploadForm.campaign_id);
+      } else if (uploadForm.creator_id) {
+        query = query.eq('creator_id', uploadForm.creator_id);
+      }
+
+      const { data, error } = await query.order('name');
+
+      if (error) {
+        console.error('[AddContentModal] Failed to load ad sets', error);
+        setFilteredAdSets([]);
+      } else {
+        console.log('[AddContentModal] Ad sets result', data);
+        setFilteredAdSets(data || []);
+
+        if (uploadForm.ad_set_id && data && !data.find(as => as.id === uploadForm.ad_set_id)) {
+          setUploadForm(prev => ({ ...prev, ad_set_id: '' }));
+        }
+      }
+
+      setLoadingAdSets(false);
+    };
+
+    if (showUploadModal) {
+      loadFilteredAdSets();
+    }
+  }, [uploadForm.campaign_id, uploadForm.creator_id, workspace.id, showUploadModal]);
 
   const setupRealtime = () => {
     const channel = supabase
@@ -425,21 +478,15 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   <option value="">
                     {!uploadForm.campaign_id && !uploadForm.creator_id
                       ? 'Select campaign or creator first'
+                      : loadingAdSets
+                      ? 'Loading ad sets...'
+                      : filteredAdSets.length === 0
+                      ? 'No ad sets found for this selection'
                       : 'Select Ad Set (Optional)'}
                   </option>
-                  {adSets
-                    .filter(adSet => {
-                      if (uploadForm.campaign_id) {
-                        return adSet.campaign_id === uploadForm.campaign_id;
-                      }
-                      if (uploadForm.creator_id) {
-                        return adSet.creator_id === uploadForm.creator_id;
-                      }
-                      return false;
-                    })
-                    .map(adSet => (
-                      <option key={adSet.id} value={adSet.id}>{adSet.name}</option>
-                    ))}
+                  {filteredAdSets.map(adSet => (
+                    <option key={adSet.id} value={adSet.id}>{adSet.name}</option>
+                  ))}
                 </select>
               </div>
 
