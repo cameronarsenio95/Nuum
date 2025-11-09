@@ -65,7 +65,10 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
 
   useEffect(() => {
     const loadFilteredAdSets = async () => {
-      if (!uploadForm.campaign_id && !uploadForm.creator_id) {
+      const hasCampaign = uploadForm.campaign_id && uploadForm.campaign_id !== '';
+      const hasCreator = uploadForm.creator_id && uploadForm.creator_id !== '';
+
+      if (!hasCampaign && !hasCreator) {
         setFilteredAdSets([]);
         if (uploadForm.ad_set_id) {
           setUploadForm(prev => ({ ...prev, ad_set_id: '' }));
@@ -79,6 +82,8 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         selectedCampaignId: uploadForm.campaign_id,
         selectedCreatorId: uploadForm.creator_id,
         workspace: workspace.id,
+        hasCampaign,
+        hasCreator
       });
 
       let query = supabase
@@ -86,9 +91,9 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
         .select('id, name, campaign_id, creator_id')
         .eq('workspace_id', workspace.id);
 
-      if (uploadForm.campaign_id) {
+      if (hasCampaign) {
         query = query.eq('campaign_id', uploadForm.campaign_id);
-      } else if (uploadForm.creator_id) {
+      } else if (hasCreator) {
         query = query.eq('creator_id', uploadForm.creator_id);
       }
 
@@ -503,10 +508,10 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                   value={uploadForm.ad_set_id}
                   onChange={(e) => setUploadForm({ ...uploadForm, ad_set_id: e.target.value })}
                   className="w-full px-4 py-2 dark:bg-linear-bg light:bg-linear-light-bg border dark:border-linear-border light:border-linear-light-border rounded-lg focus:outline-none focus:border-linear-accent disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!uploadForm.campaign_id && !uploadForm.creator_id}
+                  disabled={(!uploadForm.campaign_id || uploadForm.campaign_id === '') && (!uploadForm.creator_id || uploadForm.creator_id === '')}
                 >
                   <option value="">
-                    {!uploadForm.campaign_id && !uploadForm.creator_id
+                    {(!uploadForm.campaign_id || uploadForm.campaign_id === '') && (!uploadForm.creator_id || uploadForm.creator_id === '')
                       ? 'Select campaign or creator first'
                       : loadingAdSets
                       ? 'Loading ad sets...'
