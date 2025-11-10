@@ -36,7 +36,7 @@ export function LinkContentModal({
   creatorId,
   platform,
   workspaceId,
-  onLinked
+  onLinked,
 }: LinkContentModalProps) {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -48,6 +48,7 @@ export function LinkContentModal({
     if (isOpen) {
       loadContent();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, workspaceId, creatorId, campaignId]);
 
   const loadContent = async () => {
@@ -55,11 +56,14 @@ export function LinkContentModal({
       workspaceId,
       creatorId,
       campaignId,
-      adSetId
+      adSetId,
+      platform,
     });
 
     if (!workspaceId || !creatorId) {
-      console.warn('[LinkContentModal] Missing required params: workspaceId or creatorId');
+      console.warn(
+        '[LinkContentModal] Missing required params: workspaceId or creatorId',
+      );
       setItems([]);
       setLoading(false);
       return;
@@ -70,7 +74,8 @@ export function LinkContentModal({
     try {
       let query = supabase
         .from('content_media')
-        .select(`
+        .select(
+          `
           id,
           file_name,
           file_type,
@@ -82,47 +87,68 @@ export function LinkContentModal({
           creator_id,
           workspace_id,
           campaign_id
-        `)
+        `,
+        )
         .eq('workspace_id', workspaceId)
         .eq('creator_id', creatorId)
         .order('created_at', { ascending: false });
 
+      // Optioneel filter op platform als je dat wilt
+      if (platform) {
+        query = query.eq('platform', platform);
+      }
+
       const { data, error } = await query;
 
       if (error) {
-        console.error('[LinkContentModal] ❌ Supabase error loading content:', {
-          error: error,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        showToast(`Failed to load content: ${error.message}`, 'error');
+        console.error(
+          '[LinkContentModal] ❌ Supabase error loading content:',
+          {
+            error,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          },
+        );
+
+        // Extra hint als de kolom nog niet bestaat
+        if (error.message.includes('ad_set_id')) {
+          showToast(
+            'Supabase kolom "ad_set_id" ontbreekt in content_media. Voeg deze eerst toe in Supabase.',
+            'error',
+          );
+        } else {
+          showToast(`Failed to load content: ${error.message}`, 'error');
+        }
+
         setItems([]);
         return;
       }
 
       console.log('[LinkContentModal] Successfully loaded content:', {
         total: data?.length || 0,
-        items: data?.map(item => ({
+        items: data?.map((item) => ({
           id: item.id,
           file_name: item.file_name,
           ad_set_id: item.ad_set_id,
-          campaign_id: item.campaign_id
-        }))
+          campaign_id: item.campaign_id,
+        })),
       });
 
-      setItems(data || []);
+      const typedData = (data || []) as ContentItem[];
+      setItems(typedData);
 
-      const alreadyLinked = (data || [])
-        .filter(item => item.ad_set_id === adSetId)
-        .map(item => item.id);
+      // Bepaal welke items al gelinkt zijn aan deze ad set
+      const alreadyLinked = typedData
+        .filter((item) => item.ad_set_id === adSetId)
+        .map((item) => item.id);
 
       setSelectedIds(alreadyLinked);
 
       console.log('[LinkContentModal] Pre-selected linked items:', {
         count: alreadyLinked.length,
-        ids: alreadyLinked
+        ids: alreadyLinked,
       });
     } catch (err) {
       console.error('[LinkContentModal] Unexpected error:', err);
@@ -133,10 +159,8 @@ export function LinkContentModal({
   };
 
   const toggleSelection = (id: string) => {
-    setSelectedIds(prev =>
-      prev.includes(id)
-        ? prev.filter(x => x !== id)
-        : [...prev, id]
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -144,16 +168,21 @@ export function LinkContentModal({
     setSaving(true);
 
     try {
+      // Wat was al gelinkt vóór de huidige selectie?
       const previouslyLinked = items
-        .filter(item => item.ad_set_id === adSetId)
-        .map(item => item.id);
+        .filter((item) => item.ad_set_id === adSetId)
+        .map((item) => item.id);
 
-      const toLink = selectedIds;
-      const toUnlink = previouslyLinked.filter(id => !selectedIds.includes(id));
+      const toLink = selectedIds.filter(
+        (id) => !previouslyLinked.includes(id),
+      );
+      const toUnlink = previouslyLinked.filter(
+        (id) => !selectedIds.includes(id),
+      );
 
       console.log('[LinkContentModal] Saving links:', {
-        toLink: toLink.length,
-        toUnlink: toUnlink.length
+        toLink,
+        toUnlink,
       });
 
       const updates: Promise<any>[] = [];
@@ -163,7 +192,7 @@ export function LinkContentModal({
           supabase
             .from('content_media')
             .update({ ad_set_id: adSetId })
-            .in('id', toLink)
+            .in('id', toLink),
         );
       }
 
@@ -172,17 +201,16 @@ export function LinkContentModal({
           supabase
             .from('content_media')
             .update({ ad_set_id: null })
-            .in('id', toUnlink)
+            .in('id', toUnlink),
         );
       }
 
       if (updates.length > 0) {
         const results = await Promise.all(updates);
-        const hasErrors = results.some(r => r.error);
+        const errorResult = results.find((r) => r.error);
 
-        if (hasErrors) {
-          const errorResult = results.find(r => r.error);
-          console.error('[LinkContentModal] Error saving:', errorResult?.error);
+        if (errorResult?.error) {
+          console.error('[LinkContentModal] Error saving:', errorResult.error);
           showToast('Failed to update content links', 'error');
           return;
         }
@@ -204,7 +232,7 @@ export function LinkContentModal({
     return new Intl.DateTimeFormat('en-US', {
       day: 'numeric',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
     }).format(date);
   };
 
@@ -230,12 +258,18 @@ export function LinkContentModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+        />
 
         <div className="relative w-full max-w-3xl bg-[#1a1f1a] rounded-xl shadow-2xl border border-[#2d342d]">
+          {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#2d342d]">
             <div>
-              <h2 className="text-xl font-semibold text-white">Link Content to Ad Set</h2>
+              <h2 className="text-xl font-semibold text-white">
+                Link Content to Ad Set
+              </h2>
               <p className="text-sm text-gray-400 mt-1">
                 {adSetName}
                 {platform && <span className="ml-2">· {platform}</span>}
@@ -250,11 +284,13 @@ export function LinkContentModal({
             </button>
           </div>
 
+          {/* Body */}
           <div className="px-6 py-4">
             {!loading && !creatorId && (
               <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                 <p className="text-sm text-red-400">
-                  ⚠️ No creator selected for this ad set. Please assign a creator to the ad set first.
+                  ⚠️ No creator selected for this ad set. Please assign a
+                  creator to the ad set first.
                 </p>
               </div>
             )}
@@ -266,12 +302,16 @@ export function LinkContentModal({
             ) : items.length === 0 ? (
               <div className="text-center py-12">
                 <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400">No content uploaded yet for this creator</p>
-                <p className="text-gray-500 text-sm mt-2">Upload content in the Content Library first</p>
+                <p className="text-gray-400">
+                  No content uploaded yet for this creator
+                </p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Upload content in the Content Library first
+                </p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                {items.map(item => {
+                {items.map((item) => {
                   const isSelected = selectedIds.includes(item.id);
                   const isImage = item.file_type?.startsWith('image/');
                   const isVideo = item.file_type?.startsWith('video/');
@@ -309,7 +349,11 @@ export function LinkContentModal({
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           {item.platform && (
-                            <span className={`px-2 py-0.5 rounded text-xs ${getPlatformBadgeColor(item.platform)}`}>
+                            <span
+                              className={`px-2 py-0.5 rounded text-xs ${getPlatformBadgeColor(
+                                item.platform,
+                              )}`}
+                            >
                               {item.platform}
                             </span>
                           )}
@@ -335,9 +379,11 @@ export function LinkContentModal({
             )}
           </div>
 
+          {/* Footer */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-[#2d342d]">
             <p className="text-sm text-gray-400">
-              {selectedIds.length} {selectedIds.length === 1 ? 'item' : 'items'} selected
+              {selectedIds.length}{' '}
+              {selectedIds.length === 1 ? 'item' : 'items'} selected
             </p>
             <div className="flex gap-3">
               <button
