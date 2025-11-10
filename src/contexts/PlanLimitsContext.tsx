@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
+import { PLAN_CONFIG, type PlanLimits as BasePlanLimits } from '../utils/planConfig';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 
@@ -12,12 +13,10 @@ interface WorkspaceUsage {
   taskCount: number;
 }
 
-interface PlanLimits {
-  maxCreators: number | null;
+type PlanLimits = BasePlanLimits & {
   maxStorageGb: number | null;
-  maxTeamMembers: number | null;
   features: Record<string, boolean>;
-}
+};
 
 interface TrialInfo {
   isActive: boolean;
@@ -55,7 +54,13 @@ interface PlanLimitsContextType {
 
 const PlanLimitsContext = createContext<PlanLimitsContextType | undefined>(undefined);
 
-export function PlanLimitsProvider({ children, workspace }: { children: ReactNode; workspace: Workspace | null }) {
+export function PlanLimitsProvider({
+  children,
+  workspace,
+}: {
+  children: ReactNode;
+  workspace: Workspace | null;
+}) {
   const [usage, setUsage] = useState<WorkspaceUsage>({
     creatorCount: 0,
     storageUsedBytes: 0,
@@ -63,18 +68,24 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
     campaignCount: 0,
     taskCount: 0,
   });
+
   const [limits, setLimits] = useState<PlanLimits>({
     maxCreators: null,
-    maxStorageGb: null,
     maxTeamMembers: null,
+    maxCampaigns: null,
+    maxAdSetsPerCampaign: null,
+    maxContentItems: null,
+    maxStorageGb: null,
     features: {},
   });
+
   const [trialInfo, setTrialInfo] = useState<TrialInfo>({
     isActive: false,
     daysRemaining: 0,
     startedAt: null,
     endsAt: null,
   });
+
   const [freeAccountInfo, setFreeAccountInfo] = useState<FreeAccountInfo>({
     isFreePlan: false,
     daysRemaining: 0,
@@ -82,12 +93,14 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
     isFrozen: false,
     isExpired: false,
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (workspace) {
       loadLimitsAndUsage();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace?.id]);
 
   const loadLimitsAndUsage = async () => {
@@ -96,15 +109,17 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
     const isTrial = workspace.subscription_status === 'trialing';
     const trialEndsAt = workspace.trial_ends_at ? new Date(workspace.trial_ends_at) : null;
     const now = new Date();
-    const isTrialActive = isTrial && trialEndsAt && trialEndsAt > now;
+    const isTrialActive = isTrial && trialEndsAt != null && trialEndsAt > now;
 
     let daysRemaining = 0;
     if (trialEndsAt && trialEndsAt > now) {
-      daysRemaining = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      daysRemaining = Math.ceil(
+        (trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      );
     }
 
     setTrialInfo({
-      isActive: isTrialActive || false,
+      isActive: !!isTrialActive,
       daysRemaining,
       startedAt: workspace.trial_started_at,
       endsAt: workspace.trial_ends_at,
@@ -118,7 +133,9 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
 
     let freeDaysRemaining = 0;
     if (isFreePlan && freeExpiresAt > now) {
-      freeDaysRemaining = Math.ceil((freeExpiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      freeDaysRemaining = Math.ceil(
+        (freeExpiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      );
     }
 
     setFreeAccountInfo({
@@ -129,11 +146,13 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
       isExpired: isFreePlan && freeExpiresAt <= now,
     });
 
+    // 🚀 Limits nu gebaseerd op PLAN_CONFIG + bestaande logica
     if (isTrialActive) {
+      // Trial → gebruik Elite-limits als basis
+      const eliteBase = PLAN_CONFIG.elite;
       setLimits({
-        maxCreators: 50,
+        ...eliteBase,
         maxStorageGb: 25,
-        maxTeamMembers: 5,
         features: {
           revenue_tracking: true,
           advanced_analytics: true,
@@ -145,10 +164,10 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
         },
       });
     } else if (workspace.plan === 'standard') {
+      const standardBase = PLAN_CONFIG.standard;
       setLimits({
-        maxCreators: 25,
+        ...standardBase,
         maxStorageGb: 5,
-        maxTeamMembers: 3,
         features: {
           revenue_tracking: true,
           advanced_analytics: true,
@@ -160,10 +179,10 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
         },
       });
     } else if (workspace.plan === 'elite') {
+      const eliteBase = PLAN_CONFIG.elite;
       setLimits({
-        maxCreators: 50,
+        ...eliteBase,
         maxStorageGb: 25,
-        maxTeamMembers: 5,
         features: {
           revenue_tracking: true,
           advanced_analytics: true,
@@ -174,11 +193,22 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
           ...((workspace.features as Record<string, boolean>) || {}),
         },
       });
+    } else if (workspace.plan === 'enterprise') {
+      const enterpriseBase = PLAN_CONFIG.enterprise;
+      setLimits({
+        ...enterpriseBase,
+        maxStorageGb: workspace.max_storage_gb,
+        features: (workspace.features as Record<string, boolean>) || {},
+      });
     } else {
+      // fallback / free / legacy
       setLimits({
         maxCreators: workspace.max_creators,
-        maxStorageGb: workspace.max_storage_gb,
         maxTeamMembers: workspace.max_team_members,
+        maxCampaigns: null,
+        maxAdSetsPerCampaign: null,
+        maxContentItems: null,
+        maxStorageGb: workspace.max_storage_gb,
         features: (workspace.features as Record<string, boolean>) || {},
       });
     }
@@ -199,15 +229,35 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
         console.error('Error loading workspace usage:', error);
         console.log('Falling back to direct queries...');
 
-        const [creatorsRes, storageRes, membersRes, campaignsRes, tasksRes] = await Promise.all([
-          supabase.from('creators').select('id', { count: 'exact', head: true }).eq('workspace_id', workspace.id),
-          supabase.from('content_media').select('file_size').eq('workspace_id', workspace.id),
-          supabase.from('workspace_members').select('id', { count: 'exact', head: true }).eq('workspace_id', workspace.id),
-          supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('workspace_id', workspace.id),
-          supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('workspace_id', workspace.id),
-        ]);
+        const [creatorsRes, storageRes, membersRes, campaignsRes, tasksRes] =
+          await Promise.all([
+            supabase
+              .from('creators')
+              .select('id', { count: 'exact', head: true })
+              .eq('workspace_id', workspace.id),
+            supabase
+              .from('content_media')
+              .select('file_size')
+              .eq('workspace_id', workspace.id),
+            supabase
+              .from('workspace_members')
+              .select('id', { count: 'exact', head: true })
+              .eq('workspace_id', workspace.id),
+            supabase
+              .from('campaigns')
+              .select('id', { count: 'exact', head: true })
+              .eq('workspace_id', workspace.id),
+            supabase
+              .from('tasks')
+              .select('id', { count: 'exact', head: true })
+              .eq('workspace_id', workspace.id),
+          ]);
 
-        const storageUsed = storageRes.data?.reduce((sum, item) => sum + (item.file_size || 0), 0) || 0;
+        const storageUsed =
+          storageRes.data?.reduce(
+            (sum, item) => sum + (item.file_size || 0),
+            0
+          ) || 0;
 
         setUsage({
           creatorCount: creatorsRes.count || 0,
@@ -275,7 +325,11 @@ export function PlanLimitsProvider({ children, workspace }: { children: ReactNod
   };
 
   const isFreeAccountExpiringSoon = () => {
-    return freeAccountInfo.isFreePlan && !freeAccountInfo.isFrozen && freeAccountInfo.daysRemaining <= 2;
+    return (
+      freeAccountInfo.isFreePlan &&
+      !freeAccountInfo.isFrozen &&
+      freeAccountInfo.daysRemaining <= 2
+    );
   };
 
   return (
