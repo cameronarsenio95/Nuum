@@ -805,17 +805,11 @@ export function CreatorDetailModal({
 
           {adSets.length > 0 && (
             <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3">
                 <h3 className="text-sm font-medium flex items-center gap-2">
                   <Target className="w-4 h-4" />
                   Ad Set Performance
                 </h3>
-                <button
-                  onClick={onAddToCampaign}
-                  className="text-xs px-3 py-1.5 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition"
-                >
-                  Add Ad Set
-                </button>
               </div>
               <div className="space-y-2">
                 {adSets.map((adSet) => {
@@ -872,20 +866,14 @@ export function CreatorDetailModal({
 
           {adSets.length === 0 && (
             <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3">
                 <h3 className="text-sm font-medium flex items-center gap-2">
                   <Target className="w-4 h-4" />
                   Ad Set Performance
                 </h3>
-                <button
-                  onClick={onAddToCampaign}
-                  className="text-xs px-3 py-1.5 bg-nuum-accent-blue hover:bg-nuum-dark-blue text-white rounded-lg linear-transition"
-                >
-                  Add Ad Set
-                </button>
               </div>
               <p className="text-sm text-nuum-text-secondary py-6 text-center">
-                No ad sets created yet. Click "Add Ad Set" to get started.
+                No ad sets created yet.
               </p>
             </div>
           )}
