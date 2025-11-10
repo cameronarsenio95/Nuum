@@ -75,13 +75,14 @@ export function LinkContentModal({
       let finalItems: ContentItem[] = [];
 
       /**
-       * 1️⃣ PRIMARY QUERY — workspace + creator (+ optional platform)
+       * SCENARIO A: ER IS EEN CREATOR → ALLEEN CONTENT VAN DIE CREATOR
        */
       if (creatorId) {
         console.log(
-          '[LinkContentModal] Trying primary query (workspace + creator)...',
+          '[LinkContentModal] Using CREATOR-SCOPED loading strategy...',
         );
 
+        // 1️⃣ Primary: workspace + creator (+ platform)
         let primaryQuery = supabase
           .from('content_media')
           .select(
@@ -110,31 +111,66 @@ export function LinkContentModal({
 
         if (primaryError) {
           console.error(
-            '[LinkContentModal] ❌ Supabase error in primary query:',
+            '[LinkContentModal] ❌ Supabase error in primary (creator) query:',
             primaryError,
           );
         } else {
-          console.log('[LinkContentModal] ✅ Primary query result:', {
-            count: primaryData?.length ?? 0,
-          });
-
+          console.log(
+            '[LinkContentModal] ✅ Primary (creator) query result:',
+            { count: primaryData?.length ?? 0 },
+          );
           if (primaryData && primaryData.length > 0) {
             finalItems = primaryData as ContentItem[];
           }
         }
-      } else {
-        console.warn(
-          '[LinkContentModal] No creatorId provided, skipping primary query.',
-        );
-      }
 
-      /**
-       * 2️⃣ FALLBACK — als primary niks geeft, pak ALLE content uit de workspace
-       * (optioneel gefilterd op platform)
-       */
-      if (finalItems.length === 0) {
+        // 2️⃣ Fallback: als er niks is, pak alleen al-gelinkte items via ad_set_id
+        if (finalItems.length === 0) {
+          console.log(
+            '[LinkContentModal] No items for this creator, trying ad_set_id-only fallback...',
+          );
+
+          const { data: adSetData, error: adSetError } = await supabase
+            .from('content_media')
+            .select(
+              `
+              id,
+              file_name,
+              file_type,
+              file_url,
+              platform,
+              created_at,
+              ad_set_id,
+              creator_id,
+              workspace_id,
+              campaign_id
+            `,
+            )
+            .eq('workspace_id', workspaceId)
+            .eq('ad_set_id', adSetId)
+            .order('created_at', { ascending: false });
+
+          if (adSetError) {
+            console.error(
+              '[LinkContentModal] ❌ Supabase error in ad_set_id fallback:',
+              adSetError,
+            );
+          } else {
+            console.log(
+              '[LinkContentModal] ✅ ad_set_id fallback result:',
+              { count: adSetData?.length ?? 0 },
+            );
+            if (adSetData && adSetData.length > 0) {
+              finalItems = adSetData as ContentItem[];
+            }
+          }
+        }
+      } else {
+        /**
+         * SCENARIO B: GEEN CREATOR → GENERIEKE WORKSPACE-FALLBACK
+         */
         console.log(
-          '[LinkContentModal] No items from primary query, falling back to workspace-only query...',
+          '[LinkContentModal] No creatorId → using WORKSPACE-WIDE loading strategy...',
         );
 
         let workspaceQuery = supabase
@@ -165,71 +201,24 @@ export function LinkContentModal({
 
         if (workspaceError) {
           console.error(
-            '[LinkContentModal] ❌ Supabase error in workspace fallback:',
+            '[LinkContentModal] ❌ Supabase error in workspace-wide query:',
             workspaceError,
           );
         } else {
           console.log(
-            '[LinkContentModal] ✅ Workspace fallback result:',
+            '[LinkContentModal] ✅ Workspace-wide result:',
             { count: workspaceData?.length ?? 0 },
           );
-
           if (workspaceData && workspaceData.length > 0) {
             finalItems = workspaceData as ContentItem[];
           }
         }
       }
 
-      /**
-       * 3️⃣ FALLBACK 2 — als er nog steeds niks is, probeer puur op ad_set_id
-       * (voor al bestaande links)
-       */
+      // Als we na alle stappen nog steeds niks hebben
       if (finalItems.length === 0) {
         console.log(
-          '[LinkContentModal] No items from workspace query, falling back to ad_set_id query...',
-        );
-
-        const { data: adSetData, error: adSetError } = await supabase
-          .from('content_media')
-          .select(
-            `
-            id,
-            file_name,
-            file_type,
-            file_url,
-            platform,
-            created_at,
-            ad_set_id,
-            creator_id,
-            workspace_id,
-            campaign_id
-          `,
-          )
-          .eq('workspace_id', workspaceId)
-          .eq('ad_set_id', adSetId)
-          .order('created_at', { ascending: false });
-
-        if (adSetError) {
-          console.error(
-            '[LinkContentModal] ❌ Supabase error in ad_set_id fallback:',
-            adSetError,
-          );
-        } else {
-          console.log(
-            '[LinkContentModal] ✅ ad_set_id fallback result:',
-            { count: adSetData?.length ?? 0 },
-          );
-
-          if (adSetData && adSetData.length > 0) {
-            finalItems = adSetData as ContentItem[];
-          }
-        }
-      }
-
-      // Uiteindelijk resultaat
-      if (finalItems.length === 0) {
-        console.log(
-          '[LinkContentModal] No content found after all queries (creator + workspace + ad_set).',
+          '[LinkContentModal] No content found for this creator/ad set after all queries.',
         );
         setItems([]);
         setSelectedIds([]);
@@ -400,7 +389,7 @@ export function LinkContentModal({
               <div className="text-center py-12">
                 <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-400">
-                  No content uploaded yet in this workspace
+                  No content available for this creator/ad set
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   Upload content in the Content Library first
