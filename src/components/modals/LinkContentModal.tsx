@@ -12,7 +12,6 @@ interface ContentItem {
   platform: 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | null;
   created_at: string;
   ad_set_id: string | null;
-  // thumbnail_url is optioneel, maar we selecteren 'm niet expliciet
   thumbnail_url?: string | null;
 }
 
@@ -76,8 +75,7 @@ export function LinkContentModal({
       let finalItems: ContentItem[] = [];
 
       /**
-       * 1️⃣ PRIMARY QUERY — filter op creator + workspace (+ optioneel platform)
-       * Dit is de ideale situatie: alle content van de juiste creator.
+       * 1️⃣ PRIMARY QUERY — workspace + creator (+ optional platform)
        */
       if (creatorId) {
         console.log(
@@ -131,16 +129,67 @@ export function LinkContentModal({
       }
 
       /**
-       * 2️⃣ FALLBACK QUERY — als er nog niks is gevonden,
-       * haal alle content op die al gelinkt is aan deze ad set.
-       * Zo is de huidige link in ieder geval zichtbaar.
+       * 2️⃣ FALLBACK — als primary niks geeft, pak ALLE content uit de workspace
+       * (optioneel gefilterd op platform)
        */
       if (finalItems.length === 0) {
         console.log(
-          '[LinkContentModal] No items from primary query, falling back to ad_set_id query...',
+          '[LinkContentModal] No items from primary query, falling back to workspace-only query...',
         );
 
-        const { data: fallbackData, error: fallbackError } = await supabase
+        let workspaceQuery = supabase
+          .from('content_media')
+          .select(
+            `
+            id,
+            file_name,
+            file_type,
+            file_url,
+            platform,
+            created_at,
+            ad_set_id,
+            creator_id,
+            workspace_id,
+            campaign_id
+          `,
+          )
+          .eq('workspace_id', workspaceId)
+          .order('created_at', { ascending: false });
+
+        if (platform) {
+          workspaceQuery = workspaceQuery.eq('platform', platform);
+        }
+
+        const { data: workspaceData, error: workspaceError } =
+          await workspaceQuery;
+
+        if (workspaceError) {
+          console.error(
+            '[LinkContentModal] ❌ Supabase error in workspace fallback:',
+            workspaceError,
+          );
+        } else {
+          console.log(
+            '[LinkContentModal] ✅ Workspace fallback result:',
+            { count: workspaceData?.length ?? 0 },
+          );
+
+          if (workspaceData && workspaceData.length > 0) {
+            finalItems = workspaceData as ContentItem[];
+          }
+        }
+      }
+
+      /**
+       * 3️⃣ FALLBACK 2 — als er nog steeds niks is, probeer puur op ad_set_id
+       * (voor al bestaande links)
+       */
+      if (finalItems.length === 0) {
+        console.log(
+          '[LinkContentModal] No items from workspace query, falling back to ad_set_id query...',
+        );
+
+        const { data: adSetData, error: adSetError } = await supabase
           .from('content_media')
           .select(
             `
@@ -160,39 +209,35 @@ export function LinkContentModal({
           .eq('ad_set_id', adSetId)
           .order('created_at', { ascending: false });
 
-        if (fallbackError) {
+        if (adSetError) {
           console.error(
-            '[LinkContentModal] ❌ Supabase error in fallback (ad_set_id) query:',
-            fallbackError,
+            '[LinkContentModal] ❌ Supabase error in ad_set_id fallback:',
+            adSetError,
           );
         } else {
-          console.log('[LinkContentModal] ✅ Fallback (ad_set_id) result:', {
-            count: fallbackData?.length ?? 0,
-          });
+          console.log(
+            '[LinkContentModal] ✅ ad_set_id fallback result:',
+            { count: adSetData?.length ?? 0 },
+          );
 
-          if (fallbackData && fallbackData.length > 0) {
-            finalItems = fallbackData as ContentItem[];
+          if (adSetData && adSetData.length > 0) {
+            finalItems = adSetData as ContentItem[];
           }
         }
       }
 
-      /**
-       * 3️⃣ Als we na beide queries nog steeds niks hebben, dan is er
-       * echt geen content die aan deze creator/ad set hangt.
-       */
+      // Uiteindelijk resultaat
       if (finalItems.length === 0) {
         console.log(
-          '[LinkContentModal] No content found after primary + fallback queries.',
+          '[LinkContentModal] No content found after all queries (creator + workspace + ad_set).',
         );
         setItems([]);
         setSelectedIds([]);
         return;
       }
 
-      // Items in state zetten
       setItems(finalItems);
 
-      // Bepaal welke items al gelinkt zijn aan deze ad set
       const alreadyLinked = finalItems
         .filter((item) => item.ad_set_id === adSetId)
         .map((item) => item.id);
@@ -221,7 +266,6 @@ export function LinkContentModal({
     setSaving(true);
 
     try {
-      // Wat was al gelinkt vóór de huidige selectie?
       const previouslyLinked = items
         .filter((item) => item.ad_set_id === adSetId)
         .map((item) => item.id);
@@ -356,7 +400,7 @@ export function LinkContentModal({
               <div className="text-center py-12">
                 <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-400">
-                  No content uploaded yet for this creator
+                  No content uploaded yet in this workspace
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   Upload content in the Content Library first
