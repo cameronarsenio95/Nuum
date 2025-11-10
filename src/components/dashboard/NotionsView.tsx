@@ -28,7 +28,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
   const [newNote, setNewNote] = useState({
     title: '',
     content: '',
-    tags: [] as string[], // gebruikt als "Attendees"
+    tags: [] as string[], // attendees
   });
   const [tagInput, setTagInput] = useState('');
   const [savingNewNote, setSavingNewNote] = useState(false);
@@ -90,7 +90,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
         workspace_id: workspace.id,
         title: newNote.title.trim() || 'Untitled Note',
         content: newNote.content,
-        tags: newNote.tags, // opgeslagen als attendees
+        tags: newNote.tags,
         created_by: user.id,
       });
 
@@ -265,7 +265,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
           />
         </div>
 
-        {/* Attendees (was tags) */}
+        {/* Attendees */}
         <div>
           <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
             Attendees
@@ -414,81 +414,78 @@ export function NotionsView({ workspace }: NotionsViewProps) {
         </div>
       )}
 
-      {/* Detail drawer */}
+      {/* Detail modal in the center */}
       {showDetailDrawer && selectedNote && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 flex justify-end"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           onClick={() => setShowDetailDrawer(false)}
         >
           <div
-            className="w-full max-w-lg bg-nuum-surface border-l border-nuum-border h-full overflow-y-auto"
+            className="w-full max-w-2xl bg-nuum-surface border border-nuum-border rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.6)] max-h-[90vh] overflow-y-auto p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-nuum-text-primary">
-                  Note Details
-                </h3>
-                <button
-                  onClick={() => setShowDetailDrawer(false)}
-                  className="p-2 rounded-lg hover:bg-nuum-background text-nuum-text-secondary hover:text-nuum-text-primary transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-nuum-text-primary">
+                Note Details
+              </h3>
+              <button
+                onClick={() => setShowDetailDrawer(false)}
+                className="p-2 rounded-lg hover:bg-nuum-background text-nuum-text-secondary hover:text-nuum-text-primary transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between text-xs text-nuum-text-tertiary">
-                  <div className="flex items-center gap-2">
-                    <User className="w-3.5 h-3.5" />
-                    <span>Created by {selectedNote.author || 'Unknown'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Datum {formatDate(selectedNote.created_at)}</span>
-                  </div>
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs text-nuum-text-tertiary">
+                <div className="flex items-center gap-2">
+                  <User className="w-3.5 h-3.5" />
+                  <span>Created by {selectedNote.author || 'Unknown'}</span>
                 </div>
-
-                <div>
-                  <h2 className="text-lg font-semibold text-nuum-text-primary mb-3">
-                    {selectedNote.title}
-                  </h2>
-                  <p className="text-sm text-nuum-text-secondary whitespace-pre-line leading-relaxed">
-                    {selectedNote.content || 'No content'}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Datum {formatDate(selectedNote.created_at)}</span>
                 </div>
-
-                {selectedNote.tags && selectedNote.tags.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-nuum-text-secondary">
-                      Attendees
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedNote.tags.map((attendee, idx) => (
-                        <span key={idx} className={getTagClasses()}>
-                          {attendee}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {selectedNote.updated_at && (
-                  <div className="flex items-center gap-2 text-xs text-nuum-text-tertiary pt-2">
+                  <div className="flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Updated on {formatDate(selectedNote.updated_at)}</span>
                   </div>
                 )}
+              </div>
 
-                <div className="pt-4">
-                  <button
-                    onClick={handleDeleteNote}
-                    className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete Note
-                  </button>
+              <div>
+                <h2 className="text-lg font-semibold text-nuum-text-primary mb-3">
+                  {selectedNote.title}
+                </h2>
+                <p className="text-sm text-nuum-text-secondary whitespace-pre-line leading-relaxed">
+                  {selectedNote.content || 'No content'}
+                </p>
+              </div>
+
+              {selectedNote.tags && selectedNote.tags.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-nuum-text-secondary">
+                    Attendees
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedNote.tags.map((attendee, idx) => (
+                      <span key={idx} className={getTagClasses()}>
+                        {attendee}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              <div className="pt-4">
+                <button
+                  onClick={handleDeleteNote}
+                  className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Note
+                </button>
               </div>
             </div>
           </div>
