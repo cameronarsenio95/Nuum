@@ -19,6 +19,7 @@ import { BillingView } from '../components/dashboard/BillingView';
 import { ContactView } from '../components/dashboard/ContactView';
 import AnalyticsView from '../components/dashboard/AnalyticsView';
 import { ShopifyIntegrationView } from '../components/dashboard/ShopifyIntegrationView';
+import { AgendaView } from '../components/dashboard/AgendaView'; // 👈 nieuw toegevoegd
 import { OnboardingWizard } from '../components/onboarding/OnboardingWizard';
 import { FrozenAccountModal } from '../components/modals/FrozenAccountModal';
 import type { Database } from '../lib/database.types';
@@ -40,6 +41,7 @@ function DashboardContent() {
     | 'team'
     | 'content'
     | 'notions'
+    | 'agenda' // 👈 toegevoegd
     | 'contact'
     | 'settings'
     | 'billing'
@@ -53,18 +55,11 @@ function DashboardContent() {
   const [isFrozenAccount, setIsFrozenAccount] = useState(false);
 
   useEffect(() => {
-    console.log('[DASHBOARD] Auth state:', { user: user?.id, authLoading });
-
     if (!authLoading && !user) {
-      console.log('[DASHBOARD] No user session, redirecting to login...');
       window.location.href = '/login';
       return;
     }
-
-    if (user) {
-      loadWorkspace();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (user) loadWorkspace();
   }, [user, authLoading]);
 
   useEffect(() => {
@@ -72,7 +67,6 @@ function DashboardContent() {
       const isFreePlan = workspace.plan === 'free';
       const isFrozen = isFreePlan && workspace.subscription_status === 'frozen';
       setIsFrozenAccount(isFrozen);
-
       if (isFrozen && !['billing', 'settings', 'contact'].includes(currentView)) {
         setCurrentView('billing');
       }
@@ -92,207 +86,88 @@ function DashboardContent() {
   const handleShopifyCallback = async () => {
     const params = new URLSearchParams(window.location.search);
     const shopifySuccess = params.get('shopify');
-
     if (shopifySuccess === 'connected') {
       window.history.replaceState({}, document.title, '/dashboard');
       setCurrentView('shopify');
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      setTimeout(() => window.location.reload(), 500);
     }
   };
 
   const loadWorkspace = async () => {
     if (!user) return;
-
     try {
       setLoading(true);
-      console.log('[DASHBOARD] Loading workspace for user:', user.id);
-
-      // 1) PROBEER EERST: alle workspaces via workspace_members (owner, admin, member, viewer)
-      const {
-        data: membershipData,
-        error: membershipError,
-      } = await supabase
+      const { data: membershipData } = await supabase
         .from('workspace_members')
         .select('role, workspaces(*)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (membershipError) {
-        console.error(
-          '[DASHBOARD] Error loading memberships (will fallback to owner):',
-          membershipError
-        );
-      }
-
       let resolvedWorkspace: Workspace | null = null;
-
       const memberships = (membershipData || []) as any[];
-
       if (memberships.length > 0) {
-        // 1a) Probeer eerst een workspace te pakken die NIET van de huidige user is
-        //     (dus een workspace waar je voor bent uitgenodigd).
-        const invitedMembership = memberships.find((m) => {
-          const ws = m.workspaces as Workspace | null;
-          if (!ws) return false;
-          return ws.owner_id !== user.id;
-        });
-
-        if (invitedMembership?.workspaces) {
-          resolvedWorkspace = invitedMembership.workspaces as Workspace;
-          console.log(
-            '[DASHBOARD] Workspace resolved via invited membership:',
-            resolvedWorkspace.id
-          );
-        } else {
-          // 1b) Anders: pak de eerste workspace waar je lid van bent
-          const firstMembershipWithWorkspace = memberships.find((m) => m.workspaces);
-
-          if (firstMembershipWithWorkspace?.workspaces) {
-            resolvedWorkspace = firstMembershipWithWorkspace.workspaces as Workspace;
-            console.log(
-              '[DASHBOARD] Workspace resolved via first membership:',
-              resolvedWorkspace.id
-            );
-          }
-        }
+        const invited = memberships.find(
+          (m) => (m.workspaces as Workspace)?.owner_id !== user.id
+        );
+        resolvedWorkspace = invited?.workspaces || memberships[0].workspaces;
       }
 
-      // 2) FALLBACK: als er geen membership-workspace is gevonden, gebruik de oude owner_id-logica
       if (!resolvedWorkspace) {
-        const {
-          data: workspaceData,
-          error: workspaceError,
-        } = await supabase
+        const { data: workspaceData } = await supabase
           .from('workspaces')
           .select('*')
           .eq('owner_id', user.id)
           .maybeSingle();
-
-        if (workspaceError) {
-          console.error(
-            '[DASHBOARD] Error loading workspace by owner_id:',
-            workspaceError
-          );
-          setWorkspace(null);
-          return;
-        }
-
-        console.log('[DASHBOARD] Workspace loaded via owner_id:', workspaceData?.id);
-
         if (!workspaceData) {
-          // Geen workspace → auto-create zoals voorheen
           const { data: profileData } = await supabase
             .from('profiles')
             .select('full_name')
             .eq('id', user.id)
             .maybeSingle();
-
           const displayName = profileData?.full_name || user.email;
           const slug = user.email?.split('@')[0] || 'workspace';
-
-          const trialStartDate = new Date();
-          const trialEndDate = new Date();
-          trialEndDate.setDate(trialEndDate.getDate() + TRIAL_DURATION_DAYS);
-
-          const { data: newWorkspace, error: createError } = await supabase
+          const trialStart = new Date();
+          const trialEnd = new Date();
+          trialEnd.setDate(trialEnd.getDate() + TRIAL_DURATION_DAYS);
+          const { data: newWs } = await supabase
             .from('workspaces')
             .insert({
               name: `${displayName}'s Workspace`,
-              slug: slug,
+              slug,
               plan: 'free',
-              max_team_members: 3,
-              max_creators: 25,
-              max_storage_gb: 5,
               subscription_status: 'trialing',
-              trial_started_at: trialStartDate.toISOString(),
-              trial_ends_at: trialEndDate.toISOString(),
-              features: {
-                revenue_tracking: false,
-                advanced_analytics: false,
-                team_collaboration: true,
-                priority_support: false,
-                task_assignment: false,
-              },
+              trial_started_at: trialStart.toISOString(),
+              trial_ends_at: trialEnd.toISOString(),
               owner_id: user.id,
             })
             .select()
             .single();
-
-          if (createError) {
-            console.error('[DASHBOARD] Error creating workspace:', createError);
-            setWorkspace(null);
-            return;
-          }
-
-          console.log('[DASHBOARD] New workspace created:', newWorkspace.id);
-          resolvedWorkspace = newWorkspace as Workspace;
-        } else {
-          // Bestaande owner-workspace + naam-update logica
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (profileData?.full_name) {
-            const displayName = profileData.full_name;
-            const expectedWorkspaceName = `${displayName}'s Workspace`;
-
-            if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
-              const { data: updatedWorkspace } = await supabase
-                .from('workspaces')
-                .update({ name: expectedWorkspaceName })
-                .eq('id', workspaceData.id)
-                .select()
-                .single();
-
-              resolvedWorkspace = (updatedWorkspace || workspaceData) as Workspace;
-            } else {
-              resolvedWorkspace = workspaceData as Workspace;
-            }
-          } else {
-            resolvedWorkspace = workspaceData as Workspace;
-          }
-        }
+          resolvedWorkspace = newWs as Workspace;
+        } else resolvedWorkspace = workspaceData as Workspace;
       }
 
       setWorkspace(resolvedWorkspace);
     } catch (err) {
-      console.error('[DASHBOARD] Unexpected error in loadWorkspace:', err);
+      console.error('Error loading workspace:', err);
       setWorkspace(null);
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading || loading)
     return (
-      <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-linear-border border-t-linear-accent rounded-full animate-spin" />
-        <div className="dark:text-text-secondary light:text-text-light-secondary">
-          {authLoading ? 'Checking authentication...' : 'Loading workspace...'}
-        </div>
+      <div className="min-h-screen dark:bg-linear-bg flex items-center justify-center text-white">
+        Loading dashboard...
       </div>
     );
-  }
 
-  if (!workspace) {
+  if (!workspace)
     return (
-      <div className="min-h-screen dark:bg-linear-bg light:bg-linear-light-bg flex flex-col items-center justify-center gap-4">
-        <div className="dark:text-text-secondary light:text-text-light-secondary">
-          No workspace found
-        </div>
-        <button
-          onClick={() => (window.location.href = '/')}
-          className="px-4 py-2 bg-linear-accent text-white rounded-linear hover:opacity-90 linear-transition"
-        >
-          Return to Home
-        </button>
+      <div className="min-h-screen dark:bg-linear-bg flex items-center justify-center text-white">
+        No workspace found.
       </div>
     );
-  }
 
   const handleCampaignClick = (campaign: Campaign) => {
     if (isFrozenAccount) {
@@ -357,6 +232,7 @@ function DashboardContent() {
         {currentView === 'team' && <TeamView workspace={workspace} />}
         {currentView === 'content' && <ContentView workspace={workspace} />}
         {currentView === 'notions' && <NotionsView workspace={workspace} />}
+        {currentView === 'agenda' && <AgendaView workspace={workspace} />} {/* 👈 toegevoegd */}
         {currentView === 'contact' && <ContactView />}
         {currentView === 'settings' && <SettingsView workspace={workspace} />}
         {currentView === 'billing' && (
@@ -380,17 +256,10 @@ function FrozenAccountChecker({
   onUpgrade: () => void;
 }) {
   const { freeAccountInfo } = usePlanLimits();
-
   useEffect(() => {
-    if (freeAccountInfo.isFrozen && !showModal) {
-      onShowModal(true);
-    }
+    if (freeAccountInfo.isFrozen && !showModal) onShowModal(true);
   }, [freeAccountInfo.isFrozen, showModal, onShowModal]);
-
-  if (!freeAccountInfo.isFrozen || !showModal) {
-    return null;
-  }
-
+  if (!freeAccountInfo.isFrozen || !showModal) return null;
   return <FrozenAccountModal onUpgrade={onUpgrade} />;
 }
 
