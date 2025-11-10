@@ -411,12 +411,12 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                         </span>
                       )}
                       {item.platform && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-blue-500/10 light:bg-blue-500/10 dark:text-blue-400 light:text-blue-600">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-secondary light:text-text-light-secondary">
                           {item.platform}
                         </span>
                       )}
                       {item.ad_sets?.name && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-green-500/10 light:bg-green-500/10 dark:text-green-400 light:text-green-600">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-secondary light:text-text-light-secondary">
                           🔗 {item.ad_sets.name}
                         </span>
                       )}
