@@ -73,6 +73,9 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
   const [selectedContent, setSelectedContent] = useState<ContentMedia[]>([]);
   const [loadingContent, setLoadingContent] = useState(false);
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [adSetToDelete, setAdSetToDelete] = useState<AdSet | null>(null);
+
   const [metrics, setMetrics] = useState({
     totalSpend: 0,
     totalRevenue: 0,
@@ -196,22 +199,31 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     setShowAdSetModal(true);
   };
 
-  const handleDeleteAdSet = async (adSetId: string) => {
-    if (!confirm('Are you sure you want to remove this ad set?')) return;
+  // ✅ Nieuwe delete-functie zonder confirm()
+  const handleDeleteAdSet = async () => {
+    if (!adSetToDelete) return;
 
-    const { error } = await supabase
-      .from('ad_sets')
-      .delete()
-      .eq('id', adSetId)
-      .eq('workspace_id', workspaceId);
+    try {
+      const { error } = await supabase
+        .from('ad_sets')
+        .delete()
+        .eq('id', adSetToDelete.id)
+        .eq('workspace_id', workspaceId);
 
-    if (error) {
-      console.error('Error deleting ad set:', error);
-      alert('Failed to delete ad set');
-      return;
+      if (error) {
+        console.error('[DELETE_ERROR]', error);
+        alert('Failed to delete ad set.');
+        return;
+      }
+
+      setAdSets((prev) => prev.filter((set) => set.id !== adSetToDelete.id));
+      setShowDeleteConfirm(false);
+      setAdSetToDelete(null);
+      console.log('[DELETE_SUCCESS]', adSetToDelete.id);
+    } catch (err) {
+      console.error('[DELETE_EXCEPTION]', err);
+      alert('Unexpected error while deleting ad set.');
     }
-
-    loadCampaignData();
   };
 
   const handleCloseAdSetModal = () => {
@@ -227,15 +239,11 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     setLoadingContent(true);
     setShowContentModal(true);
 
-    const { data: directData, error: directError } = await supabase
+    const { data: directData } = await supabase
       .from('content_media')
       .select('*')
       .eq('ad_set_id', adSetId)
       .order('created_at', { ascending: false });
-
-    if (directError) {
-      console.error('Error loading direct content:', directError);
-    }
 
     if (directData && directData.length > 0) {
       setSelectedContent(directData);
@@ -243,33 +251,23 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
       return;
     }
 
-    const { data: fallbackData, error: fallbackError } = await supabase
+    const { data: fallbackData } = await supabase
       .from('content_media')
       .select('*')
       .eq('creator_id', creatorId)
       .eq('campaign_id', campaignId)
       .order('created_at', { ascending: false });
 
-    if (fallbackError) {
-      console.error('Error loading fallback content:', fallbackError);
-    } else {
-      setSelectedContent(fallbackData || []);
-    }
-
+    setSelectedContent(fallbackData || []);
     setLoadingContent(false);
   };
 
-
   if (loading) {
-    return (
-      <div className="text-nuum-text-secondary">Loading campaign...</div>
-    );
+    return <div className="text-nuum-text-secondary">Loading campaign...</div>;
   }
 
   if (!campaign) {
-    return (
-      <div className="text-nuum-text-secondary">Campaign not found</div>
-    );
+    return <div className="text-nuum-text-secondary">Campaign not found</div>;
   }
 
   return (
@@ -297,9 +295,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           creatorId={linkContentAdSet.creator_id}
           platform={linkContentAdSet.platform}
           workspaceId={workspaceId}
-          onLinked={() => {
-            loadCampaignData();
-          }}
+          onLinked={() => loadCampaignData()}
         />
       )}
 
@@ -311,14 +307,13 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
         >
           <div
             className="w-full max-w-4xl bg-nuum-surface border border-nuum-border rounded-xl p-6 max-h-[80vh] overflow-y-auto"
-            style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-nuum-text-primary">Content</h2>
               <button
                 onClick={() => setShowContentModal(false)}
-                className="p-2 rounded-lg transition-all duration-150 text-nuum-text-secondary hover:bg-nuum-border hover:text-nuum-text-primary"
+                className="p-2 rounded-lg text-nuum-text-secondary hover:bg-nuum-border hover:text-nuum-text-primary"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -376,8 +371,10 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           </div>
         </div>
 
+        {/* Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-red/40 transition-all duration-200">
+          {/* Total Spend */}
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-red/40 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-nuum-dark-red rounded-lg flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-nuum-accent-red" />
@@ -387,7 +384,8 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             <div className="text-2xl font-semibold text-nuum-text-primary">€{metrics.totalSpend.toLocaleString()}</div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-green/40 transition-all duration-200">
+          {/* Total Revenue */}
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-green/40 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-nuum-dark-green rounded-lg flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-nuum-accent-green" />
@@ -397,7 +395,8 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             <div className="text-2xl font-semibold text-nuum-accent-green">€{metrics.totalRevenue.toLocaleString()}</div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-blue/40 transition-all duration-200">
+          {/* ROI */}
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-blue/40 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-nuum-accent-blue" />
@@ -409,7 +408,8 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             </div>
           </div>
 
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-orange/40 transition-all duration-200">
+          {/* Creators */}
+          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-orange/40 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-nuum-accent-brown rounded-lg flex items-center justify-center">
                 <Users className="w-5 h-5 text-nuum-accent-orange" />
@@ -420,15 +420,16 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           </div>
         </div>
 
+        {/* Ad Sets */}
         <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-nuum-accent-blue" />
-              <h2 className="text-lg font-semibold text-nuum-text-primary">Ad Sets (Meta)</h2>
+              <h2 className="text-lg font-semibold text-nuum-text-primary">Ad Sets</h2>
             </div>
             <button
               onClick={handleAddAdSet}
-              className="flex items-center gap-2 px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-accent-blue/90 text-white rounded-lg transition-all duration-200 text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-accent-blue/90 text-white rounded-lg text-sm transition-all"
             >
               <Plus className="w-4 h-4" />
               Add Ad Set
@@ -441,7 +442,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
               <p className="text-nuum-text-secondary mb-4">No ad sets yet</p>
               <button
                 onClick={handleAddAdSet}
-                className="px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-accent-blue/90 text-white rounded-lg transition-all duration-200 text-sm"
+                className="px-4 py-2 bg-nuum-accent-blue hover:bg-nuum-accent-blue/90 text-white rounded-lg text-sm transition-all"
               >
                 Create your first ad set
               </button>
@@ -451,28 +452,27 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-nuum-border">
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Name</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Status</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Platform</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Creator</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Spend</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Revenue</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Duration</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Deal Type</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-nuum-text-secondary">Content</th>
-                    <th className="text-right py-3 px-3 text-xs font-medium text-nuum-text-secondary">Actions</th>
+                    <th className="py-3 px-3 text-left text-xs font-medium text-nuum-text-secondary">Name</th>
+                    <th className="py-3 px-3 text-left text-xs font-medium text-nuum-text-secondary">Status</th>
+                    <th className="py-3 px-3 text-left text-xs font-medium text-nuum-text-secondary">Platform</th>
+                    <th className="py-3 px-3 text-left text-xs font-medium text-nuum-text-secondary">Creator</th>
+                    <th className="py-3 px-3 text-right text-xs font-medium text-nuum-text-secondary">Spend</th>
+                    <th className="py-3 px-3 text-right text-xs font-medium text-nuum-text-secondary">Revenue</th>
+                    <th className="py-3 px-3 text-left text-xs font-medium text-nuum-text-secondary">Duration</th>
+                    <th className="py-3 px-3 text-left text-xs font-medium text-nuum-text-secondary">Deal Type</th>
+                    <th className="py-3 px-3 text-left text-xs font-medium text-nuum-text-secondary">Content</th>
+                    <th className="py-3 px-3 text-right text-xs font-medium text-nuum-text-secondary">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {adSets.map((adSet) => {
                     const spend = Number(adSet.spend) || 0;
                     const revenue = Number(adSet.revenue) || 0;
-                    const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0;
                     const creator = adSet.creators as Creator | null;
                     const contentCount = adSet.content_count || 0;
 
                     return (
-                      <tr key={adSet.id} className="border-b border-nuum-border hover:bg-nuum-background transition-all duration-200">
+                      <tr key={adSet.id} className="border-b border-nuum-border hover:bg-nuum-background transition-all">
                         <td className="py-3 px-3 text-sm text-nuum-text-primary">{adSet.name}</td>
                         <td className="py-3 px-3">
                           <span className={`inline-block text-xs px-2 py-0.5 rounded-full ${getStatusBadgeClasses(adSet.status)}`}>
@@ -485,29 +485,19 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                         </td>
                         <td className="py-3 px-3 text-sm text-right text-nuum-text-primary">€{spend.toLocaleString()}</td>
                         <td className="py-3 px-3 text-sm text-right text-nuum-accent-green">€{revenue.toLocaleString()}</td>
-                        <td className="py-3 px-3 text-xs text-nuum-text-secondary whitespace-nowrap">
-                          {formatDuration(adSet.ad_duration_days)}
-                        </td>
+                        <td className="py-3 px-3 text-xs text-nuum-text-secondary">{formatDuration(adSet.ad_duration_days)}</td>
                         <td className="py-3 px-3">
-                          {adSet.deal_type && (
+                          {adSet.deal_type ? (
                             <span className={`inline-block text-xs px-2 py-0.5 rounded-full capitalize ${getDealTypeBadge(adSet.deal_type)}`}>
                               {adSet.deal_type}
                             </span>
+                          ) : (
+                            <span className="text-nuum-text-secondary text-xs">—</span>
                           )}
-                          {!adSet.deal_type && <span className="text-nuum-text-secondary text-xs">—</span>}
                         </td>
                         <td className="py-3 px-3">
                           <button
                             onClick={() => {
-                              console.log('[CampaignDetail] Opening LinkContentModal with:', {
-                                adSetId: adSet.id,
-                                adSetName: adSet.name,
-                                creatorId: adSet.creator_id,
-                                creatorName: creator?.name,
-                                campaignId: adSet.campaign_id,
-                                platform: adSet.platform,
-                                workspaceId: workspaceId
-                              });
                               setLinkContentAdSet(adSet);
                               setShowLinkContentModal(true);
                             }}
@@ -526,19 +516,20 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                             )}
                           </button>
                         </td>
-                        <td className="py-3 px-3">
+                        <td className="py-3 px-3 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleEditAdSet(adSet)}
-                              className="p-1.5 hover:bg-nuum-accent-brown rounded-lg transition-all duration-200 text-nuum-text-secondary hover:text-nuum-accent-orange"
-                              title="Edit ad set"
+                              className="p-1.5 hover:bg-nuum-accent-brown rounded-lg text-nuum-text-secondary hover:text-nuum-accent-orange transition-all"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDeleteAdSet(adSet.id)}
-                              className="p-1.5 hover:bg-nuum-dark-red rounded-lg transition-all duration-200 text-nuum-text-secondary hover:text-nuum-accent-red"
-                              title="Delete ad set"
+                              onClick={() => {
+                                setAdSetToDelete(adSet);
+                                setShowDeleteConfirm(true);
+                              }}
+                              className="p-1.5 hover:bg-nuum-dark-red rounded-lg text-nuum-text-secondary hover:text-nuum-accent-red transition-all"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -553,6 +544,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           )}
         </div>
 
+        {/* Linked Creators */}
         {creators.length > 0 && (
           <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
             <div className="flex items-center gap-2 mb-4">
@@ -561,10 +553,12 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             </div>
             <div className="space-y-3">
               {creators.slice(0, 5).map((creator) => (
-                <div key={creator.id} className="flex items-center justify-between py-2 hover:bg-nuum-background rounded-lg px-3 -mx-3 transition-all duration-200">
+                <div key={creator.id} className="flex items-center justify-between py-2 hover:bg-nuum-background rounded-lg px-3 -mx-3 transition-all">
                   <div>
                     <div className="text-sm font-medium text-nuum-text-primary">{creator.name}</div>
-                    <div className="text-xs text-nuum-text-secondary">{creator.ad_sets_count} ad set{creator.ad_sets_count !== 1 ? 's' : ''}</div>
+                    <div className="text-xs text-nuum-text-secondary">
+                      {creator.ad_sets_count} ad set{creator.ad_sets_count !== 1 ? 's' : ''}
+                    </div>
                   </div>
                   <div className="text-sm font-semibold text-nuum-accent-green">
                     €{creator.total_revenue.toLocaleString()}
@@ -575,6 +569,39 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           </div>
         )}
       </div>
+
+      {/* ✅ Delete confirm modal */}
+      {showDeleteConfirm && adSetToDelete && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            className="bg-nuum-surface border border-nuum-border rounded-xl p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-nuum-text-primary mb-4">Delete Ad Set</h3>
+            <p className="text-nuum-text-secondary mb-6">
+              Are you sure you want to delete{' '}
+              <span className="font-medium text-nuum-text-primary">{adSetToDelete.name}</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 border border-nuum-border rounded-lg text-nuum-text-secondary hover:bg-nuum-border/20 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAdSet}
+                className="flex-1 px-4 py-2 bg-nuum-accent-red hover:bg-nuum-accent-red/90 text-white rounded-lg transition-all"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
