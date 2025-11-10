@@ -22,7 +22,7 @@ interface LinkContentModalProps {
   adSetName: string;
   campaignId?: string | null;
   creatorId?: string | null;
-  platform?: string | null;
+  platform?: string | null; // nog steeds voor weergave in de UI
   workspaceId: string;
   onLinked?: () => void;
 }
@@ -49,7 +49,7 @@ export function LinkContentModal({
       loadContent();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, workspaceId, creatorId, campaignId, adSetId, platform]);
+  }, [isOpen, workspaceId, creatorId, campaignId, adSetId]);
 
   const loadContent = async () => {
     console.log('[LinkContentModal] 🔄 Loading content with params:', {
@@ -75,15 +75,15 @@ export function LinkContentModal({
       let finalItems: ContentItem[] = [];
 
       /**
-       * SCENARIO A: ER IS EEN CREATOR → ALLEEN CONTENT VAN DIE CREATOR
+       * A. ER IS EEN CREATOR → ALLEEN CONTENT VAN DIE CREATOR
        */
       if (creatorId) {
         console.log(
           '[LinkContentModal] Using CREATOR-SCOPED loading strategy...',
         );
 
-        // 1️⃣ Primary: workspace + creator (+ platform)
-        let primaryQuery = supabase
+        // 1️⃣ Primary: workspace + creator
+        const { data: primaryData, error: primaryError } = await supabase
           .from('content_media')
           .select(
             `
@@ -103,12 +103,6 @@ export function LinkContentModal({
           .eq('creator_id', creatorId)
           .order('created_at', { ascending: false });
 
-        if (platform) {
-          primaryQuery = primaryQuery.eq('platform', platform);
-        }
-
-        const { data: primaryData, error: primaryError } = await primaryQuery;
-
         if (primaryError) {
           console.error(
             '[LinkContentModal] ❌ Supabase error in primary (creator) query:',
@@ -124,7 +118,7 @@ export function LinkContentModal({
           }
         }
 
-        // 2️⃣ Fallback: als er niks is, pak alleen al-gelinkte items via ad_set_id
+        // 2️⃣ Fallback: als er niks is, pak alleen items die al aan deze ad set hangen
         if (finalItems.length === 0) {
           console.log(
             '[LinkContentModal] No items for this creator, trying ad_set_id-only fallback...',
@@ -167,13 +161,13 @@ export function LinkContentModal({
         }
       } else {
         /**
-         * SCENARIO B: GEEN CREATOR → GENERIEKE WORKSPACE-FALLBACK
+         * B. GEEN CREATOR → GENERIEKE WORKSPACE-FALLBACK
          */
         console.log(
           '[LinkContentModal] No creatorId → using WORKSPACE-WIDE loading strategy...',
         );
 
-        let workspaceQuery = supabase
+        const { data: workspaceData, error: workspaceError } = await supabase
           .from('content_media')
           .select(
             `
@@ -192,13 +186,6 @@ export function LinkContentModal({
           .eq('workspace_id', workspaceId)
           .order('created_at', { ascending: false });
 
-        if (platform) {
-          workspaceQuery = workspaceQuery.eq('platform', platform);
-        }
-
-        const { data: workspaceData, error: workspaceError } =
-          await workspaceQuery;
-
         if (workspaceError) {
           console.error(
             '[LinkContentModal] ❌ Supabase error in workspace-wide query:',
@@ -215,7 +202,6 @@ export function LinkContentModal({
         }
       }
 
-      // Als we na alle stappen nog steeds niks hebben
       if (finalItems.length === 0) {
         console.log(
           '[LinkContentModal] No content found for this creator/ad set after all queries.',
