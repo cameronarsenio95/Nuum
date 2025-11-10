@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Upload, X, Play, Download, Eye, Filter } from 'lucide-react';
+import { Upload, X, Play, Download, Eye, Filter, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
 
@@ -41,6 +41,7 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState<ContentMediaItem | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [filters, setFilters] = useState({
     creator: 'all',
@@ -229,6 +230,46 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
     }
 
     setUploading(false);
+  };
+
+  const handleDeleteContent = async () => {
+    if (!selectedContent) return;
+
+    if (!confirm(`Are you sure you want to delete "${selectedContent.file_name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      const filePath = selectedContent.file_url.split('/content/')[1];
+
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('content')
+          .remove([filePath]);
+
+        if (storageError) {
+          console.error('Storage deletion error:', storageError);
+        }
+      }
+
+      const { error: dbError } = await supabase
+        .from('content_media')
+        .delete()
+        .eq('id', selectedContent.id);
+
+      if (dbError) throw dbError;
+
+      setShowDetailModal(false);
+      setSelectedContent(null);
+      loadContent();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      alert('Failed to delete content. Please try again.');
+    }
+
+    setDeleting(false);
   };
 
   const filteredContent = content.filter(item => {
@@ -561,6 +602,14 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                     <Download className="w-4 h-4" />
                     Download
                   </button>
+                  <button
+                    onClick={handleDeleteContent}
+                    disabled={deleting}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {deleting ? 'Deleting...' : 'Delete'}
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -580,32 +629,6 @@ export function ContentLibraryView({ workspace }: ContentLibraryViewProps) {
                     <p className="text-base font-medium">{selectedContent.ad_sets.name}</p>
                   </div>
                 )}
-
-                <div className="dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle rounded-lg p-4">
-                  <p className="text-sm dark:text-text-tertiary light:text-text-light-tertiary mb-1">File Information</p>
-                  <div className="space-y-2 mt-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">File Name</span>
-                      <span className="font-medium">{selectedContent.file_name}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">File Type</span>
-                      <span className="font-medium">{selectedContent.file_type}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">File Size</span>
-                      <span className="font-medium">{(selectedContent.file_size / 1024 / 1024).toFixed(2)} MB</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="dark:text-text-tertiary light:text-text-light-tertiary">Uploaded</span>
-                      <span className="font-medium">{new Date(selectedContent.created_at).toLocaleDateString('nl-NL', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}</span>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
