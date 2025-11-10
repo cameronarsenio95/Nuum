@@ -12,7 +12,7 @@ interface ContentItem {
   platform: 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | null;
   created_at: string;
   ad_set_id: string | null;
-  thumbnail_url?: string | null;
+  // thumbnail_url?: string | null; // niet meer nodig in de query
 }
 
 interface LinkContentModalProps {
@@ -49,7 +49,7 @@ export function LinkContentModal({
       loadContent();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, workspaceId, creatorId, campaignId]);
+  }, [isOpen, workspaceId, creatorId, campaignId, platform]);
 
   const loadContent = async () => {
     console.log('[LinkContentModal] Loading content with params:', {
@@ -60,10 +60,8 @@ export function LinkContentModal({
       platform,
     });
 
-    if (!workspaceId || !creatorId) {
-      console.warn(
-        '[LinkContentModal] Missing required params: workspaceId or creatorId',
-      );
+    if (!workspaceId) {
+      console.warn('[LinkContentModal] Missing required param: workspaceId');
       setItems([]);
       setLoading(false);
       return;
@@ -72,7 +70,8 @@ export function LinkContentModal({
     setLoading(true);
 
     try {
-      let query = supabase
+      // Basis: alle content in deze workspace
+      const baseQuery = supabase
         .from('content_media')
         .select(
           `
@@ -83,22 +82,62 @@ export function LinkContentModal({
           platform,
           created_at,
           ad_set_id,
-          thumbnail_url,
           creator_id,
           workspace_id,
           campaign_id
         `,
         )
-        .eq('workspace_id', workspaceId)
-        .eq('creator_id', creatorId)
-        .order('created_at', { ascending: false });
+        .eq('workspace_id', workspaceId);
 
-      // Optioneel filter op platform als je dat wilt
-      if (platform) {
-        query = query.eq('platform', platform);
+      let data;
+      let error;
+
+      // 1) Eerst proberen: content voor deze creator (optioneel platform)
+      if (creatorId) {
+        let q = baseQuery.eq('creator_id', creatorId);
+
+        if (platform) {
+          q = q.eq('platform', platform);
+        }
+
+        ({ data, error } = await q.order('created_at', { ascending: false }));
+
+        console.log('[LinkContentModal] Result with creator filter:', {
+          count: data?.length || 0,
+        });
+
+        // 2) Fallback: niets gevonden → alle content in workspace (optioneel platform)
+        if (!error && (!data || data.length === 0)) {
+          console.warn(
+            '[LinkContentModal] No items for this creator, falling back to workspace-only content',
+          );
+
+          let fallbackQuery = baseQuery;
+          if (platform) {
+            fallbackQuery = fallbackQuery.eq('platform', platform);
+          }
+
+          ({ data, error } = await fallbackQuery.order('created_at', {
+            ascending: false,
+          }));
+
+          console.log('[LinkContentModal] Fallback result (workspace only):', {
+            count: data?.length || 0,
+          });
+        }
+      } else {
+        // Geen creatorId → direct workspace-only content
+        console.warn(
+          '[LinkContentModal] No creatorId provided, loading workspace-only content',
+        );
+
+        let q = baseQuery;
+        if (platform) {
+          q = q.eq('platform', platform);
+        }
+
+        ({ data, error } = await q.order('created_at', { ascending: false }));
       }
-
-      const { data, error } = await query;
 
       if (error) {
         console.error(
@@ -111,24 +150,14 @@ export function LinkContentModal({
             code: error.code,
           },
         );
-
-        // Extra hint als de kolom nog niet bestaat
-        if (error.message.includes('ad_set_id')) {
-          showToast(
-            'Supabase kolom "ad_set_id" ontbreekt in content_media. Voeg deze eerst toe in Supabase.',
-            'error',
-          );
-        } else {
-          showToast(`Failed to load content: ${error.message}`, 'error');
-        }
-
+        showToast(`Failed to load content: ${error.message}`, 'error');
         setItems([]);
         return;
       }
 
       console.log('[LinkContentModal] Successfully loaded content:', {
         total: data?.length || 0,
-        items: data?.map((item) => ({
+        items: data?.map((item: any) => ({
           id: item.id,
           file_name: item.file_name,
           ad_set_id: item.ad_set_id,
@@ -139,7 +168,7 @@ export function LinkContentModal({
       const typedData = (data || []) as ContentItem[];
       setItems(typedData);
 
-      // Bepaal welke items al gelinkt zijn aan deze ad set
+      // Items die al gelinkt zijn aan deze ad set
       const alreadyLinked = typedData
         .filter((item) => item.ad_set_id === adSetId)
         .map((item) => item.id);
@@ -153,6 +182,7 @@ export function LinkContentModal({
     } catch (err) {
       console.error('[LinkContentModal] Unexpected error:', err);
       showToast('Failed to load content', 'error');
+      setItems([]);
     } finally {
       setLoading(false);
     }
