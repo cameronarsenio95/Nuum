@@ -49,7 +49,13 @@ interface FormState {
   spark_code: string;
   ad_duration_days: number;
   deal_type: DealTypeValue;
+  creator_id: string | null;
 }
+
+type Creator = {
+  id: string;
+  name: string | null;
+};
 
 const PLATFORM_VALUES: PlatformValue[] = PLATFORMS.map(p => p.value);
 
@@ -62,6 +68,9 @@ export function AdSetFormModal({
 }: AdSetFormModalProps) {
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
+  const [creators, setCreators] = useState<Creator[]>([]);
+  const [creatorsLoading, setCreatorsLoading] = useState(false);
+
   const [formData, setFormData] = useState<FormState>({
     name: '',
     platform: 'Instagram',
@@ -72,7 +81,36 @@ export function AdSetFormModal({
     spark_code: '',
     ad_duration_days: 7,
     deal_type: 'spark',
+    creator_id: null,
   });
+
+  // Creators ophalen voor deze workspace
+  useEffect(() => {
+    const loadCreators = async () => {
+      if (!workspaceId) return;
+      setCreatorsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('creators')
+          .select('id, name')
+          .eq('workspace_id', workspaceId)
+          .order('name', { ascending: true });
+
+        if (error) {
+          console.error('[AdSetFormModal] Error loading creators:', error);
+          return;
+        }
+
+        setCreators(data || []);
+      } catch (err) {
+        console.error('[AdSetFormModal] Unexpected error loading creators:', err);
+      } finally {
+        setCreatorsLoading(false);
+      }
+    };
+
+    loadCreators();
+  }, [workspaceId]);
 
   // Prefill bij edit
   useEffect(() => {
@@ -82,7 +120,8 @@ export function AdSetFormModal({
           ? (adSet.platform as PlatformValue)
           : 'Instagram';
 
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         name: adSet.name ?? '',
         platform: safePlatform,
         status: (adSet.status as StatusValue) || 'active',
@@ -92,7 +131,8 @@ export function AdSetFormModal({
         spark_code: adSet.spark_code || '',
         ad_duration_days: adSet.ad_duration_days || 7,
         deal_type: (adSet.deal_type as DealTypeValue) || 'spark',
-      });
+        creator_id: (adSet as any).creator_id || null, // creator_id staat in Supabase
+      }));
     }
   }, [adSet]);
 
@@ -113,7 +153,6 @@ export function AdSetFormModal({
     setLoading(true);
 
     try {
-      // zorg dat platform ALTIJD een geldige waarde is
       const safePlatform: PlatformValue = PLATFORM_VALUES.includes(
         formData.platform,
       )
@@ -122,7 +161,7 @@ export function AdSetFormModal({
 
       const adSetData = {
         name: formData.name,
-        platform: safePlatform, // exact zoals Supabase het verwacht
+        platform: safePlatform,
         status: formData.status,
         spend: Number(formData.spend) || 0,
         revenue: Number(formData.revenue) || 0,
@@ -130,6 +169,7 @@ export function AdSetFormModal({
         spark_code: formData.spark_code || null,
         ad_duration_days: formData.ad_duration_days,
         deal_type: formData.deal_type,
+        creator_id: formData.creator_id, // hier wordt de creator echt opgeslagen
       };
 
       console.log('[AdSetFormModal] Saving ad set with payload:', {
@@ -214,6 +254,38 @@ export function AdSetFormModal({
               className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               placeholder="Enter ad set name"
             />
+          </div>
+
+          {/* Creator */}
+          <div>
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+              Creator
+            </label>
+            <select
+              required
+              disabled={creatorsLoading || creators.length === 0}
+              value={formData.creator_id || ''}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  creator_id: e.target.value || null,
+                }))
+              }
+              className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue disabled:opacity-60"
+            >
+              <option value="">
+                {creatorsLoading
+                  ? 'Loading creators...'
+                  : creators.length === 0
+                  ? 'No creators found'
+                  : 'Select creator'}
+              </option>
+              {creators.map((creator) => (
+                <option key={creator.id} value={creator.id}>
+                  {creator.name || 'Unnamed creator'}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Platform + Status */}
