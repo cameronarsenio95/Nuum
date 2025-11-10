@@ -3,6 +3,7 @@ import { CalendarDays, FileText, ClipboardList, Play } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Database } from '../../lib/database.types';
 import { useAuth } from '../../contexts/AuthContext';
+import { NUUM_COLORS } from '../../utils/designSystem';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
@@ -13,19 +14,30 @@ interface AgendaViewProps {
   workspace: Workspace;
 }
 
+interface CalendarEvent {
+  id: string;
+  type: 'adset' | 'note' | 'task';
+  title: string;
+  date: string;
+  color: string;
+  icon: JSX.Element;
+}
+
 export function AgendaView({ workspace }: AgendaViewProps) {
   const { user } = useAuth();
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
 
   useEffect(() => {
-    if (!workspace?.id) return;
-    loadAgenda();
+    if (workspace?.id) loadAgenda();
   }, [workspace.id]);
 
   const loadAgenda = async () => {
     setLoading(true);
-
     const [adSetsRes, notesRes, tasksRes] = await Promise.all([
       supabase.from('ad_sets').select('*').eq('workspace_id', workspace.id),
       supabase.from('notes').select('*').eq('workspace_id', workspace.id),
@@ -35,80 +47,140 @@ export function AgendaView({ workspace }: AgendaViewProps) {
     const adSets = (adSetsRes.data || []).map((a: AdSet) => ({
       id: a.id,
       type: 'adset',
-      title: a.name,
+      title: a.name || 'Unnamed Ad Set',
       date: a.created_at,
       color: 'bg-nuum-accent-blue/20 border-nuum-accent-blue/30',
-      icon: <Play className="w-3.5 h-3.5 text-nuum-accent-blue" />,
-      duration: detectDuration(a.created_at)
+      icon: <Play className="w-3 h-3 text-nuum-accent-blue" />
     }));
 
     const notes = (notesRes.data || []).map((n: Note) => ({
       id: n.id,
       type: 'note',
-      title: n.title,
+      title: n.title || 'Untitled Note',
       date: n.created_at,
       color: 'bg-nuum-accent-green/20 border-nuum-accent-green/30',
-      icon: <FileText className="w-3.5 h-3.5 text-nuum-accent-green" />,
+      icon: <FileText className="w-3 h-3 text-nuum-accent-green" />
     }));
 
     const tasks = (tasksRes.data || []).map((t: Task) => ({
       id: t.id,
       type: 'task',
-      title: t.title,
+      title: t.title || 'Untitled Task',
       date: t.due_date || t.created_at,
       color: 'bg-nuum-accent-orange/20 border-nuum-accent-orange/30',
-      icon: <ClipboardList className="w-3.5 h-3.5 text-nuum-accent-orange" />,
+      icon: <ClipboardList className="w-3 h-3 text-nuum-accent-orange" />
     }));
 
-    const combined = [...adSets, ...notes, ...tasks].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    setEvents(combined);
+    setEvents([...adSets, ...notes, ...tasks]);
     setLoading(false);
   };
 
-  const detectDuration = (created_at: string) => {
-    // simple placeholder: infer 7/14/30 days based on metadata or mock
-    const created = new Date(created_at);
-    const rand = [7, 14, 30][Math.floor(Math.random() * 3)];
-    const end = new Date(created);
-    end.setDate(created.getDate() + rand);
-    return { start: created, end, label: `${rand} days` };
-  };
+  // Helper to build calendar grid
+  const startOfMonth = new Date(year, month, 1);
+  const endOfMonth = new Date(year, month + 1, 0);
+  const startDay = startOfMonth.getDay() || 7; // Monday = 1, Sunday = 7
+  const daysInMonth = endOfMonth.getDate();
 
-  if (loading) return <div className="text-center py-10 text-nuum-text-secondary">Loading agenda...</div>;
+  const days: Date[] = [];
+  for (let i = 1 - (startDay - 1); i <= daysInMonth; i++) {
+    days.push(new Date(year, month, i));
+  }
+
+  const getEventsForDay = (date: Date) =>
+    events.filter((e) => new Date(e.date).toDateString() === date.toDateString());
+
+  const handlePrevMonth = () =>
+    setCurrentDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () =>
+    setCurrentDate(new Date(year, month + 1, 1));
+
+  const monthName = currentDate.toLocaleString('default', { month: 'long' });
+
+  if (loading)
+    return <div className="p-6 text-center text-nuum-text-secondary">Loading agenda...</div>;
 
   return (
     <div className="p-6 text-nuum-text-primary">
-      <h1 className="text-xl font-semibold mb-4 flex items-center gap-2">
-        <CalendarDays className="w-5 h-5 text-nuum-accent-blue" />
-        Agenda Overview
-      </h1>
-
-      {events.length === 0 ? (
-        <p className="text-nuum-text-secondary">No events found.</p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {events.map((e) => (
-            <div
-              key={e.id}
-              className={`flex items-center justify-between rounded-xl border px-4 py-3 ${e.color}`}
-            >
-              <div className="flex items-center gap-3">
-                {e.icon}
-                <div>
-                  <p className="font-medium">{e.title}</p>
-                  <p className="text-xs text-nuum-text-secondary">
-                    {new Date(e.date).toLocaleDateString()} {e.duration?.label && `· ${e.duration.label}`}
-                  </p>
-                </div>
-              </div>
-              <span className="text-xs uppercase tracking-wide text-nuum-text-secondary">{e.type}</span>
-            </div>
-          ))}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-semibold flex items-center gap-2">
+          <CalendarDays className="w-5 h-5 text-nuum-accent-blue" />
+          {monthName} {year}
+        </h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrevMonth}
+            className="px-3 py-1 text-sm rounded-lg border"
+            style={{ borderColor: NUUM_COLORS.border }}
+          >
+            ←
+          </button>
+          <button
+            onClick={handleNextMonth}
+            className="px-3 py-1 text-sm rounded-lg border"
+            style={{ borderColor: NUUM_COLORS.border }}
+          >
+            →
+          </button>
         </div>
-      )}
+      </div>
+
+      {/* Kalender grid */}
+      <div className="grid grid-cols-7 gap-[1px]" style={{ backgroundColor: NUUM_COLORS.border }}>
+        {['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'].map((d) => (
+          <div
+            key={d}
+            className="text-center py-2 text-xs uppercase font-medium"
+            style={{ color: NUUM_COLORS.textSecondary }}
+          >
+            {d}
+          </div>
+        ))}
+
+        {days.map((day, idx) => {
+          const isCurrentMonth = day.getMonth() === month;
+          const isToday =
+            day.toDateString() === new Date().toDateString();
+          const dayEvents = getEventsForDay(day);
+
+          return (
+            <div
+              key={idx}
+              className="min-h-[110px] p-2 flex flex-col border"
+              style={{
+                borderColor: NUUM_COLORS.border,
+                backgroundColor: isCurrentMonth
+                  ? NUUM_COLORS.surface
+                  : 'rgba(255,255,255,0.02)',
+              }}
+            >
+              <div
+                className={`text-xs font-medium mb-1 ${
+                  isToday ? 'text-nuum-accent-blue' : 'text-nuum-text-secondary'
+                }`}
+              >
+                {day.getDate()}
+              </div>
+
+              <div className="flex flex-col gap-1 overflow-hidden">
+                {dayEvents.slice(0, 3).map((e) => (
+                  <div
+                    key={e.id}
+                    className={`flex items-center gap-1 text-[11px] truncate rounded-md px-1 py-0.5 border ${e.color}`}
+                  >
+                    {e.icon}
+                    <span className="truncate">{e.title}</span>
+                  </div>
+                ))}
+                {dayEvents.length > 3 && (
+                  <span className="text-[10px] text-nuum-text-secondary mt-0.5">
+                    +{dayEvents.length - 3} more
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
