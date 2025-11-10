@@ -12,6 +12,9 @@ type Task = Database['public']['Tables']['tasks']['Row'];
 
 interface AgendaViewProps {
   workspace: Workspace;
+  onOpenAdSet?: (adSetId: string, campaignId: string | null) => void;
+  onOpenTasks?: () => void;
+  onOpenNotes?: () => void;
 }
 
 interface CalendarEvent {
@@ -21,10 +24,16 @@ interface CalendarEvent {
   date: string;
   color: string;
   icon: JSX.Element;
+  campaignId?: string | null;
 }
 
-export function AgendaView({ workspace }: AgendaViewProps) {
-  const { user } = useAuth();
+export function AgendaView({
+  workspace,
+  onOpenAdSet,
+  onOpenTasks,
+  onOpenNotes,
+}: AgendaViewProps) {
+  const { user } = useAuth(); // nog niet gebruikt, maar laten staan
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -41,34 +50,35 @@ export function AgendaView({ workspace }: AgendaViewProps) {
     const [adSetsRes, notesRes, tasksRes] = await Promise.all([
       supabase.from('ad_sets').select('*').eq('workspace_id', workspace.id),
       supabase.from('notes').select('*').eq('workspace_id', workspace.id),
-      supabase.from('tasks').select('*').eq('workspace_id', workspace.id)
+      supabase.from('tasks').select('*').eq('workspace_id', workspace.id),
     ]);
 
     const adSets = (adSetsRes.data || []).map((a: AdSet) => ({
       id: a.id,
-      type: 'adset',
+      type: 'adset' as const,
       title: a.name || 'Unnamed Ad Set',
       date: a.created_at,
       color: 'bg-nuum-accent-blue/20 border-nuum-accent-blue/30',
-      icon: <Play className="w-3 h-3 text-nuum-accent-blue" />
+      icon: <Play className="w-3 h-3 text-nuum-accent-blue" />,
+      campaignId: a.campaign_id ?? null,
     }));
 
     const notes = (notesRes.data || []).map((n: Note) => ({
       id: n.id,
-      type: 'note',
+      type: 'note' as const,
       title: n.title || 'Untitled Note',
       date: n.created_at,
       color: 'bg-nuum-accent-green/20 border-nuum-accent-green/30',
-      icon: <FileText className="w-3 h-3 text-nuum-accent-green" />
+      icon: <FileText className="w-3 h-3 text-nuum-accent-green" />,
     }));
 
     const tasks = (tasksRes.data || []).map((t: Task) => ({
       id: t.id,
-      type: 'task',
+      type: 'task' as const,
       title: t.title || 'Untitled Task',
       date: t.due_date || t.created_at,
       color: 'bg-nuum-accent-orange/20 border-nuum-accent-orange/30',
-      icon: <ClipboardList className="w-3 h-3 text-nuum-accent-orange" />
+      icon: <ClipboardList className="w-3 h-3 text-nuum-accent-orange" />,
     }));
 
     setEvents([...adSets, ...notes, ...tasks]);
@@ -89,15 +99,29 @@ export function AgendaView({ workspace }: AgendaViewProps) {
   const getEventsForDay = (date: Date) =>
     events.filter((e) => new Date(e.date).toDateString() === date.toDateString());
 
-  const handlePrevMonth = () =>
-    setCurrentDate(new Date(year, month - 1, 1));
-  const handleNextMonth = () =>
-    setCurrentDate(new Date(year, month + 1, 1));
+  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
   const monthName = currentDate.toLocaleString('default', { month: 'long' });
 
-  if (loading)
+  const handleEventClick = (event: CalendarEvent) => {
+    if (event.type === 'adset' && onOpenAdSet) {
+      onOpenAdSet(event.id, event.campaignId ?? null);
+      return;
+    }
+    if (event.type === 'task' && onOpenTasks) {
+      onOpenTasks();
+      return;
+    }
+    if (event.type === 'note' && onOpenNotes) {
+      onOpenNotes();
+      return;
+    }
+  };
+
+  if (loading) {
     return <div className="p-6 text-center text-nuum-text-secondary">Loading agenda...</div>;
+  }
 
   return (
     <div className="p-6 text-nuum-text-primary">
@@ -138,8 +162,7 @@ export function AgendaView({ workspace }: AgendaViewProps) {
 
         {days.map((day, idx) => {
           const isCurrentMonth = day.getMonth() === month;
-          const isToday =
-            day.toDateString() === new Date().toDateString();
+          const isToday = day.toDateString() === new Date().toDateString();
           const dayEvents = getEventsForDay(day);
 
           return (
@@ -163,13 +186,15 @@ export function AgendaView({ workspace }: AgendaViewProps) {
 
               <div className="flex flex-col gap-1 overflow-hidden">
                 {dayEvents.slice(0, 3).map((e) => (
-                  <div
+                  <button
                     key={e.id}
-                    className={`flex items-center gap-1 text-[11px] truncate rounded-md px-1 py-0.5 border ${e.color}`}
+                    type="button"
+                    onClick={() => handleEventClick(e)}
+                    className={`flex items-center gap-1 text-[11px] truncate rounded-md px-1 py-0.5 border ${e.color} cursor-pointer hover:opacity-90 transition-opacity`}
                   >
                     {e.icon}
                     <span className="truncate">{e.title}</span>
-                  </div>
+                  </button>
                 ))}
                 {dayEvents.length > 3 && (
                   <span className="text-[10px] text-nuum-text-secondary mt-0.5">
