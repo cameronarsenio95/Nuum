@@ -4,6 +4,7 @@ import { PlanLimitsProvider, usePlanLimits } from '../contexts/PlanLimitsContext
 import { OnboardingProvider, useOnboarding } from '../contexts/OnboardingContext';
 import { supabase } from '../lib/supabase';
 import { TRIAL_DURATION_DAYS } from '../utils/constants';
+
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { OverviewView } from '../components/dashboard/OverviewView';
 import { CampaignsView } from '../components/dashboard/CampaignsView';
@@ -22,6 +23,7 @@ import { ShopifyIntegrationView } from '../components/dashboard/ShopifyIntegrati
 import { OnboardingWizard } from '../components/onboarding/OnboardingWizard';
 import { FrozenAccountModal } from '../components/modals/FrozenAccountModal';
 import { AgendaView } from '../components/dashboard/AgendaView';
+
 import type { Database } from '../lib/database.types';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
@@ -49,6 +51,7 @@ function DashboardContent() {
     | 'shopify'
     | 'agenda'
   >('overview');
+
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFrozenModal, setShowFrozenModal] = useState(false);
@@ -128,7 +131,6 @@ function DashboardContent() {
       }
 
       let resolvedWorkspace: Workspace | null = null;
-
       const memberships = (membershipData || []) as any[];
 
       if (memberships.length > 0) {
@@ -146,7 +148,6 @@ function DashboardContent() {
           );
         } else {
           const firstMembershipWithWorkspace = memberships.find((m) => m.workspaces);
-
           if (firstMembershipWithWorkspace?.workspaces) {
             resolvedWorkspace = firstMembershipWithWorkspace.workspaces as Workspace;
             console.log(
@@ -173,6 +174,7 @@ function DashboardContent() {
             workspaceError
           );
           setWorkspace(null);
+          setLoading(false);
           return;
         }
 
@@ -219,6 +221,7 @@ function DashboardContent() {
           if (createError) {
             console.error('[DASHBOARD] Error creating workspace:', createError);
             setWorkspace(null);
+            setLoading(false);
             return;
           }
 
@@ -235,7 +238,10 @@ function DashboardContent() {
             const displayName = profileData.full_name;
             const expectedWorkspaceName = `${displayName}'s Workspace`;
 
-            if (workspaceData.name !== expectedWorkspaceName && workspaceData.name.includes('@')) {
+            if (
+              workspaceData.name !== expectedWorkspaceName &&
+              workspaceData.name.includes('@')
+            ) {
               const { data: updatedWorkspace } = await supabase
                 .from('workspaces')
                 .update({ name: expectedWorkspaceName })
@@ -259,33 +265,6 @@ function DashboardContent() {
       setWorkspace(null);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleOpenAdSetFromAgenda = async (adSetId: string, campaignId: string | null) => {
-    if (!campaignId) {
-      setCurrentView('campaigns');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('id', campaignId)
-        .maybeSingle();
-
-      if (error || !data) {
-        console.error('[AGENDA] Failed to load campaign for ad set:', { adSetId, error });
-        setCurrentView('campaigns');
-        return;
-      }
-
-      setSelectedCampaign(data as Campaign);
-      setCurrentView('campaign-detail');
-    } catch (err) {
-      console.error('[AGENDA] Unexpected error while opening ad set:', err);
-      setCurrentView('campaigns');
     }
   };
 
@@ -341,9 +320,11 @@ function DashboardContent() {
           setCurrentView('billing');
         }}
       />
+
       {showOnboarding && (
         <OnboardingWizard onComplete={completeOnboarding} onSkip={skipOnboarding} />
       )}
+
       <DashboardLayout
         workspace={workspace}
         currentView={
@@ -360,10 +341,13 @@ function DashboardContent() {
         {currentView === 'overview' && (
           <OverviewView workspace={workspace} onViewChange={setCurrentView} />
         )}
+
         {currentView === 'analytics' && <AnalyticsView workspace={workspace} />}
+
         {currentView === 'campaigns' && (
           <CampaignsView workspace={workspace} onCampaignClick={handleCampaignClick} />
         )}
+
         {currentView === 'campaign-detail' && selectedCampaign && (
           <CampaignDetail
             campaignId={selectedCampaign.id}
@@ -371,27 +355,31 @@ function DashboardContent() {
             onBack={handleBackToCampaigns}
           />
         )}
+
         {currentView === 'ad-sets' && selectedCampaign && (
           <AdSetsView campaign={selectedCampaign} onBack={handleBackToCampaigns} />
         )}
+
         {currentView === 'creators' && <CreatorsView workspace={workspace} />}
+
         {currentView === 'tasks' && <TasksView workspace={workspace} />}
+
         {currentView === 'team' && <TeamView workspace={workspace} />}
+
         {currentView === 'content' && <ContentView workspace={workspace} />}
+
         {currentView === 'notions' && <NotionsView workspace={workspace} />}
-        {currentView === 'agenda' && (
-          <AgendaView
-            workspace={workspace}
-            onOpenAdSet={handleOpenAdSetFromAgenda}
-            onOpenTasks={() => setCurrentView('tasks')}
-            onOpenNotes={() => setCurrentView('notions')}
-          />
-        )}
+
+        {currentView === 'agenda' && <AgendaView workspace={workspace} />}
+
         {currentView === 'contact' && <ContactView />}
+
         {currentView === 'settings' && <SettingsView workspace={workspace} />}
+
         {currentView === 'billing' && (
           <BillingView workspace={workspace} onWorkspaceUpdate={loadWorkspace} />
         )}
+
         {currentView === 'shopify' && <ShopifyIntegrationView workspace={workspace} />}
       </DashboardLayout>
     </PlanLimitsProvider>
