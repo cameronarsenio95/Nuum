@@ -1,8 +1,8 @@
+import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { useState, useEffect } from 'react';
 import { Plus, Instagram, Mail, Phone, Tag, Edit2, Trash2, X, Link2, User, Lock, Ghost } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { useWritePermission } from '../../hooks/useWritePermission';
 import { UpgradeModal } from '../modals/UpgradeModal';
 import type { Database } from '../../lib/database.types';
