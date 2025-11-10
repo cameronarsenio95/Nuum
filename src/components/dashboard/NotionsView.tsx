@@ -28,19 +28,19 @@ export function NotionsView({ workspace }: NotionsViewProps) {
   const [newNote, setNewNote] = useState({
     title: '',
     content: '',
-    tags: [] as string[],
+    tags: [] as string[], // gebruikt als "Attendees"
   });
   const [tagInput, setTagInput] = useState('');
   const [savingNewNote, setSavingNewNote] = useState(false);
 
   const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const todayIso = new Date().toISOString();
 
   useEffect(() => {
     loadNotes();
   }, [workspace.id]);
 
   useEffect(() => {
-    // autofocus op titel als je Notes opent
     if (titleInputRef.current) {
       titleInputRef.current.focus();
     }
@@ -71,7 +71,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
   };
 
   const validateNewNote = () => {
-    return (newNote.title.trim() !== '' || newNote.content.trim() !== '');
+    return newNote.title.trim() !== '' || newNote.content.trim() !== '';
   };
 
   const handleCreateNote = async (e: React.FormEvent) => {
@@ -90,7 +90,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
         workspace_id: workspace.id,
         title: newNote.title.trim() || 'Untitled Note',
         content: newNote.content,
-        tags: newNote.tags,
+        tags: newNote.tags, // opgeslagen als attendees
         created_by: user.id,
       });
 
@@ -132,7 +132,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
   };
 
   const addTag = (tag: string) => {
-    const trimmedTag = tag.trim().toLowerCase();
+    const trimmedTag = tag.trim();
     if (trimmedTag && !newNote.tags.includes(trimmedTag)) {
       setNewNote({ ...newNote, tags: [...newNote.tags, trimmedTag] });
     }
@@ -170,24 +170,15 @@ export function NotionsView({ workspace }: NotionsViewProps) {
   });
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString('nl-NL', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
     });
   };
 
-  const getTagColor = (tag: string) => {
-    const colors: Record<string, string> = {
-      campaign: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
-      meeting: 'text-sky-400 bg-sky-500/10 border-sky-500/30',
-      idea: 'text-violet-400 bg-violet-500/10 border-violet-500/30',
-    };
-    return (
-      colors[tag.toLowerCase()] ||
-      'text-gray-300 bg-gray-500/10 border-gray-500/30'
-    );
-  };
+  const getTagClasses = () =>
+    'text-xs px-2 py-1 rounded-full border border-nuum-border bg-nuum-background text-nuum-text-secondary';
 
   if (loading) {
     return (
@@ -206,7 +197,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
             Notes
           </h2>
           <p className="text-sm md:text-base text-nuum-text-secondary">
-            Capture insights and ideas for your workspace
+            Capture meetings, thoughts and action points for your workspace
           </p>
         </div>
 
@@ -225,20 +216,39 @@ export function NotionsView({ workspace }: NotionsViewProps) {
         onSubmit={handleCreateNote}
         className="bg-nuum-surface border border-nuum-border rounded-xl p-4 md:p-5 space-y-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
       >
-        <div>
-          <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
-            Title
-          </label>
-          <input
-            ref={titleInputRef}
-            type="text"
-            value={newNote.title}
-            onChange={(e) =>
-              setNewNote({ ...newNote, title: e.target.value })
-            }
-            className="w-full px-3 py-2 bg-nuum-background border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue"
-            placeholder="Give your note a title..."
-          />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+              Title
+            </label>
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={newNote.title}
+              onChange={(e) =>
+                setNewNote({ ...newNote, title: e.target.value })
+              }
+              className="w-full px-3 py-2 bg-nuum-background border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue"
+              placeholder="Meeting notes, campaign ideas, to-do…"
+            />
+          </div>
+
+          {/* Datum */}
+          <div className="hidden md:flex flex-col items-end text-xs text-nuum-text-secondary mt-6 md:mt-5">
+            <span className="uppercase tracking-wide text-[10px] text-nuum-text-secondary/70">
+              Datum
+            </span>
+            <span className="mt-0.5 font-medium">
+              {formatDate(todayIso)}
+            </span>
+          </div>
+        </div>
+
+        <div className="md:hidden text-xs text-nuum-text-secondary">
+          <span className="uppercase tracking-wide text-[10px] text-nuum-text-secondary/70">
+            Datum
+          </span>
+          <span className="ml-2 font-medium">{formatDate(todayIso)}</span>
         </div>
 
         <div>
@@ -251,27 +261,26 @@ export function NotionsView({ workspace }: NotionsViewProps) {
               setNewNote({ ...newNote, content: e.target.value })
             }
             className="w-full px-3 py-2 bg-nuum-background border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue resize-none min-h-[160px]"
-            placeholder="Start typing immediately..."
+            placeholder="Type your notes here…"
           />
         </div>
 
+        {/* Attendees (was tags) */}
         <div>
           <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
-            Tags
+            Attendees
           </label>
           <div className="flex flex-wrap gap-2 mb-2">
-            {newNote.tags.map((tag) => (
+            {newNote.tags.map((attendee) => (
               <span
-                key={tag}
-                className={`text-xs px-2 py-1 rounded-full border flex items-center gap-1 ${getTagColor(
-                  tag
-                )}`}
+                key={attendee}
+                className={`${getTagClasses()} flex items-center gap-1`}
               >
-                {tag}
+                {attendee}
                 <button
                   type="button"
-                  onClick={() => removeTag(tag)}
-                  className="hover:text-white"
+                  onClick={() => removeTag(attendee)}
+                  className="hover:text-nuum-text-primary"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -285,7 +294,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
             onKeyDown={handleTagInputKeyDown}
             onBlur={() => tagInput && addTag(tagInput)}
             className="w-full px-3 py-2 bg-nuum-background border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue"
-            placeholder="Type and press Enter to add tags..."
+            placeholder="Type a name and press Enter to add attendees…"
           />
         </div>
 
@@ -314,7 +323,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-nuum-text-secondary" />
           <input
             type="text"
-            placeholder="Search notes..."
+            placeholder="Search notes…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-nuum-surface border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/70 focus:outline-none focus:border-nuum-accent-blue"
@@ -330,7 +339,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
                 : 'bg-nuum-surface text-nuum-text-secondary border-nuum-border hover:border-nuum-accent-blue/70'
             }`}
           >
-            All
+            All attendees
           </button>
           {allTags.map((tag) => (
             <button
@@ -357,8 +366,8 @@ export function NotionsView({ workspace }: NotionsViewProps) {
           </h3>
           <p className="text-nuum-text-secondary max-w-md mx-auto">
             {searchQuery || selectedTag !== 'all'
-              ? 'No notes match your filters'
-              : 'Start typing above to create your first note.'}
+              ? 'No notes match your filters.'
+              : 'Start typing above to create your first note and add attendees.'}
           </p>
         </div>
       ) : (
@@ -370,37 +379,36 @@ export function NotionsView({ workspace }: NotionsViewProps) {
               onClick={() => openNoteDetail(note)}
               className="text-left bg-nuum-surface border border-nuum-border hover:border-nuum-accent-blue/80 rounded-xl p-4 cursor-pointer transition-colors group"
             >
+              <div className="flex items-center justify-between mb-2 text-xs text-nuum-text-tertiary">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{formatDate(note.created_at)}</span>
+                </span>
+                <span>{note.author || 'Unknown'}</span>
+              </div>
+
               <h3 className="text-base font-medium text-nuum-text-primary line-clamp-1 mb-2 group-hover:text-nuum-accent-blue">
                 {note.title}
               </h3>
+
               <p className="text-sm text-nuum-text-secondary line-clamp-3 mb-3">
                 {note.content || 'No content'}
               </p>
 
               {note.tags && note.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {note.tags.slice(0, 3).map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className={`text-xs px-2 py-1 rounded-full border ${getTagColor(
-                        tag
-                      )}`}
-                    >
-                      {tag}
+                <div className="flex flex-wrap gap-2">
+                  {note.tags.slice(0, 4).map((attendee, idx) => (
+                    <span key={idx} className={getTagClasses()}>
+                      {attendee}
                     </span>
                   ))}
-                  {note.tags.length > 3 && (
+                  {note.tags.length > 4 && (
                     <span className="text-xs text-nuum-text-tertiary">
-                      +{note.tags.length - 3} more
+                      +{note.tags.length - 4} more
                     </span>
                   )}
                 </div>
               )}
-
-              <div className="flex justify-between items-center text-xs text-nuum-text-tertiary">
-                <span>{note.author || 'Unknown'}</span>
-                <span>{formatDate(note.created_at)}</span>
-              </div>
             </button>
           ))}
         </div>
@@ -430,6 +438,17 @@ export function NotionsView({ workspace }: NotionsViewProps) {
               </div>
 
               <div className="space-y-6">
+                <div className="flex items-center justify-between text-xs text-nuum-text-tertiary">
+                  <div className="flex items-center gap-2">
+                    <User className="w-3.5 h-3.5" />
+                    <span>Created by {selectedNote.author || 'Unknown'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Datum {formatDate(selectedNote.created_at)}</span>
+                  </div>
+                </div>
+
                 <div>
                   <h2 className="text-lg font-semibold text-nuum-text-primary mb-3">
                     {selectedNote.title}
@@ -442,45 +461,24 @@ export function NotionsView({ workspace }: NotionsViewProps) {
                 {selectedNote.tags && selectedNote.tags.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium mb-2 text-nuum-text-secondary">
-                      Tags
+                      Attendees
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {selectedNote.tags.map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className={`text-xs px-2 py-1 rounded-full border ${getTagColor(
-                            tag
-                          )}`}
-                        >
-                          {tag}
+                      {selectedNote.tags.map((attendee, idx) => (
+                        <span key={idx} className={getTagClasses()}>
+                          {attendee}
                         </span>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="flex flex-col gap-2 text-xs text-nuum-text-tertiary pt-4 border-t border-nuum-border">
-                  <div className="flex items-center gap-2">
-                    <User className="w-3.5 h-3.5" />
-                    <span>
-                      Created by {selectedNote.author || 'Unknown'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                {selectedNote.updated_at && (
+                  <div className="flex items-center gap-2 text-xs text-nuum-text-tertiary pt-2">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>
-                      Created on {formatDate(selectedNote.created_at)}
-                    </span>
+                    <span>Updated on {formatDate(selectedNote.updated_at)}</span>
                   </div>
-                  {selectedNote.updated_at && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>
-                        Updated on {formatDate(selectedNote.updated_at)}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                )}
 
                 <div className="pt-4">
                   <button
