@@ -14,32 +14,57 @@ interface AdSetFormModalProps {
   onSave: () => void;
 }
 
+// LET OP: deze values moeten exact matchen met Supabase ad_sets.platform
 const PLATFORMS = [
-  { value: 'instagram', label: 'Instagram' },
-  { value: 'tiktok', label: 'TikTok' },
-  { value: 'meta', label: 'Meta' },
-  { value: 'snapchat', label: 'Snapchat' },
-  { value: 'youtube', label: 'YouTube' },
-];
+  { value: 'Instagram', label: 'Instagram' },
+  { value: 'TikTok', label: 'TikTok' },
+  { value: 'Meta', label: 'Meta' },
+  { value: 'Snapchat', label: 'Snapchat' },
+  { value: 'YouTube', label: 'YouTube' },
+] as const;
 
 const STATUSES = [
   { value: 'active', label: 'Active' },
   { value: 'paused', label: 'Paused' },
   { value: 'completed', label: 'Completed' },
-];
+] as const;
 
 const DEAL_TYPES = [
   { value: 'spark', label: 'Spark' },
   { value: 'barter', label: 'Barter' },
   { value: 'gifting', label: 'Gifting' },
-];
+] as const;
 
-export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave }: AdSetFormModalProps) {
+type PlatformValue = (typeof PLATFORMS)[number]['value'];
+type StatusValue = (typeof STATUSES)[number]['value'];
+type DealTypeValue = (typeof DEAL_TYPES)[number]['value'];
+
+interface FormState {
+  name: string;
+  platform: PlatformValue;
+  status: StatusValue;
+  spend: number;
+  revenue: number;
+  creative_url: string;
+  spark_code: string;
+  ad_duration_days: number;
+  deal_type: DealTypeValue;
+}
+
+const PLATFORM_VALUES: PlatformValue[] = PLATFORMS.map(p => p.value);
+
+export function AdSetFormModal({
+  campaignId,
+  workspaceId,
+  adSet,
+  onClose,
+  onSave,
+}: AdSetFormModalProps) {
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormState>({
     name: '',
-    platform: 'instagram',
+    platform: 'Instagram',
     status: 'active',
     spend: 0,
     revenue: 0,
@@ -49,18 +74,24 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
     deal_type: 'spark',
   });
 
+  // Prefill bij edit
   useEffect(() => {
     if (adSet) {
+      const safePlatform: PlatformValue =
+        PLATFORM_VALUES.includes(adSet.platform as PlatformValue)
+          ? (adSet.platform as PlatformValue)
+          : 'Instagram';
+
       setFormData({
-        name: adSet.name,
-        platform: adSet.platform,
-        status: adSet.status,
+        name: adSet.name ?? '',
+        platform: safePlatform,
+        status: (adSet.status as StatusValue) || 'active',
         spend: Number(adSet.spend) || 0,
         revenue: Number(adSet.revenue) || 0,
         creative_url: adSet.creative_url || '',
         spark_code: adSet.spark_code || '',
         ad_duration_days: adSet.ad_duration_days || 7,
-        deal_type: adSet.deal_type || 'spark',
+        deal_type: (adSet.deal_type as DealTypeValue) || 'spark',
       });
     }
   }, [adSet]);
@@ -82,17 +113,31 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
     setLoading(true);
 
     try {
+      // zorg dat platform ALTIJD een geldige waarde is
+      const safePlatform: PlatformValue = PLATFORM_VALUES.includes(
+        formData.platform,
+      )
+        ? formData.platform
+        : 'Instagram';
+
       const adSetData = {
         name: formData.name,
-        platform: formData.platform,
+        platform: safePlatform, // exact zoals Supabase het verwacht
         status: formData.status,
-        spend: formData.spend,
-        revenue: formData.revenue,
+        spend: Number(formData.spend) || 0,
+        revenue: Number(formData.revenue) || 0,
         creative_url: formData.creative_url || null,
         spark_code: formData.spark_code || null,
         ad_duration_days: formData.ad_duration_days,
         deal_type: formData.deal_type,
       };
+
+      console.log('[AdSetFormModal] Saving ad set with payload:', {
+        campaignId,
+        workspaceId,
+        adSetId: adSet?.id,
+        adSetData,
+      });
 
       if (adSet) {
         const { error } = await supabase
@@ -103,17 +148,21 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
           })
           .eq('id', adSet.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('[AdSetFormModal] Update error:', error);
+          throw error;
+        }
       } else {
-        const { error } = await supabase
-          .from('ad_sets')
-          .insert({
-            workspace_id: workspaceId,
-            campaign_id: campaignId,
-            ...adSetData,
-          });
+        const { error } = await supabase.from('ad_sets').insert({
+          workspace_id: workspaceId,
+          campaign_id: campaignId,
+          ...adSetData,
+        });
 
-        if (error) throw error;
+        if (error) {
+          console.error('[AdSetFormModal] Insert error:', error);
+          throw error;
+        }
       }
 
       onSave();
@@ -150,6 +199,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
           <div>
             <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
               Name
@@ -158,20 +208,29 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
               className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               placeholder="Enter ad set name"
             />
           </div>
 
+          {/* Platform + Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
                 Platform
               </label>
               <select
+                required
                 value={formData.platform}
-                onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    platform: e.target.value as PlatformValue,
+                  }))
+                }
                 className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               >
                 {PLATFORMS.map((platform) => (
@@ -187,8 +246,14 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
                 Status
               </label>
               <select
+                required
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    status: e.target.value as StatusValue,
+                  }))
+                }
                 className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               >
                 {STATUSES.map((status) => (
@@ -200,6 +265,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             </div>
           </div>
 
+          {/* Spend + Revenue */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
@@ -211,7 +277,12 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
                 step="1"
                 required
                 value={formData.spend}
-                onChange={(e) => setFormData({ ...formData, spend: Number(e.target.value) })}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    spend: Number(e.target.value),
+                  }))
+                }
                 className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
                 placeholder="0"
               />
@@ -227,13 +298,19 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
                 step="1"
                 required
                 value={formData.revenue}
-                onChange={(e) => setFormData({ ...formData, revenue: Number(e.target.value) })}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    revenue: Number(e.target.value),
+                  }))
+                }
                 className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
                 placeholder="0"
               />
             </div>
           </div>
 
+          {/* Creative URL */}
           <div>
             <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
               Creative URL
@@ -242,8 +319,9 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
               type="text"
               value={formData.creative_url}
               onChange={(e) => {
-                setFormData({ ...formData, creative_url: e.target.value });
-                validateUrl(e.target.value);
+                const value = e.target.value;
+                setFormData((prev) => ({ ...prev, creative_url: value }));
+                validateUrl(value);
               }}
               className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               placeholder="https://..."
@@ -253,6 +331,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             )}
           </div>
 
+          {/* Spark Code */}
           <div>
             <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
               Spark Code
@@ -260,12 +339,18 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             <input
               type="text"
               value={formData.spark_code}
-              onChange={(e) => setFormData({ ...formData, spark_code: e.target.value })}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  spark_code: e.target.value,
+                }))
+              }
               className="w-full px-3 py-2 bg-nuum-background border border-nuum-border text-nuum-text-primary rounded-lg text-sm transition-all duration-150 focus:outline-none focus:border-nuum-accent-blue"
               placeholder="Enter spark / ad code"
             />
           </div>
 
+          {/* Ad Duration */}
           <div>
             <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
               Ad Duration
@@ -279,7 +364,12 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => setFormData({ ...formData, ad_duration_days: option.value })}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      ad_duration_days: option.value,
+                    }))
+                  }
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                     formData.ad_duration_days === option.value
                       ? 'bg-nuum-accent-blue text-white border-nuum-accent-blue'
@@ -292,6 +382,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             </div>
           </div>
 
+          {/* Deal Type */}
           <div>
             <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
               Deal Type
@@ -301,7 +392,12 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
                 <button
                   key={dealType.value}
                   type="button"
-                  onClick={() => setFormData({ ...formData, deal_type: dealType.value })}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      deal_type: dealType.value,
+                    }))
+                  }
                   className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                     formData.deal_type === dealType.value
                       ? 'bg-nuum-accent-blue text-white border-nuum-accent-blue'
@@ -314,6 +410,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             </div>
           </div>
 
+          {/* Footer buttons */}
           <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-nuum-border">
             <Button
               type="button"
@@ -323,11 +420,7 @@ export function AdSetFormModal({ campaignId, workspaceId, adSet, onClose, onSave
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={loading}
-            >
+            <Button type="submit" variant="primary" disabled={loading}>
               {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
