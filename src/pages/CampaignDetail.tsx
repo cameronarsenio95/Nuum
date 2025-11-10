@@ -72,7 +72,7 @@ const formatDuration = (durationDays: number | null) => {
 };
 
 export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDetailProps) {
-  const { user } = useAuth(); // onbenut, maar laten staan zoals in jouw versie
+  const { user } = useAuth(); // niet gebruikt, maar laten staan zoals in jouw code
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [adSets, setAdSets] = useState<AdSetWithContent[]>([]);
@@ -209,14 +209,14 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     setShowAdSetModal(true);
   };
 
+  // 🔥 Alleen hier inhoudelijk aangepast: workspace-filter eruit
   const handleDeleteAdSet = async (adSetId: string) => {
     if (!confirm('Are you sure you want to remove this ad set?')) return;
 
     const { error } = await supabase
       .from('ad_sets')
       .delete()
-      .eq('id', adSetId)
-      .eq('workspace_id', workspaceId);
+      .eq('id', adSetId);
 
     if (error) {
       console.error('Error deleting ad set:', error);
@@ -224,7 +224,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
       return;
     }
 
-    loadCampaignData();
+    await loadCampaignData();
   };
 
   const handleCloseAdSetModal = () => {
@@ -398,8 +398,9 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           </div>
         </div>
 
-        {/* Metrics cards */}
+        {/* Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {/* Total Spend */}
           <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-red/40 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-nuum-dark-red rounded-lg flex items-center justify-center">
@@ -412,9 +413,10 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             </div>
           </div>
 
+          {/* Total Revenue */}
           <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-green/40 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 bg-nuum-dark-green rounded-lg flex itemsCenter justify-center">
+              <div className="w-10 h-10 bg-nuum-dark-green rounded-lg flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-nuum-accent-green" />
               </div>
             </div>
@@ -424,6 +426,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             </div>
           </div>
 
+          {/* ROI */}
           <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-blue/40 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-nuum-dark-blue rounded-lg flex items-center justify-center">
@@ -440,6 +443,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
             </div>
           </div>
 
+          {/* Creators */}
           <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 hover:border-nuum-accent-orange/40 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-nuum-accent-brown rounded-lg flex items-center justify-center">
@@ -453,7 +457,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           </div>
         </div>
 
-        {/* Ad sets */}
+        {/* Ad Sets */}
         <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
@@ -521,7 +525,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
                   {adSets.map((adSet) => {
                     const spend = Number(adSet.spend) || 0;
                     const revenue = Number(adSet.revenue) || 0;
-                    const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0; // staat ook in jouw versie
+                    const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0; // zelfde als jouw versie
                     const creator = adSet.creators as Creator | null;
                     const contentCount = adSet.content_count || 0;
 
@@ -626,6 +630,7 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
           )}
         </div>
 
+        {/* Linked Creators */}
         {creators.length > 0 && (
           <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6">
             <div className="flex items-center gap-2 mb-4">
