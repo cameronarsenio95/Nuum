@@ -12,7 +12,8 @@ interface ContentItem {
   platform: 'Instagram' | 'TikTok' | 'Snapchat' | 'YouTube' | null;
   created_at: string;
   ad_set_id: string | null;
-  // thumbnail_url?: string | null; // niet meer nodig in de query
+  // thumbnail_url is optioneel, maar we selecteren 'm niet expliciet
+  thumbnail_url?: string | null;
 }
 
 interface LinkContentModalProps {
@@ -49,10 +50,10 @@ export function LinkContentModal({
       loadContent();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, workspaceId, creatorId, campaignId, platform]);
+  }, [isOpen, workspaceId, creatorId, campaignId, adSetId, platform]);
 
   const loadContent = async () => {
-    console.log('[LinkContentModal] Loading content with params:', {
+    console.log('[LinkContentModal] 🔄 Loading content with params:', {
       workspaceId,
       creatorId,
       campaignId,
@@ -61,115 +62,138 @@ export function LinkContentModal({
     });
 
     if (!workspaceId) {
-      console.warn('[LinkContentModal] Missing required param: workspaceId');
+      console.warn('[LinkContentModal] Missing workspaceId');
       setItems([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
+    setItems([]);
+    setSelectedIds([]);
 
     try {
-      // Basis: alle content in deze workspace
-      const baseQuery = supabase
-        .from('content_media')
-        .select(
-          `
-          id,
-          file_name,
-          file_type,
-          file_url,
-          platform,
-          created_at,
-          ad_set_id,
-          creator_id,
-          workspace_id,
-          campaign_id
-        `,
-        )
-        .eq('workspace_id', workspaceId);
+      let finalItems: ContentItem[] = [];
 
-      let data;
-      let error;
-
-      // 1) Eerst proberen: content voor deze creator (optioneel platform)
+      /**
+       * 1️⃣ PRIMARY QUERY — filter op creator + workspace (+ optioneel platform)
+       * Dit is de ideale situatie: alle content van de juiste creator.
+       */
       if (creatorId) {
-        let q = baseQuery.eq('creator_id', creatorId);
+        console.log(
+          '[LinkContentModal] Trying primary query (workspace + creator)...',
+        );
+
+        let primaryQuery = supabase
+          .from('content_media')
+          .select(
+            `
+            id,
+            file_name,
+            file_type,
+            file_url,
+            platform,
+            created_at,
+            ad_set_id,
+            creator_id,
+            workspace_id,
+            campaign_id
+          `,
+          )
+          .eq('workspace_id', workspaceId)
+          .eq('creator_id', creatorId)
+          .order('created_at', { ascending: false });
 
         if (platform) {
-          q = q.eq('platform', platform);
+          primaryQuery = primaryQuery.eq('platform', platform);
         }
 
-        ({ data, error } = await q.order('created_at', { ascending: false }));
+        const { data: primaryData, error: primaryError } = await primaryQuery;
 
-        console.log('[LinkContentModal] Result with creator filter:', {
-          count: data?.length || 0,
-        });
-
-        // 2) Fallback: niets gevonden → alle content in workspace (optioneel platform)
-        if (!error && (!data || data.length === 0)) {
-          console.warn(
-            '[LinkContentModal] No items for this creator, falling back to workspace-only content',
+        if (primaryError) {
+          console.error(
+            '[LinkContentModal] ❌ Supabase error in primary query:',
+            primaryError,
           );
-
-          let fallbackQuery = baseQuery;
-          if (platform) {
-            fallbackQuery = fallbackQuery.eq('platform', platform);
-          }
-
-          ({ data, error } = await fallbackQuery.order('created_at', {
-            ascending: false,
-          }));
-
-          console.log('[LinkContentModal] Fallback result (workspace only):', {
-            count: data?.length || 0,
+        } else {
+          console.log('[LinkContentModal] ✅ Primary query result:', {
+            count: primaryData?.length ?? 0,
           });
+
+          if (primaryData && primaryData.length > 0) {
+            finalItems = primaryData as ContentItem[];
+          }
         }
       } else {
-        // Geen creatorId → direct workspace-only content
         console.warn(
-          '[LinkContentModal] No creatorId provided, loading workspace-only content',
+          '[LinkContentModal] No creatorId provided, skipping primary query.',
         );
-
-        let q = baseQuery;
-        if (platform) {
-          q = q.eq('platform', platform);
-        }
-
-        ({ data, error } = await q.order('created_at', { ascending: false }));
       }
 
-      if (error) {
-        console.error(
-          '[LinkContentModal] ❌ Supabase error loading content:',
-          {
-            error,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code,
-          },
+      /**
+       * 2️⃣ FALLBACK QUERY — als er nog niks is gevonden,
+       * haal alle content op die al gelinkt is aan deze ad set.
+       * Zo is de huidige link in ieder geval zichtbaar.
+       */
+      if (finalItems.length === 0) {
+        console.log(
+          '[LinkContentModal] No items from primary query, falling back to ad_set_id query...',
         );
-        showToast(`Failed to load content: ${error.message}`, 'error');
+
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('content_media')
+          .select(
+            `
+            id,
+            file_name,
+            file_type,
+            file_url,
+            platform,
+            created_at,
+            ad_set_id,
+            creator_id,
+            workspace_id,
+            campaign_id
+          `,
+          )
+          .eq('workspace_id', workspaceId)
+          .eq('ad_set_id', adSetId)
+          .order('created_at', { ascending: false });
+
+        if (fallbackError) {
+          console.error(
+            '[LinkContentModal] ❌ Supabase error in fallback (ad_set_id) query:',
+            fallbackError,
+          );
+        } else {
+          console.log('[LinkContentModal] ✅ Fallback (ad_set_id) result:', {
+            count: fallbackData?.length ?? 0,
+          });
+
+          if (fallbackData && fallbackData.length > 0) {
+            finalItems = fallbackData as ContentItem[];
+          }
+        }
+      }
+
+      /**
+       * 3️⃣ Als we na beide queries nog steeds niks hebben, dan is er
+       * echt geen content die aan deze creator/ad set hangt.
+       */
+      if (finalItems.length === 0) {
+        console.log(
+          '[LinkContentModal] No content found after primary + fallback queries.',
+        );
         setItems([]);
+        setSelectedIds([]);
         return;
       }
 
-      console.log('[LinkContentModal] Successfully loaded content:', {
-        total: data?.length || 0,
-        items: data?.map((item: any) => ({
-          id: item.id,
-          file_name: item.file_name,
-          ad_set_id: item.ad_set_id,
-          campaign_id: item.campaign_id,
-        })),
-      });
+      // Items in state zetten
+      setItems(finalItems);
 
-      const typedData = (data || []) as ContentItem[];
-      setItems(typedData);
-
-      // Items die al gelinkt zijn aan deze ad set
-      const alreadyLinked = typedData
+      // Bepaal welke items al gelinkt zijn aan deze ad set
+      const alreadyLinked = finalItems
         .filter((item) => item.ad_set_id === adSetId)
         .map((item) => item.id);
 
@@ -182,7 +206,6 @@ export function LinkContentModal({
     } catch (err) {
       console.error('[LinkContentModal] Unexpected error:', err);
       showToast('Failed to load content', 'error');
-      setItems([]);
     } finally {
       setLoading(false);
     }
