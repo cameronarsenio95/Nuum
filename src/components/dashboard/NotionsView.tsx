@@ -189,9 +189,9 @@ export function NotionsView({ workspace }: NotionsViewProps) {
   };
 
   const getTagClasses = () =>
-    'text-xs px-2 py-1 rounded-full border border-nuum-border bg-nuum-background/80 text-nuum-text-secondary backdrop-blur';
+    'text-xs px-2 py-1 rounded-full border border-nuum-border bg-nuum-background text-nuum-text-secondary';
 
-  // --- Download / Share helpers ---
+  // ---------- DOWNLOAD & SHARE HELPERS ----------
 
   const buildNoteText = (note: Note) => {
     const date = formatDate(note.created_at);
@@ -217,9 +217,9 @@ export function NotionsView({ workspace }: NotionsViewProps) {
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
     const safeTitle =
       selectedNote.title?.trim().replace(/[^\w\-]+/g, '_') || 'note';
+    a.href = url;
     a.download = `${safeTitle}.txt`;
     document.body.appendChild(a);
     a.click();
@@ -238,14 +238,26 @@ export function NotionsView({ workspace }: NotionsViewProps) {
         await navigator.share({ title, text });
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
-        alert('Note content copied to clipboard ✅');
+        alert('Note content gekopieerd naar je klembord ✅');
       } else {
-        alert('Sharing is not supported in this browser.');
+        alert('Delen wordt niet ondersteund in deze browser.');
       }
     } catch (err) {
       console.error('Error sharing note:', err);
     }
   };
+
+  const handleCopyNote = async () => {
+    if (!selectedNote) return;
+    try {
+      await navigator.clipboard.writeText(buildNoteText(selectedNote));
+      alert('Note gekopieerd naar je klembord ✅');
+    } catch (err) {
+      console.error('Clipboard error:', err);
+    }
+  };
+
+  // ----------------------------------------------
 
   if (loading) {
     return (
@@ -260,21 +272,18 @@ export function NotionsView({ workspace }: NotionsViewProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-semibold text-nuum-text-primary mb-1 flex items-center gap-2">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-nuum-accent-blue/20 text-nuum-accent-blue text-xs">
-              N
-            </span>
+          <h2 className="text-xl md:text-2xl font-semibold text-nuum-text-primary mb-1">
             Notes
           </h2>
           <p className="text-sm md:text-base text-nuum-text-secondary">
-            Capture meetings, thoughts and action points for your workspace.
+            Capture meetings, thoughts and action points for your workspace
           </p>
         </div>
 
         <button
           type="button"
           onClick={resetForm}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-nuum-border/70 bg-gradient-to-r from-nuum-surface/80 to-nuum-background/60 hover:from-nuum-background hover:to-nuum-surface text-nuum-text-secondary hover:text-nuum-text-primary text-sm transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.03)]"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-nuum-border bg-nuum-surface hover:bg-nuum-border text-nuum-text-secondary hover:text-nuum-text-primary text-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
           New empty note
@@ -284,111 +293,106 @@ export function NotionsView({ workspace }: NotionsViewProps) {
       {/* Inline editor */}
       <form
         onSubmit={handleCreateNote}
-        className="relative bg-gradient-to-br from-nuum-surface/90 via-nuum-background/90 to-black/40 border border-nuum-border/80 rounded-2xl p-4 md:p-5 space-y-4 shadow-[0_18px_60px_rgba(0,0,0,0.65)] overflow-hidden"
+        className="bg-nuum-surface border border-nuum-border rounded-2xl p-4 md:p-5 space-y-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
       >
-        <div className="pointer-events-none absolute inset-0 opacity-40 mix-blend-screen bg-[radial-gradient(circle_at_0_0,#3b82f680,transparent_55%),radial-gradient(circle_at_100%_0,#22c55e60,transparent_55%)]" />
-        <div className="relative space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary/80">
-                Title
-              </label>
-              <input
-                ref={titleInputRef}
-                type="text"
-                value={newNote.title}
-                onChange={(e) =>
-                  setNewNote({ ...newNote, title: e.target.value })
-                }
-                className="w-full px-3 py-2 bg-nuum-background/60 border border-nuum-border/80 rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue/70 focus:bg-nuum-background/90 backdrop-blur"
-                placeholder="Meeting notes, campaign ideas, to-do…"
-              />
-            </div>
-
-            {/* Date */}
-            <div className="hidden md:flex flex-col items-end text-xs text-nuum-text-secondary mt-6 md:mt-5">
-              <span className="uppercase tracking-wide text-[10px] text-nuum-text-secondary/70">
-                Datum
-              </span>
-              <span className="mt-0.5 font-medium">
-                {formatDate(todayIso)}
-              </span>
-            </div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+              Title
+            </label>
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={newNote.title}
+              onChange={(e) =>
+                setNewNote({ ...newNote, title: e.target.value })
+              }
+              className="w-full px-3 py-2 bg-nuum-background border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue"
+              placeholder="Meeting notes, campaign ideas, to-do…"
+            />
           </div>
 
-          <div className="md:hidden text-xs text-nuum-text-secondary">
+          {/* Date */}
+          <div className="hidden md:flex flex-col items-end text-xs text-nuum-text-secondary mt-6 md:mt-5">
             <span className="uppercase tracking-wide text-[10px] text-nuum-text-secondary/70">
               Datum
             </span>
-            <span className="ml-2 font-medium">
+            <span className="mt-0.5 font-medium">
               {formatDate(todayIso)}
             </span>
           </div>
+        </div>
 
-          <div>
-            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary/80">
-              Content
-            </label>
-            <textarea
-              value={newNote.content}
-              onChange={(e) =>
-                setNewNote({ ...newNote, content: e.target.value })
-              }
-              className="w-full px-3 py-2 bg-nuum-background/60 border border-nuum-border/80 rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue/70 focus:bg-nuum-background/90 resize-none min-h-[160px] backdrop-blur"
-              placeholder="Type your notes here…"
-            />
-          </div>
+        <div className="md:hidden text-xs text-nuum-text-secondary">
+          <span className="uppercase tracking-wide text-[10px] text-nuum-text-secondary/70">
+            Datum
+          </span>
+          <span className="ml-2 font-medium">{formatDate(todayIso)}</span>
+        </div>
 
-          {/* Attendees */}
-          <div>
-            <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary/80">
-              Attendees
-            </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {newNote.tags.map((attendee) => (
-                <span
-                  key={attendee}
-                  className={`${getTagClasses()} flex items-center gap-1`}
+        <div>
+          <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+            Content
+          </label>
+          <textarea
+            value={newNote.content}
+            onChange={(e) =>
+              setNewNote({ ...newNote, content: e.target.value })
+            }
+            className="w-full px-3 py-2 bg-nuum-background border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue resize-none min-h-[160px]"
+            placeholder="Type your notes here…"
+          />
+        </div>
+
+        {/* Attendees */}
+        <div>
+          <label className="block text-xs font-medium mb-1.5 text-nuum-text-secondary">
+            Attendees
+          </label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {newNote.tags.map((attendee) => (
+              <span
+                key={attendee}
+                className={`${getTagClasses()} flex items-center gap-1`}
+              >
+                {attendee}
+                <button
+                  type="button"
+                  onClick={() => removeTag(attendee)}
+                  className="hover:text-nuum-text-primary"
                 >
-                  {attendee}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(attendee)}
-                    className="hover:text-nuum-text-primary"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagInputKeyDown}
-              onBlur={() => tagInput && addTag(tagInput)}
-              className="w-full px-3 py-2 bg-nuum-background/60 border border-nuum-border/80 rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue/70 focus:bg-nuum-background/90 backdrop-blur"
-              placeholder="Type a name and press Enter to add attendees…"
-            />
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
           </div>
+          <input
+            type="text"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagInputKeyDown}
+            onBlur={() => tagInput && addTag(tagInput)}
+            className="w-full px-3 py-2 bg-nuum-background border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/60 focus:outline-none focus:border-nuum-accent-blue"
+            placeholder="Type a name and press Enter to add attendees…"
+          />
+        </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={resetForm}
-              disabled={savingNewNote}
-              className="px-4 py-2 rounded-lg text-sm text-nuum-text-secondary hover:text-nuum-text-primary bg-nuum-background/60 border border-nuum-border/80 hover:border-nuum-accent-blue/70 transition-colors backdrop-blur"
-            >
-              Clear
-            </button>
-            <button
-              type="submit"
-              disabled={savingNewNote || !validateNewNote()}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-nuum-accent-blue to-[#5573ff] hover:from-[#3b58d6] hover:to-[#6a84ff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[0_10px_30px_rgba(37,99,235,0.45)]"
-            >
-              {savingNewNote ? 'Saving…' : 'Save note'}
-            </button>
-          </div>
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            onClick={resetForm}
+            disabled={savingNewNote}
+            className="px-4 py-2 rounded-lg text-sm text-nuum-text-secondary hover:text-nuum-text-primary bg-nuum-background border border-nuum-border hover:border-nuum-accent-blue transition-colors"
+          >
+            Clear
+          </button>
+          <button
+            type="submit"
+            disabled={savingNewNote || !validateNewNote()}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-nuum-accent-blue hover:bg-[#2f4fae] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {savingNewNote ? 'Saving…' : 'Save note'}
+          </button>
         </div>
       </form>
 
@@ -401,7 +405,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
             placeholder="Search notes…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-nuum-surface border border-nuum-border/80 rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/70 focus:outline-none focus:border-nuum-accent-blue/70"
+            className="w-full pl-10 pr-4 py-2 bg-nuum-surface border border-nuum-border rounded-lg text-sm text-nuum-text-primary placeholder:text-nuum-text-secondary/70 focus:outline-none focus:border-nuum-accent-blue"
           />
         </div>
 
@@ -434,7 +438,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
 
       {/* Notes list */}
       {filteredNotes.length === 0 ? (
-        <div className="text-center py-16 bg-nuum-surface/80 border border-nuum-border rounded-2xl backdrop-blur">
+        <div className="text-center py-16 bg-nuum-surface border border-nuum-border rounded-xl">
           <TagIcon className="w-10 h-10 text-nuum-text-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium text-nuum-text-primary mb-2">
             No notes yet
@@ -452,16 +456,14 @@ export function NotionsView({ workspace }: NotionsViewProps) {
               key={note.id}
               type="button"
               onClick={() => openNoteDetail(note)}
-              className="text-left bg-nuum-surface/80 border border-nuum-border/90 hover:border-nuum-accent-blue/80 rounded-2xl p-4 cursor-pointer transition-all group shadow-[0_10px_30px_rgba(0,0,0,0.35)] hover:-translate-y-[2px]"
+              className="text-left bg-nuum-surface border border-nuum-border hover:border-nuum-accent-blue/80 rounded-xl p-4 cursor-pointer transition-all group shadow-[0_10px_30px_rgba(0,0,0,0.35)] hover:-translate-y-[2px]"
             >
               <div className="flex items-center justify-between mb-2 text-xs text-nuum-text-tertiary">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>{formatDate(note.created_at)}</span>
                 </span>
-                <span className="opacity-70">
-                  {note.author || 'Unknown'}
-                </span>
+                <span>{note.author || 'Unknown'}</span>
               </div>
 
               <h3 className="text-base font-medium text-nuum-text-primary line-clamp-1 mb-2 group-hover:text-nuum-accent-blue">
@@ -494,21 +496,21 @@ export function NotionsView({ workspace }: NotionsViewProps) {
       {/* Detail modal in the center */}
       {showDetailDrawer && selectedNote && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           onClick={() => setShowDetailDrawer(false)}
         >
           <div
-            className="w-full max-w-2xl bg-gradient-to-br from-nuum-surface via-nuum-background to-black border border-nuum-border/80 rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.85)] max-h-[90vh] overflow-y-auto p-6"
+            className="w-full max-w-2xl bg-nuum-surface border border-nuum-border rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.6)] max-h-[90vh] overflow-y-auto p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-6 gap-4">
               <div>
-                <h3 className="text-xs uppercase tracking-[0.18em] text-nuum-text-secondary/70 mb-1">
-                  Note
-                </h3>
-                <h2 className="text-xl font-semibold text-nuum-text-primary">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-nuum-text-secondary mb-1">
+                  Note details
+                </p>
+                <h3 className="text-xl font-semibold text-nuum-text-primary line-clamp-2">
                   {selectedNote.title}
-                </h2>
+                </h3>
               </div>
               <button
                 onClick={() => setShowDetailDrawer(false)}
@@ -523,9 +525,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs text-nuum-text-tertiary">
                 <div className="flex items-center gap-2">
                   <User className="w-3.5 h-3.5" />
-                  <span>
-                    Created by {selectedNote.author || 'Unknown'}
-                  </span>
+                  <span>Created by {selectedNote.author || 'Unknown'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-3.5 h-3.5" />
@@ -534,9 +534,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
                 {selectedNote.updated_at && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>
-                      Updated on {formatDate(selectedNote.updated_at)}
-                    </span>
+                    <span>Updated on {formatDate(selectedNote.updated_at)}</span>
                   </div>
                 )}
               </div>
@@ -546,7 +544,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
                 <h4 className="text-sm font-medium text-nuum-text-secondary mb-2">
                   Content
                 </h4>
-                <p className="text-sm text-nuum-text-secondary whitespace-pre-line leading-relaxed bg-nuum-background/40 border border-nuum-border/60 rounded-xl p-4">
+                <p className="text-sm text-nuum-text-secondary whitespace-pre-line leading-relaxed bg-nuum-background border border-nuum-border rounded-lg p-4">
                   {selectedNote.content || 'No content'}
                 </p>
               </div>
@@ -573,7 +571,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
                   <button
                     type="button"
                     onClick={handleDownloadNote}
-                    className="px-4 py-2 rounded-lg text-sm font-medium bg-nuum-background/60 border border-nuum-border/70 hover:border-nuum-accent-blue/80 text-nuum-text-primary flex items-center justify-center gap-2 transition-colors backdrop-blur"
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-nuum-background border border-nuum-border hover:border-nuum-accent-blue text-nuum-text-primary flex items-center justify-center gap-2 transition-colors"
                   >
                     <Download className="w-4 h-4" />
                     Download
@@ -582,7 +580,7 @@ export function NotionsView({ workspace }: NotionsViewProps) {
                   <button
                     type="button"
                     onClick={handleShareNote}
-                    className="px-4 py-2 rounded-lg text-sm font-medium bg-nuum-background/60 border border-nuum-border/70 hover:border-nuum-accent-blue/80 text-nuum-text-primary flex items-center justify-center gap-2 transition-colors backdrop-blur"
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-nuum-background border border-nuum-border hover:border-nuum-accent-blue text-nuum-text-primary flex items-center justify-center gap-2 transition-colors"
                   >
                     <Share2 className="w-4 h-4" />
                     Share / Copy
@@ -590,18 +588,8 @@ export function NotionsView({ workspace }: NotionsViewProps) {
 
                   <button
                     type="button"
-                    onClick={async () => {
-                      if (!selectedNote) return;
-                      try {
-                        await navigator.clipboard.writeText(
-                          buildNoteText(selectedNote)
-                        );
-                        alert('Note copied to clipboard ✅');
-                      } catch (err) {
-                        console.error('Clipboard error:', err);
-                      }
-                    }}
-                    className="px-4 py-2 rounded-lg text-sm font-medium bg-nuum-background/60 border border-nuum-border/70 hover:border-nuum-accent-blue/80 text-nuum-text-primary flex items-center justify-center gap-2 transition-colors backdrop-blur"
+                    onClick={handleCopyNote}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-nuum-background border border-nuum-border hover:border-nuum-accent-blue text-nuum-text-primary flex items-center justify-center gap-2 transition-colors"
                   >
                     <Copy className="w-4 h-4" />
                     Copy text
