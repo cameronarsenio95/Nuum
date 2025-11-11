@@ -1,12 +1,29 @@
-import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { useState, useEffect } from 'react';
-import { Plus, Instagram, Mail, Phone, Tag, Edit2, Trash2, X, Link2, User, Lock, Ghost } from 'lucide-react';
+import {
+  Plus,
+  Instagram,
+  Mail,
+  Phone,
+  Tag,
+  Edit2,
+  Trash2,
+  X,
+  Link2,
+  User,
+  Lock,
+  Ghost,
+} from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWritePermission } from '../../hooks/useWritePermission';
+import { usePlanLimits } from '../../contexts/PlanLimitsContext';
 import { UpgradeModal } from '../modals/UpgradeModal';
 import type { Database } from '../../lib/database.types';
-import { CreatorFormModal, CreatorDetailModal, AddToCampaignModal } from './CreatorsView-modals';
+import {
+  CreatorFormModal,
+  CreatorDetailModal,
+  AddToCampaignModal,
+} from './CreatorsView-modals';
 
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
@@ -19,21 +36,36 @@ interface CreatorsViewProps {
 
 export function CreatorsView({ workspace }: CreatorsViewProps) {
   const { user } = useAuth();
-  const { limits, usage, getCreatorUsagePercent, refreshUsage } = usePlanLimits();
-  const { canWrite, canCreateCreator, checkWritePermission } = useWritePermission();
+
+  // 👉 Plan limits (nieuw)
+  const {
+    limits,
+    usage,
+    getCreatorUsagePercent,
+    refreshUsage,
+    canCreateCreator,
+  } = usePlanLimits();
+
+  // 👉 Schrijfrechten (rollen / permissies)
+  const { checkWritePermission } = useWritePermission();
+
   const [creators, setCreators] = useState<Creator[]>([]);
   const [creatorRevenues, setCreatorRevenues] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
   const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
   const [creatorToDelete, setCreatorToDelete] = useState<Creator | null>(null);
+
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [creatorAdSets, setCreatorAdSets] = useState<AdSet[]>([]);
+
   const [newCreator, setNewCreator] = useState({
     name: '',
     email: '',
@@ -66,6 +98,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
     } else {
       setCreators(data || []);
     }
+
     await refreshUsage();
     setLoading(false);
   };
@@ -80,6 +113,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
     if (error) {
       console.error('Error loading campaigns:', error);
     }
+
     setCampaigns(data || []);
   };
 
@@ -100,9 +134,10 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         .eq('creator_id', creator.id);
 
       if (data) {
-        revenues[creator.id] = data.reduce((sum, adSet) => {
-          return sum + (Number(adSet.revenue) || 0);
-        }, 0);
+        revenues[creator.id] = data.reduce(
+          (sum, adSet) => sum + (Number(adSet.revenue) || 0),
+          0
+        );
       }
     }
 
@@ -127,26 +162,30 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
     e.preventDefault();
     if (!user) return;
 
+    // 👉 Check plan-limiet
     if (!canCreateCreator()) {
       setShowCreateModal(false);
       setShowUpgradeModal(true);
       return;
     }
 
-    const { data, error } = await supabase.from('creators').insert({
-      workspace_id: workspace.id,
-      name: newCreator.name,
-      email: newCreator.email || null,
-      phone: newCreator.phone || null,
-      instagram_handle: newCreator.instagram_handle || null,
-      tiktok_handle: newCreator.tiktok_handle || null,
-      snapchat_handle: newCreator.snapchat_handle || null,
-      notes: newCreator.notes || null,
-      created_by: user.id,
-      status: newCreator.status,
-      tags: newCreator.tags.length > 0 ? newCreator.tags : null,
-      discount_code: newCreator.discount_code || null,
-    }).select();
+    const { data, error } = await supabase
+      .from('creators')
+      .insert({
+        workspace_id: workspace.id,
+        name: newCreator.name,
+        email: newCreator.email || null,
+        phone: newCreator.phone || null,
+        instagram_handle: newCreator.instagram_handle || null,
+        tiktok_handle: newCreator.tiktok_handle || null,
+        snapchat_handle: newCreator.snapchat_handle || null,
+        notes: newCreator.notes || null,
+        created_by: user.id,
+        status: newCreator.status,
+        tags: newCreator.tags.length > 0 ? newCreator.tags : null,
+        discount_code: newCreator.discount_code || null,
+      })
+      .select();
 
     if (error) {
       console.error('Error creating creator:', error);
@@ -298,13 +337,19 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
 
   const addTag = () => {
     if (tagInput.trim() && !newCreator.tags.includes(tagInput.trim())) {
-      setNewCreator({ ...newCreator, tags: [...newCreator.tags, tagInput.trim()] });
+      setNewCreator({
+        ...newCreator,
+        tags: [...newCreator.tags, tagInput.trim()],
+      });
       setTagInput('');
     }
   };
 
   const removeTag = (tag: string) => {
-    setNewCreator({ ...newCreator, tags: newCreator.tags.filter(t => t !== tag) });
+    setNewCreator({
+      ...newCreator,
+      tags: newCreator.tags.filter((t) => t !== tag),
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -326,6 +371,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
 
   return (
     <div>
+      {/* Header + usage bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -337,6 +383,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
             )}
           </div>
           <p className="text-nuum-text-secondary">Manage your influencer database</p>
+
           {limits.maxCreators !== null && getCreatorUsagePercent() > 80 && (
             <div className="mt-2 flex items-center gap-2">
               <div className="flex-1 h-2 bg-nuum-border rounded-full overflow-hidden">
@@ -357,6 +404,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
             </div>
           )}
         </div>
+
         <button
           onClick={() => {
             if (canCreateCreator()) {
@@ -371,16 +419,23 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
               : 'bg-nuum-border text-nuum-text-secondary cursor-not-allowed'
           }`}
         >
-          {canCreateCreator() ? <Plus className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+          {canCreateCreator() ? (
+            <Plus className="w-4 h-4" />
+          ) : (
+            <Lock className="w-4 h-4" />
+          )}
           Add Creator
         </button>
       </div>
 
+      {/* Creator grid / empty state */}
       {creators.length === 0 ? (
         <div className="text-center py-20 bg-nuum-surface border border-nuum-border rounded-xl">
           <UsersIcon className="w-12 h-12 text-nuum-text-secondary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">No creators yet</h3>
-          <p className="text-nuum-text-secondary mb-6">Add your first creator to start building your database</p>
+          <p className="text-nuum-text-secondary mb-6">
+            Add your first creator to start building your database
+          </p>
           <button
             onClick={() => {
               if (canCreateCreator()) {
@@ -409,7 +464,11 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="font-medium text-lg mb-1">{creator.name}</h3>
-                  <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(creator.status)}`}>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(
+                      creator.status
+                    )}`}
+                  >
                     {creator.status}
                   </span>
                 </div>
@@ -442,7 +501,9 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
                 {creator.discount_code && (
                   <div className="flex items-center gap-2 text-sm text-nuum-text-secondary">
                     <Tag className="w-4 h-4" />
-                    <span className="font-mono text-white">{creator.discount_code}</span>
+                    <span className="font-mono text-white">
+                      {creator.discount_code}
+                    </span>
                   </div>
                 )}
               </div>
@@ -489,7 +550,10 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
               {creator.tags && creator.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-3">
                   {creator.tags.slice(0, 3).map((tag, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-nuum-dark-blue text-nuum-accent-blue text-xs rounded-full">
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-nuum-dark-blue text-nuum-accent-blue text-xs rounded-full"
+                    >
                       {tag}
                     </span>
                   ))}
@@ -503,7 +567,9 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
 
               {creatorRevenues[creator.id] > 0 && (
                 <div className="mt-3 pt-3 border-t border-nuum-border">
-                  <div className="text-xs text-nuum-text-secondary mb-1">Total Revenue</div>
+                  <div className="text-xs text-nuum-text-secondary mb-1">
+                    Total Revenue
+                  </div>
                   <div className="text-lg font-medium text-nuum-accent-green">
                     ${creatorRevenues[creator.id].toLocaleString()}
                   </div>
@@ -514,6 +580,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         </div>
       )}
 
+      {/* Create */}
       {showCreateModal && (
         <CreatorFormModal
           newCreator={newCreator}
@@ -523,12 +590,16 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
           addTag={addTag}
           removeTag={removeTag}
           onSubmit={handleCreateCreator}
-          onCancel={() => { setShowCreateModal(false); resetForm(); }}
+          onCancel={() => {
+            setShowCreateModal(false);
+            resetForm();
+          }}
           submitLabel="Add Creator"
           title="Add New Creator"
         />
       )}
 
+      {/* Edit */}
       {showEditModal && selectedCreator && (
         <CreatorFormModal
           newCreator={newCreator}
@@ -538,7 +609,10 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
           addTag={addTag}
           removeTag={removeTag}
           onSubmit={handleUpdateCreator}
-          onCancel={() => { setShowEditModal(false); resetForm(); }}
+          onCancel={() => {
+            setShowEditModal(false);
+            resetForm();
+          }}
           submitLabel="Save Changes"
           title="Edit Creator"
           onDelete={() => {
@@ -548,6 +622,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         />
       )}
 
+      {/* Detail */}
       {showDetailModal && selectedCreator && (
         <CreatorDetailModal
           creator={selectedCreator}
@@ -565,6 +640,7 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         />
       )}
 
+      {/* Add to campaign */}
       {showCampaignModal && selectedCreator && (
         <AddToCampaignModal
           campaigns={campaigns}
@@ -573,12 +649,23 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         />
       )}
 
+      {/* Delete confirm */}
       {showDeleteConfirm && creatorToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-nuum-surface border border-nuum-border rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            className="bg-nuum-surface border border-nuum-border rounded-xl p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-xl font-medium mb-4">Delete Creator</h3>
             <p className="text-nuum-text-secondary mb-6">
-              Are you sure you want to delete <span className="font-medium text-nuum-text-main">{creatorToDelete.name}</span>? This action cannot be undone.
+              Are you sure you want to delete{' '}
+              <span className="font-medium text-nuum-text-main">
+                {creatorToDelete.name}
+              </span>
+              ? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
@@ -598,13 +685,14 @@ export function CreatorsView({ workspace }: CreatorsViewProps) {
         </div>
       )}
 
+      {/* Upgrade modal */}
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         currentPlan={workspace.plan}
         workspaceId={workspace.id}
         reason="You've reached your creator limit. Upgrade to add more creators to your workspace."
-        suggestedPlan={workspace.plan === 'free' ? 'standard' : 'elite'}
+        suggestedPlan={workspace.plan === 'standard' ? 'elite' : 'enterprise'}
       />
     </div>
   );
