@@ -322,21 +322,8 @@ export function LinkContentModal({
     }).format(date);
   };
 
-  const getPlatformBadgeColor = (platform: string | null) => {
-    if (!platform) return 'bg-gray-500/20 text-gray-400';
-
-    switch (platform) {
-      case 'Instagram':
-        return 'bg-pink-500/20 text-pink-400';
-      case 'TikTok':
-        return 'bg-cyan-500/20 text-cyan-400';
-      case 'Snapchat':
-        return 'bg-yellow-500/20 text-yellow-400';
-      case 'YouTube':
-        return 'bg-red-500/20 text-red-400';
-      default:
-        return 'bg-gray-500/20 text-gray-400';
-    }
+  const getPlatformBadgeColor = () => {
+    return 'dark:bg-linear-bg-subtle light:bg-linear-light-bg-subtle dark:text-text-secondary light:text-text-light-secondary';
   };
 
   if (!isOpen) return null;
@@ -359,14 +346,14 @@ export function LinkContentModal({
           onClick={onClose}
         />
 
-        <div className="relative w-full max-w-3xl bg-[#1a1f1a] rounded-xl shadow-2xl border border-[#2d342d]">
+        <div className="relative w-full max-w-3xl dark:bg-background light:bg-background-light rounded-xl shadow-2xl dark:border-border light:border-border-light">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#2d342d]">
+          <div className="flex items-center justify-between px-6 py-4 dark:border-b dark:border-border light:border-b light:border-border-light">
             <div>
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold dark:text-text-primary light:text-text-light-primary">
                 Link Content to Ad Set
               </h2>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm dark:text-text-secondary light:text-text-light-secondary mt-1">
                 {adSetName}
                 {platform && <span className="ml-2">· {platform}</span>}
               </p>
@@ -374,20 +361,20 @@ export function LinkContentModal({
 
             {/* ✅ ADDED: plan/limiet badge */}
             <div className="flex items-center gap-2">
-              <span className="text-xs px-2 py-1 rounded-full border border-[#2d342d] text-gray-400">
+              <span className="text-xs px-2 py-1 rounded-full dark:border dark:border-border light:border light:border-border-light dark:text-text-secondary light:text-text-light-secondary">
                 Plan: {planName}
               </span>
               {contentSoftCap != null && (
-                <span className="text-xs px-2 py-1 rounded-full border border-[#2d342d] text-gray-400">
+                <span className="text-xs px-2 py-1 rounded-full dark:border dark:border-border light:border light:border-border-light dark:text-text-secondary light:text-text-light-secondary">
                   Max content items: {contentSoftCap}
                 </span>
               )}
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-[#2d342d] rounded-lg transition-colors"
+                className="p-2 dark:hover:bg-surface light:hover:bg-surface-light rounded-lg transition-colors"
                 disabled={saving}
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 dark:text-text-secondary light:text-text-light-secondary" />
               </button>
             </div>
           </div>
@@ -395,8 +382,8 @@ export function LinkContentModal({
           {/* Body */}
           <div className="px-6 py-4">
             {!loading && !creatorId && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-sm text-red-400">
+              <div className="mb-4 p-3 dark:bg-nuum-accent-red/10 light:bg-red-500/10 dark:border dark:border-nuum-accent-red/30 light:border light:border-red-500/30 rounded-lg">
+                <p className="text-sm dark:text-nuum-accent-red light:text-red-600">
                   ⚠️ No creator selected for this ad set. Please assign a
                   creator to the ad set first.
                 </p>
@@ -406,19 +393,19 @@ export function LinkContentModal({
             {/* ✅ ADDED: bulk actions (client-side only) */}
             {!loading && items.length > 0 && (
               <div className="flex items-center justify-between mb-3">
-                <div className="text-xs text-gray-400">
+                <div className="text-xs dark:text-text-secondary light:text-text-light-secondary">
                   {items.length} item{items.length === 1 ? '' : 's'} available
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleSelectAll}
-                    className="px-3 py-1.5 text-xs rounded-lg border border-[#2d342d] text-gray-300 hover:bg-[#253025] transition-colors"
+                    className="px-3 py-1.5 text-xs rounded-lg dark:border dark:border-border light:border light:border-border-light dark:text-text-primary light:text-text-light-primary dark:hover:bg-surface light:hover:bg-surface-light transition-colors"
                   >
                     Select All
                   </button>
                   <button
                     onClick={handleClear}
-                    className="px-3 py-1.5 text-xs rounded-lg border border-[#2d342d] text-gray-300 hover:bg-[#253025] transition-colors"
+                    className="px-3 py-1.5 text-xs rounded-lg dark:border dark:border-border light:border light:border-border-light dark:text-text-primary light:text-text-light-primary dark:hover:bg-surface light:hover:bg-surface-light transition-colors"
                   >
                     Clear
                   </button>
@@ -432,11 +419,11 @@ export function LinkContentModal({
               </div>
             ) : items.length === 0 ? (
               <div className="text-center py-12">
-                <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400">
+                <ImageIcon className="w-12 h-12 dark:text-text-tertiary light:text-text-light-tertiary mx-auto mb-3" />
+                <p className="dark:text-text-secondary light:text-text-light-secondary">
                   No content available for this creator/ad set
                 </p>
-                <p className="text-gray-500 text-sm mt-2">
+                <p className="dark:text-text-tertiary light:text-text-light-tertiary text-sm mt-2">
                   Upload content in the Content Library first
                 </p>
               </div>
@@ -453,11 +440,11 @@ export function LinkContentModal({
                       onClick={() => toggleSelection(item.id)}
                       className={`flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-colors ${
                         isSelected
-                          ? 'bg-blue-500/10 border border-blue-500/30'
-                          : 'bg-[#1e2921] hover:bg-[#252f25] border border-transparent'
+                          ? 'dark:bg-nuum-accent-blue/10 light:bg-blue-500/10 dark:border dark:border-nuum-accent-blue/30 light:border light:border-blue-500/30'
+                          : 'dark:bg-surface light:bg-surface-light dark:hover:bg-border light:hover:bg-border-light border border-transparent'
                       }`}
                     >
-                      <div className="flex-shrink-0 w-16 h-16 bg-[#2d342d] rounded-lg overflow-hidden flex items-center justify-center">
+                      <div className="flex-shrink-0 w-16 h-16 dark:bg-border light:bg-border-light rounded-lg overflow-hidden flex items-center justify-center">
                         {isImage ? (
                           <img
                             src={item.file_url}
@@ -470,25 +457,23 @@ export function LinkContentModal({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <ImageIcon className="w-8 h-8 text-gray-600" />
+                          <ImageIcon className="w-8 h-8 dark:text-text-tertiary light:text-text-light-tertiary" />
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">
+                        <p className="text-sm font-medium dark:text-text-primary light:text-text-light-primary truncate">
                           {item.file_name}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           {item.platform && (
                             <span
-                              className={`px-2 py-0.5 rounded text-xs ${getPlatformBadgeColor(
-                                item.platform,
-                              )}`}
+                              className={`px-2 py-0.5 rounded text-xs ${getPlatformBadgeColor()}`}
                             >
                               {item.platform}
                             </span>
                           )}
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs dark:text-text-tertiary light:text-text-light-tertiary">
                             {formatDate(item.created_at)}
                           </span>
                         </div>
@@ -499,7 +484,7 @@ export function LinkContentModal({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelection(item.id)}
-                          className="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 bg-[#1a1f1a]"
+                          className="w-5 h-5 rounded dark:border-border light:border-border-light dark:text-nuum-accent-blue light:text-blue-500 focus:ring-2 dark:focus:ring-nuum-accent-blue light:focus:ring-blue-500 focus:ring-offset-0 dark:bg-background light:bg-background-light"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
@@ -511,22 +496,22 @@ export function LinkContentModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-[#2d342d]">
-            <p className="text-sm text-gray-400">
+          <div className="flex items-center justify-between px-6 py-4 dark:border-t dark:border-border light:border-t light:border-border-light">
+            <p className="text-sm dark:text-text-secondary light:text-text-light-secondary">
               {selectionInfo}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={onClose}
                 disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2d342d] rounded-lg transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium dark:text-text-secondary light:text-text-light-secondary dark:hover:text-text-primary light:hover:text-text-light-primary dark:hover:bg-surface light:hover:bg-surface-light rounded-lg transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 text-sm font-medium text-white dark:bg-nuum-accent-blue light:bg-blue-600 dark:hover:bg-nuum-dark-blue light:hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {saving ? (
                   <>
