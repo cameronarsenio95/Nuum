@@ -18,6 +18,9 @@ import { AdSetFormModal } from '../components/campaigns/AdSetFormModal';
 import { LinkContentModal } from '../components/modals/LinkContentModal';
 import type { Database } from '../lib/database.types';
 
+// ✅ ADDED: plan-limits
+import { usePlanLimits } from '../contexts/PlanLimitsContext';
+
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type AdSet = Database['public']['Tables']['ad_sets']['Row'];
 type Creator = Database['public']['Tables']['creators']['Row'];
@@ -92,8 +95,23 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     totalCreators: 0,
   });
 
+  // ✅ ADDED: plan-limits helpers
+  const {
+    limits,
+    usage,
+    refreshUsage,
+    canCreateAdSet,
+    getAdSetUsagePercent,
+  } = usePlanLimits();
+
   useEffect(() => {
     loadCampaignData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaignId, workspaceId]);
+
+  // ✅ ADDED: usage sync bij initial load
+  useEffect(() => {
+    refreshUsage().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId, workspaceId]);
 
@@ -197,6 +215,9 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
     }
 
     setLoading(false);
+
+    // ✅ ADDED: usage na data load bijwerken
+    refreshUsage().catch(() => {});
   };
 
   const handleAddAdSet = () => {
@@ -271,6 +292,16 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
 
     setLoadingContent(false);
   };
+
+  // ✅ ADDED: Guard — als modal opent maar limiet bereikt is, sluit direct en geef melding
+  useEffect(() => {
+    if (!showAdSetModal) return;
+    if (typeof canCreateAdSet === 'function' && !canCreateAdSet(adSets.length)) {
+      setShowAdSetModal(false);
+      alert('Ad set limit reached for your plan. Please upgrade to add more ad sets to this campaign.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAdSetModal, adSets.length, limits.maxAdSetsPerCampaign]);
 
   if (loading) {
     return <div className="text-nuum-text-secondary">Loading campaign...</div>;
@@ -455,6 +486,36 @@ export function CampaignDetail({ campaignId, workspaceId, onBack }: CampaignDeta
               {metrics.totalCreators}
             </div>
           </div>
+        </div>
+
+        {/* ✅ ADDED: Ad Set usage banner */}
+        <div className="bg-nuum-surface border border-nuum-border rounded-xl p-4 mb-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-nuum-text-secondary">
+              Ad Sets {typeof limits.maxAdSetsPerCampaign === 'number'
+                ? `— ${adSets.length}/${limits.maxAdSetsPerCampaign}`
+                : `— ${adSets.length}`}
+            </span>
+            {typeof getAdSetUsagePercent === 'function' && typeof limits.maxAdSetsPerCampaign === 'number' && (
+              <span className="text-xs text-nuum-text-tertiary">
+                {getAdSetUsagePercent(adSets.length).toFixed(0)}%
+              </span>
+            )}
+          </div>
+          {typeof getAdSetUsagePercent === 'function' && typeof limits.maxAdSetsPerCampaign === 'number' && (
+            <div className="mt-2 h-1.5 w-full bg-nuum-border rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all ${
+                  getAdSetUsagePercent(adSets.length) >= 100
+                    ? 'bg-nuum-accent-red'
+                    : getAdSetUsagePercent(adSets.length) >= 85
+                    ? 'bg-nuum-accent-orange'
+                    : 'bg-nuum-accent-blue'
+                }`}
+                style={{ width: `${Math.min(getAdSetUsagePercent(adSets.length), 100)}%` }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Ad Sets */}
