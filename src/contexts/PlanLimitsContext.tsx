@@ -11,6 +11,7 @@ interface WorkspaceUsage {
   teamMemberCount: number;
   campaignCount: number;
   taskCount: number;
+  contentCount: number;
 }
 
 type PlanLimits = BasePlanLimits & {
@@ -40,6 +41,8 @@ interface PlanLimitsContextType {
   trialInfo: TrialInfo;
   freeAccountInfo: FreeAccountInfo;
   loading: boolean;
+
+  // bestaande helpers
   canCreateCreator: () => boolean;
   canUploadContent: (fileSizeBytes: number) => boolean;
   canAddTeamMember: () => boolean;
@@ -47,6 +50,16 @@ interface PlanLimitsContextType {
   getStorageUsagePercent: () => number;
   getCreatorUsagePercent: () => number;
   getTeamMemberUsagePercent: () => number;
+
+  // nieuwe helpers/limits
+  canCreateCampaign: () => boolean;
+  canCreateAdSet: (campaignId: string) => Promise<boolean>;
+  canAddContentItem: () => boolean;
+  getCampaignUsagePercent: () => number;
+  getContentUsagePercent: () => number;
+  getAdSetCountForCampaign: (campaignId: string) => Promise<number>;
+
+  // system
   refreshUsage: () => Promise<void>;
   isTrialExpiringSoon: () => boolean;
   isFreeAccountExpiringSoon: () => boolean;
@@ -67,6 +80,7 @@ export function PlanLimitsProvider({
     teamMemberCount: 0,
     campaignCount: 0,
     taskCount: 0,
+    contentCount: 0,
   });
 
   const [limits, setLimits] = useState<PlanLimits>({
@@ -146,9 +160,8 @@ export function PlanLimitsProvider({
       isExpired: isFreePlan && freeExpiresAt <= now,
     });
 
-    // 🚀 Limits nu gebaseerd op PLAN_CONFIG + bestaande logica
+    // Limits via PLAN_CONFIG met trial → Elite cap
     if (isTrialActive) {
-      // Trial → gebruik Elite-limits als basis
       const eliteBase = PLAN_CONFIG.elite;
       setLimits({
         ...eliteBase,
@@ -225,11 +238,18 @@ export function PlanLimitsProvider({
         workspace_id_input: workspace.id,
       });
 
+      // Altijd losse contentCount ophalen (RPC heeft dit vaak niet)
+      const [{ count: contentCount = 0 } = {} as any] = await Promise.all([
+        supabase
+          .from('content_media')
+          .select('id', { count: 'exact', head: true })
+          .eq('workspace_id', workspace.id),
+      ]);
+
       if (error) {
         console.error('Error loading workspace usage:', error);
-        console.log('Falling back to direct queries...');
-
-        const [creatorsRes, storageRes, membersRes, campaignsRes, tasksRes] =
+        // Fallback op directe queries
+        const [creatorsRes, storageRes, membersRes, campaignsRes, tasksRes, contentCountRes] =
           await Promise.all([
             supabase
               .from('creators')
@@ -251,6 +271,10 @@ export function PlanLimitsProvider({
               .from('tasks')
               .select('id', { count: 'exact', head: true })
               .eq('workspace_id', workspace.id),
+            supabase
+              .from('content_media')
+              .select('id', { count: 'exact', head: true })
+              .eq('workspace_id', workspace.id),
           ]);
 
         const storageUsed =
@@ -265,6 +289,7 @@ export function PlanLimitsProvider({
           teamMemberCount: (membersRes.count || 0) + 1,
           campaignCount: campaignsRes.count || 0,
           taskCount: tasksRes.count || 0,
+          contentCount: contentCountRes.count || 0,
         });
         return;
       }
@@ -277,18 +302,55 @@ export function PlanLimitsProvider({
           teamMemberCount: Number(usageData.team_member_count) || 0,
           campaignCount: Number(usageData.campaign_count) || 0,
           taskCount: Number(usageData.task_count) || 0,
+          contentCount: Number((usageData as any).content_count) || contentCount || 0,
         });
+      } else {
+        // geen data terug → tenminste contentCount invullen
+        setUsage((prev) => ({ ...prev, contentCount: contentCount || 0 }));
       }
     } catch (err) {
       console.error('Unexpected error in refreshUsage:', err);
     }
   };
 
+  // -------- Per-campaign ad set count --------
+  const getAdSetCountForCampaign = async (campaignId: string) => {
+    const { count, error } = await supabase
+      .from('ad_sets')
+      .select('id', { count: 'exact', head: true })
+      .eq('campaign_id', campaignId);
+
+    if (error) {
+      console.error('getAdSetCountForCampaign error:', error);
+      return 0;
+    }
+    return count || 0;
+  };
+
+  // -------- Checks --------
   const canCreateCreator = () => {
     if (limits.maxCreators === null) return true;
     return usage.creatorCount < limits.maxCreators;
   };
 
+  const canCreateCampaign = () => {
+    if (limits.maxCampaigns === null) return true;
+    return usage.campaignCount < limits.maxCampaigns;
+  };
+
+  const canCreateAdSet = async (campaignId: string) => {
+    if (limits.maxAdSetsPerCampaign === null) return true;
+    const count = await getAdSetCountForCampaign(campaignId);
+    return count < limits.maxAdSetsPerCampaign;
+  };
+
+  // content-items limiet (aantal records)
+  const canAddContentItem = () => {
+    if (limits.maxContentItems === null) return true;
+    return usage.contentCount < limits.maxContentItems;
+  };
+
+  // storage-cap (bestaande)
   const canUploadContent = (fileSizeBytes: number) => {
     if (limits.maxStorageGb === null) return true;
     const maxStorageBytes = limits.maxStorageGb * 1024 * 1024 * 1024;
@@ -304,6 +366,7 @@ export function PlanLimitsProvider({
     return limits.features[featureKey] === true;
   };
 
+  // -------- Usage percents --------
   const getStorageUsagePercent = () => {
     if (limits.maxStorageGb === null) return 0;
     const maxStorageBytes = limits.maxStorageGb * 1024 * 1024 * 1024;
@@ -320,6 +383,17 @@ export function PlanLimitsProvider({
     return Math.min((usage.teamMemberCount / limits.maxTeamMembers) * 100, 100);
   };
 
+  const getCampaignUsagePercent = () => {
+    if (limits.maxCampaigns === null) return 0;
+    return Math.min((usage.campaignCount / limits.maxCampaigns) * 100, 100);
+  };
+
+  const getContentUsagePercent = () => {
+    if (limits.maxContentItems === null) return 0;
+    return Math.min((usage.contentCount / limits.maxContentItems) * 100, 100);
+    };
+
+  // -------- Nudges --------
   const isTrialExpiringSoon = () => {
     return trialInfo.isActive && trialInfo.daysRemaining <= 2;
   };
@@ -341,14 +415,24 @@ export function PlanLimitsProvider({
         trialInfo,
         freeAccountInfo,
         loading,
+        // checks
         canCreateCreator,
         canUploadContent,
         canAddTeamMember,
         hasFeature,
+        canCreateCampaign,
+        canCreateAdSet,
+        canAddContentItem,
+        // usage percents
         getStorageUsagePercent,
         getCreatorUsagePercent,
         getTeamMemberUsagePercent,
+        getCampaignUsagePercent,
+        getContentUsagePercent,
+        // tools
         refreshUsage,
+        getAdSetCountForCampaign,
+        // nudges
         isTrialExpiringSoon,
         isFreeAccountExpiringSoon,
       }}
