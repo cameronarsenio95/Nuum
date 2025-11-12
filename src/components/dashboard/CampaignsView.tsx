@@ -6,6 +6,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useWritePermission } from '../../hooks/useWritePermission';
 import type { Database } from '../../lib/database.types';
 
+// ✅ ADDED: plan-limits
+import { usePlanLimits } from '../../contexts/PlanLimitsContext';
+
 type Workspace = Database['public']['Tables']['workspaces']['Row'];
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 
@@ -54,9 +57,35 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
     status: 'draft' as 'draft' | 'active' | 'completed' | 'archived',
   });
 
+  // ✅ ADDED: plan-limits hooks/values
+  const {
+    limits,
+    usage,
+    refreshUsage,
+    canCreateCampaign,
+    getCampaignUsagePercent,
+  } = usePlanLimits();
+
   useEffect(() => {
     loadCampaigns();
   }, [workspace.id]);
+
+  // ✅ ADDED: bij eerste mount/na workspace wissel usage syncen
+  useEffect(() => {
+    refreshUsage().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace.id]);
+
+  // ✅ ADDED: guard — als limiet bereikt is en user klikt op “New Campaign”,
+  // sluiten we de modal direct en geven we een melding (zonder bestaande button te wijzigen)
+  useEffect(() => {
+    if (showCreateModal && typeof canCreateCampaign === 'function' && !canCreateCampaign()) {
+      setShowCreateModal(false);
+      // hier kun je later een UpgradeModal aanroepen; nu houden we het bij een melding
+      alert('Campaign limit reached for your plan. Please upgrade to create more campaigns.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCreateModal, usage.campaignCount, limits.maxCampaigns]);
 
   const loadCampaigns = async () => {
     setLoading(true);
@@ -104,6 +133,9 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
 
     setCampaigns(campaignsWithMetrics);
     setLoading(false);
+
+    // ✅ ADDED: usage bijwerken na load (non-blocking)
+    refreshUsage().catch(() => {});
   };
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
@@ -156,6 +188,36 @@ export function CampaignsView({ workspace, onCampaignClick }: CampaignsViewProps
           </button>
         }
       >
+        {/* ✅ ADDED: usage-banner boven de lijst (non-intrusive) */}
+        <div className="mb-4 -mt-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-nuum-text-secondary">
+              Campaigns {typeof limits.maxCampaigns === 'number'
+                ? `— ${usage.campaignCount}/${limits.maxCampaigns}`
+                : `— ${usage.campaignCount}`}
+            </span>
+            {typeof getCampaignUsagePercent === 'function' && typeof limits.maxCampaigns === 'number' && (
+              <span className="text-xs text-nuum-text-tertiary">
+                {getCampaignUsagePercent().toFixed(0)}%
+              </span>
+            )}
+          </div>
+          {typeof getCampaignUsagePercent === 'function' && typeof limits.maxCampaigns === 'number' && (
+            <div className="mt-2 h-1.5 w-full bg-nuum-border rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all ${
+                  getCampaignUsagePercent() >= 100
+                    ? 'bg-nuum-accent-red'
+                    : getCampaignUsagePercent() >= 85
+                    ? 'bg-nuum-accent-orange'
+                    : 'bg-nuum-accent-blue'
+                }`}
+                style={{ width: `${Math.min(getCampaignUsagePercent(), 100)}%` }}
+              />
+            </div>
+          )}
+        </div>
+
         {campaigns.length === 0 ? (
           <div className="bg-nuum-surface border border-nuum-border rounded-xl p-8">
             <div className="text-center py-12">
