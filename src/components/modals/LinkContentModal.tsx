@@ -4,6 +4,9 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import { LoadingSpinner } from '../LoadingSpinner';
 
+// ✅ ADDED: plan limits (alleen UI-informatie)
+import { usePlanLimits } from '../../contexts/PlanLimitsContext';
+
 interface ContentItem {
   id: string;
   file_name: string;
@@ -43,6 +46,9 @@ export function LinkContentModal({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
+
+  // ✅ ADDED: plan limits voor visuele feedback
+  const { limits, workspace } = usePlanLimits();
 
   useEffect(() => {
     if (isOpen) {
@@ -237,6 +243,14 @@ export function LinkContentModal({
     );
   };
 
+  // ✅ ADDED: helpers om alles te selecteren/clearen (geen writes, pas bij Save)
+  const handleSelectAll = () => {
+    setSelectedIds(items.map((i) => i.id));
+  };
+  const handleClear = () => {
+    setSelectedIds([]);
+  };
+
   const handleSave = async () => {
     setSaving(true);
 
@@ -327,6 +341,16 @@ export function LinkContentModal({
 
   if (!isOpen) return null;
 
+  // ✅ ADDED: afgeleide UI-informatie (geen blokkades)
+  const planName =
+    (workspace?.plan as string | undefined) || '—';
+  const contentSoftCap =
+    typeof limits.maxContentItems === 'number' ? limits.maxContentItems : null;
+  const selectionInfo =
+    contentSoftCap != null
+      ? `${selectedIds.length}/${contentSoftCap} selected`
+      : `${selectedIds.length} selected`;
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
@@ -347,13 +371,25 @@ export function LinkContentModal({
                 {platform && <span className="ml-2">· {platform}</span>}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-[#2d342d] rounded-lg transition-colors"
-              disabled={saving}
-            >
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
+
+            {/* ✅ ADDED: plan/limiet badge */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-1 rounded-full border border-[#2d342d] text-gray-400">
+                Plan: {planName}
+              </span>
+              {contentSoftCap != null && (
+                <span className="text-xs px-2 py-1 rounded-full border border-[#2d342d] text-gray-400">
+                  Max content items: {contentSoftCap}
+                </span>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-[#2d342d] rounded-lg transition-colors"
+                disabled={saving}
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
           </div>
 
           {/* Body */}
@@ -364,6 +400,29 @@ export function LinkContentModal({
                   ⚠️ No creator selected for this ad set. Please assign a
                   creator to the ad set first.
                 </p>
+              </div>
+            )}
+
+            {/* ✅ ADDED: bulk actions (client-side only) */}
+            {!loading && items.length > 0 && (
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs text-gray-400">
+                  {items.length} item{items.length === 1 ? '' : 's'} available
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSelectAll}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-[#2d342d] text-gray-300 hover:bg-[#253025] transition-colors"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={handleClear}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-[#2d342d] text-gray-300 hover:bg-[#253025] transition-colors"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
             )}
 
@@ -454,8 +513,7 @@ export function LinkContentModal({
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-[#2d342d]">
             <p className="text-sm text-gray-400">
-              {selectedIds.length}{' '}
-              {selectedIds.length === 1 ? 'item' : 'items'} selected
+              {selectionInfo}
             </p>
             <div className="flex gap-3">
               <button
