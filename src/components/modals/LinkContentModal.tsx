@@ -346,7 +346,7 @@ export function LinkContentModal({
           onClick={onClose}
         />
 
-        <div className="relative w-full max-w-3xl dark:bg-background light:bg-background-light rounded-xl shadow-2xl dark:border-border light:border-border-light">
+        <div className="relative w-full max-w-3xl dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary rounded-xl shadow-2xl dark:border-linear-border light:border-linear-light-border">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 dark:border-b dark:border-border light:border-b light:border-border-light">
             <div>
@@ -484,7 +484,7 @@ export function LinkContentModal({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelection(item.id)}
-                          className="w-5 h-5 rounded dark:border-border light:border-border-light dark:text-nuum-accent-blue light:text-blue-500 focus:ring-2 dark:focus:ring-nuum-accent-blue light:focus:ring-blue-500 focus:ring-offset-0 dark:bg-background light:bg-background-light"
+                          className="w-5 h-5 rounded dark:border-border light:border-border-light dark:text-nuum-accent-blue light:text-blue-500 focus:ring-2 dark:focus:ring-nuum-accent-blue light:focus:ring-blue-500 focus:ring-offset-0 dark:bg-linear-bg-secondary light:bg-linear-light-bg-secondary"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
